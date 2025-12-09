@@ -24,3 +24,15 @@
     Also note that in yml each key is unique like spring should be used only one and all
     other method related to spring if we are calling it has to be below this spring only.
     We cannot initate another spring key in yml file.
+
+    localhost:8080/h2-console   --> h2 console login page from browser if enable in yml/properties file.
+    A form will come in h2 console which will auto populate some values from yml file make sure it matches
+    the yml file.
+
+*3* Creation of Schema for database
+    Create a file with name schema.sql in resoruces folder where our application.properties or
+    application.yml is located.
+    In this schema.sql file we'll write query to create table.
+        -- mistake, table & column need not to be quoted and if you want to do that then use either
+        -- double quotes(") or brackets(`) this bracket symbol is below esc button in keyboard.
+        -- Again best to not quote it. and single quote treated as string.

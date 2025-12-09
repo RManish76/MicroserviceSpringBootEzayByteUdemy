@@ -1,15 +1,14 @@
 spring:
     application:
         name: accounts
-
     datasource:
-        url: jdbc:he:memtest.db
+        url: jdbc:h2:mem:testdb
         driverClassName: org.h2.Driver
         username: sa
         password: ''
     h2:
         console:
-            enabled: true #enable true mean we will able to login to h2 console from browser.
+            enabled: true #enable true mean we will able to login to h2 console from browser. localhost:8080/h2-console
     
     jpa:
         database-platform: org.hibernate.dialect.H2Dialect
