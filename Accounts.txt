@@ -1,1 +1,22 @@
-Dependency: Web, H2, JPA, Actuator, Lombok, validation
+*1* Dependency: Web, H2, JPA, Actuator, Lombok, validation
+
+*2* Renamed the application.properties to application.yml
+    yml work on identation like python.
+    every . is replace with : and the text after : has to be in next line. And to pass the value
+    instead of = in yml we just put : and a single space like below example
+        In Properties
+            spring.application.name=accounts
+        In yml
+            spring:
+                application:
+                    name: accounts
+
+    Benifit if we have value like below in properties then you can note we are typing less words in yml.
+        spring.datasource:url=jbdc:h2:mem:testdb
+        spring.datasource:username=org.he.Driver
+        
+        In yml
+            spring:
+                datasource:
+                    url: jbdc:h2:mem:testdb
+                    username: org.he.Driver
