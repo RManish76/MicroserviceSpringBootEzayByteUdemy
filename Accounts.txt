@@ -20,3 +20,7 @@
                 datasource:
                     url: jbdc:h2:mem:testdb
                     username: org.he.Driver
+
+    Also note that in yml each key is unique like spring should be used only one and all
+    other method related to spring if we are calling it has to be below this spring only.
+    We cannot initate another spring key in yml file.
