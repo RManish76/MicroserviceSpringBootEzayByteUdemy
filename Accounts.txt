@@ -1,0 +1,1 @@
+Dependency: Web, H2, JPA, Actuator, Lombok, validation
