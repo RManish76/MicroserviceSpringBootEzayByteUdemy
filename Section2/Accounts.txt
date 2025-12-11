@@ -50,4 +50,20 @@
         @Column(insertable = false) //insertable false means that whenever a new record is created this column should
         //not populate any value means it should be null. as its update column means we want value here when
         //only the record is updated
-        
+
+*5*Lombok warning when using @Data in customer class and extending to BaseEntity class which also have @Data
+ warning: Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object.
+             If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.Java(0)
+
+    @Data has @Getter / @Setter, @ToString, @EqualsAndHashCode <-- This is the culprit! and @RequiredArgsConstructor
+
+    Now to equal has annotation, the Lombok is showing warning to consider unique records should
+        it consider combine records from parnet and child both or should it consider the child only
+        Idealy it should be child only as here we only care about customer id unique not the created at or by.
+     By Gemini   
+        Concept	Your Understanding	Reality
+        Logic	"Should I look at parent variables or not?"	Correct. That is exactly what Lombok is asking.
+        Responsibility	"Lombok is checking for unique records."	Incorrect. Lombok is generating the equals() method so Java Lists/Sets work in memory.
+        The Warning	"Why does Lombok care?"	Because @Data generates equals(). If you don't want equals(), use @Getter and @Setter instead of @Data.
+
+        @EqualsAndHashCode(callSuper = false) will tell Lombok to consider only child not parent+child
