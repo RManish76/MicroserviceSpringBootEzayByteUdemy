@@ -36,3 +36,18 @@
         -- mistake, table & column need not to be quoted and if you want to do that then use either
         -- double quotes(") or brackets(`) this bracket symbol is below esc button in keyboard.
         -- Again best to not quote it. and single quote treated as string.
+
+
+*4* Added BaseEntity Class.
+    Here we have added four coulmn createdAt, createdBy, updatedAt, updatedBy.
+    As we have seen that above 4 columns, we will use in most of entity class.
+    So this entity class will be extended to other class and we need not manualy add these columns
+    in every class.
+        @MappedSuperclass //tells springJPA that this entity/model class will be used in all other entity/model class
+        //the @MappedSuperclass annotation indicates to spring data jpa framework that this class is going
+        //to act as a superclass for all my entites, wherever i'm trying to extend this base entity class
+        @Column(updatable = false) //tells spring jpa that this column cannot be updated once value is inserted
+        @Column(insertable = false) //insertable false means that whenever a new record is created this column should
+        //not populate any value means it should be null. as its update column means we want value here when
+        //only the record is updated
+        
