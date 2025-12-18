@@ -90,4 +90,8 @@
     no need to create object of this class.
 
     added accounts service interface and accountService implementation class in service package.
-    
+
+    added AccountsMapper class which will be responsibil to map values between entity to DTO and vice-versa
+    added CustomerMapper class which will be responsibil to map values between entity to DTO and vice-versa
+    //we have libraries available online like modelmapper, mapstruct to this automatic mapping but not recognized
+    //also we can see it's not available in spring initiliazer
