@@ -67,3 +67,16 @@
         The Warning	"Why does Lombok care?"	Because @Data generates equals(). If you don't want equals(), use @Getter and @Setter instead of @Data.
 
         @EqualsAndHashCode(callSuper = false) will tell Lombok to consider only child not parent+child
+
+*6* Created DTO(Data Transfer object) class 
+    These class is responsibil for the variables/column which'll be sent to customer or
+    recive from customer.
+    we have done this because if we made any change in our database/entity class it'll
+    not affect the api points which was exposed to clients.
+    And also it decouples the entity class from the exposed rest call.
+    And also lets say if client need combine data customer and accounts then we can't ask client
+    make two rest call for that so in that case we can create combined DTOs for the client.
+    Currently we'll not create combined DTO class will do it later.
+
+    Created more DTO called ResponseDto for sending response for rest call and also created
+    ErrorResponseDto class to send error details for restcall if rest call error out.
