@@ -88,3 +88,6 @@
     any method or businees Logic.
     All the fileds/variables in this file are static and final means we can use it with class name only
     no need to create object of this class.
+
+    added accounts service interface and accountService implementation class in service package.
+    
