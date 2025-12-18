@@ -77,3 +77,6 @@
     And also lets say if client need combine data customer and accounts then we can't ask client
     make two rest call for that so in that case we can create combined DTOs for the client.
     Currently we'll not create combined DTO class will do it later.
+
+    Created more DTO called ResponseDto for sending response for rest call and also created
+    ErrorResponseDto class to send error details for restcall if rest call error out.
