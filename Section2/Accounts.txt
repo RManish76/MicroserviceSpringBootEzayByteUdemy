@@ -80,3 +80,11 @@
 
     Created more DTO called ResponseDto for sending response for rest call and also created
     ErrorResponseDto class to send error details for restcall if rest call error out.
+
+*7* Creation of API points
+
+    Created a static file. The fields/variables will be used to return response.
+    We have made the constructor of this class private so that no one can  use this class for
+    any method or businees Logic.
+    All the fileds/variables in this file are static and final means we can use it with class name only
+    no need to create object of this class.
