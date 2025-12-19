@@ -7,10 +7,13 @@ import java.util.Random;
 import org.springframework.stereotype.Service;
 
 import com.ezaybytes.accounts.constants.AccountsConstants;
+import com.ezaybytes.accounts.dto.AccountsDto;
 import com.ezaybytes.accounts.dto.CustomerDto;
 import com.ezaybytes.accounts.entity.Accounts;
 import com.ezaybytes.accounts.entity.Customer;
 import com.ezaybytes.accounts.exception.CustomerAlreadyExistException;
+import com.ezaybytes.accounts.exception.ResourceNotFoundException;
+import com.ezaybytes.accounts.mapper.AccountsMapper;
 import com.ezaybytes.accounts.mapper.CustomerMapper;
 import com.ezaybytes.accounts.respository.AccountsRepository;
 import com.ezaybytes.accounts.respository.CustomerRepository;
@@ -69,6 +72,24 @@ public class AccountsServiceImpl implements IAccountsService{
         newAccount.setCreatedAt(LocalDateTime.now());
         newAccount.setCreatedBy("Anonymous");
         return newAccount;
+    }
+
+    /**
+     * @param mobileNumber - Input Mobile Number
+     * @return Account Details based on a given mobileNumber
+     */
+    @Override
+    public CustomerDto fetchAccount(String mobileNumber) {
+        Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
+            () -> new ResourceNotFoundException("Customer","mobileNumber",mobileNumber)
+        );
+        Accounts accounts = accountsRepository.findByCustomerId(customer.getCustomerId()).orElseThrow(
+            () -> new ResourceNotFoundException("Account","customerId",customer.getCustomerId().toString())
+        );
+
+        CustomerDto customerDto=CustomerMapper.mapToCustomerDto(customer, new CustomerDto());
+        customerDto.setAccountsDto(AccountsMapper.mapToAccountsDto(accounts, new AccountsDto()));
+        return customerDto;        
     }
     
 }
