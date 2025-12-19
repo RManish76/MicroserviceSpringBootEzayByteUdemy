@@ -29,7 +29,11 @@ public class AccountsController {
 
     @PostMapping("/create")
     public ResponseEntity<ResponseDto> createAccount(@RequestBody CustomerDto customerDto){
-        
+        iAccountsService.createAccount(customerDto); //while creating account if exception occured it'll
+        //go to global exception handler. it'll not come to our controller.
+        //and from global exception handler will get there response.
+
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(new ResponseDto(AccountsConstants.STATUS_201,AccountsConstants.MESSAGE_201));
