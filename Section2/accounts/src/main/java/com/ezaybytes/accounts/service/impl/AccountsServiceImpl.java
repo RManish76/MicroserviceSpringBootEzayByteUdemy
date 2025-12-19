@@ -1,8 +1,14 @@
 package com.ezaybytes.accounts.service.impl;
 
+import java.util.Random;
+
 import org.springframework.stereotype.Service;
 
+import com.ezaybytes.accounts.constants.AccountsConstants;
 import com.ezaybytes.accounts.dto.CustomerDto;
+import com.ezaybytes.accounts.entity.Accounts;
+import com.ezaybytes.accounts.entity.Customer;
+import com.ezaybytes.accounts.mapper.CustomerMapper;
 import com.ezaybytes.accounts.respository.AccountsRepository;
 import com.ezaybytes.accounts.respository.CustomerRepository;
 import com.ezaybytes.accounts.service.IAccountsService;
@@ -28,7 +34,25 @@ public class AccountsServiceImpl implements IAccountsService{
     @Override
     public void createAccount(CustomerDto customerDto) {
         
+        Customer customer = CustomerMapper.mapToCustomer(customerDto, new Customer());
+        Customer savedCustomer = customerRepository.save(customer);
+        accountsRepository.save(createNewAccount(savedCustomer));
         
+    }
+
+    /**
+     * @param customer - Customer Object
+     * @return the new account details
+     */
+    private Accounts createNewAccount(Customer customer){
+        Accounts newAccount = new Accounts();
+        newAccount.setCustomerId(customer.getCustomerId());
+        long randomAccNumber = 100_000_0000L + new Random().nextInt(900_000_000);
+
+        newAccount.setAccountNumber(randomAccNumber);
+        newAccount.setAccountType(AccountsConstants.SAVINGS);
+        newAccount.setBranchAddress(AccountsConstants.ADDRESS);
+        return newAccount;
     }
     
 }
