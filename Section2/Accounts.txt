@@ -95,3 +95,22 @@
     added CustomerMapper class which will be responsibil to map values between entity to DTO and vice-versa
     //we have libraries available online like modelmapper, mapstruct to this automatic mapping but not recognized
     //also we can see it's not available in spring initiliazer
+
+    Modified AccountsServiceImpl which will talk to mapper to set and get values as per rest request.
+        I think The difference between IAccountsService and AccountsServiceImpl is that the interface will 
+        dictate the methods and Impl will implement it.
+
+    Created exception package where we'll define our custom exceptions.
+        for now only one deifned for if customer already exist (using same mobile number)
+
+        Now for these exception we need to check customer already exist with given mobile number
+        and since mobile number is not present we need to write DerivedNamedMethod ie findByMobileNumber
+        in repo class.
+
+    Created GlobalExceptionHandler file to handle all kind of exceptions in one place.
+        for example if an exception occurent in accounts servie then it'll goto accountController
+        and we need to catch the excpetion there and handle it.
+        Simlarly if we have 5 different services and controllers for them. then we might endup
+        wirtting same type of exception catch in 5 different controllers.
+        Here we are creating a global exception handler in which we'll handle all the exception for
+        all controllers
