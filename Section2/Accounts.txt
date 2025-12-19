@@ -114,3 +114,10 @@
         wirtting same type of exception catch in 5 different controllers.
         Here we are creating a global exception handler in which we'll handle all the exception for
         all controllers
+
+*8* Added Read Api using mobile number
+    Created api point using which client can pass mobile number to find the customer and account related to 
+    that mobile number.
+    mdified the customerdto to store accountdto as well. so that when client sends a get request
+    then using only customerdto we can send detials of customer and accounts from a single dto.
+    We can create sepreate dto as well but since fields were too few we added in customerdto.
