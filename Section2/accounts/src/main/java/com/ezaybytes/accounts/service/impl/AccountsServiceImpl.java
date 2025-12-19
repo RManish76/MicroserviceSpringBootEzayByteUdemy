@@ -1,5 +1,6 @@
 package com.ezaybytes.accounts.service.impl;
 
+import java.util.Optional;
 import java.util.Random;
 
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import com.ezaybytes.accounts.constants.AccountsConstants;
 import com.ezaybytes.accounts.dto.CustomerDto;
 import com.ezaybytes.accounts.entity.Accounts;
 import com.ezaybytes.accounts.entity.Customer;
+import com.ezaybytes.accounts.exception.CustomerAlreadyExistException;
 import com.ezaybytes.accounts.mapper.CustomerMapper;
 import com.ezaybytes.accounts.respository.AccountsRepository;
 import com.ezaybytes.accounts.respository.CustomerRepository;
@@ -33,7 +35,15 @@ public class AccountsServiceImpl implements IAccountsService{
      */
     @Override
     public void createAccount(CustomerDto customerDto) {
-        
+
+        Optional<Customer> optionalCustomer = customerRepository
+                                        .findByMobileNumber(customerDto.getMobileNumber());
+                                
+        if(optionalCustomer.isPresent()){
+            throw new CustomerAlreadyExistException("Customer already registered with given mobileNumber"
+                +customerDto.getMobileNumber());
+        }
+
         Customer customer = CustomerMapper.mapToCustomer(customerDto, new Customer());
         Customer savedCustomer = customerRepository.save(customer);
         accountsRepository.save(createNewAccount(savedCustomer));
