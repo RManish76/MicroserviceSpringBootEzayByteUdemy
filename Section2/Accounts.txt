@@ -121,3 +121,11 @@
     mdified the customerdto to store accountdto as well. so that when client sends a get request
     then using only customerdto we can send detials of customer and accounts from a single dto.
     We can create sepreate dto as well but since fields were too few we added in customerdto.
+
+*8* Added Update API
+    Client can update everything except account number.
+    Client has to pass accountDto details with customerDto to process successfull update.
+    If accountDto is missing or account number it self is missing we are handling that thorugh
+    exception.
+    In current update code in AccountsServiceImpl, we are not checking if same mobile number already exist for
+    any other customer like we are doing in createAccount, just simply updating it.
