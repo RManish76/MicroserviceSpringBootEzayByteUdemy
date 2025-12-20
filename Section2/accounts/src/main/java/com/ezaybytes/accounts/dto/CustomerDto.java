@@ -1,5 +1,6 @@
 package com.ezaybytes.accounts.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -21,5 +22,6 @@ public class CustomerDto {
     private String mobileNumber;    
 
     //added to send respone to customer for get request. Can create seprate DTO as well if to many fields are there
+    @Valid
     private AccountsDto accountsDto;
 }

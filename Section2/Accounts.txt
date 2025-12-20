@@ -188,4 +188,17 @@
                                                         @Pattern(regexp = "(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
                                                         String mobileNumber){
 
+    Now we are doing validation and when validation failed we are also returning message as well.
+    But we are not accepting that msg anywhere to send to client.
+    And as we have seen that if any kind issue we are handling thorugh exception and global exception
+    hence we'll also accept the message in global exception and return it.
+    And to do that first we'll extend GlobalExceptionHandler from ResponseEntityExceptionHandler
+    The ResponseEntityExceptionHandler has a method which will help us to get validation failuer 
+    and msgs.
+    the method is protected ResponseEntity<Object> handleMethodArgumentNotValid
+    we create a map where we'll store the key as field which failed the validatiion and
+        value as message of validation failuer
+    then created a list which collecting all validation occured then form this list
+    we are pull the field and msg and storing it in map then returning the map to client.
+
     
