@@ -129,3 +129,25 @@
     exception.
     In current update code in AccountsServiceImpl, we are not checking if same mobile number already exist for
     any other customer like we are doing in createAccount, just simply updating it.
+
+*9* Delete API
+    deleteById method is present in CurdRepository which deletes a row based on primary key.
+
+    similary we can delete an account by its primary key, which is account number.
+    but to do that we need fire a query using customerId to get accountnumber and then execute delete method.
+    Instead we'll do deleteByCustomerId in which we will pass customerId to delete the account.
+    Since CustomerId is not primary key in accounts table we need to write a method to delete it using CustomerId
+    and since its only simple single column execution jpa will take care of it, we need to just write the method.
+
+    Also in that method we are adding two annotations @Modifying and @Transactional
+        @Transactional //below query/method should be Transactional ie it 
+            should be able to roleback automatically if failuer occured in middle of execution
+        @Modifying  //tells spring below query/method will modify the data
+    
+    When we use primary key for delete or modify, spring internally take cares of Transactional and Modifying
+
+*10* Additon of exception in GlobalExceptionHandler
+    Added the exception method with other custome methods.
+    Whenever a exception will occur spring will first look is there any custom exception deifned
+    for that exception. If yes then it'll use that exception method else it'll exceute the execiption
+    method for all other exception.
