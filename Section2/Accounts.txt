@@ -151,3 +151,32 @@
     Whenever a exception will occur spring will first look is there any custom exception deifned
     for that exception. If yes then it'll use that exception method else it'll exceute the execiption
     method for all other exception.
+
+*11* validation
+    While creating the project at spring initiliazer we added a dependency
+    "Validation I/O" and in our pom file it is present as
+    "spring-boot-starter-validation"
+    This dependency contains all the annotations and libraries which help us enforse validation
+    on input data which we recive from the clients.
+
+    We'll start with DTO's.
+    Whatever data we recive from the clients will get converted int DTOs.
+    So these DTOs are going to hold the data that we re going to receive from clients, which means
+    my spring boot has to perform the validations on the data stored inside the object of this
+    CustomerDto or any other DTO like AccountsDto.
+    the package name is import jakarta.validation.constraints....;
+    we have used few annotation like below, which check if received value as per the validation or not else send this message as response.
+
+        @NotEmpty(message = "Name can not be a null or empty") //tells to spring validatiion it cannot be empty. If empty recived return the messsage
+        @Size(min = 5, max = 30, message = "The lenth of the customer name should be between 5 and 30")
+        @Email(message = "Email address should be a vaild value") //check email format like @, domain format etc
+        @Pattern(regexp = "(^$|[0-9]{10})",message = "Mobile number must be 10 digits") 
+                //using pattern annotation we can define pattern validatiion
+                //and we have used regexp to define the pattern.
+
+    Now we need to goto place where we are using these DTOs ie the place where we are recving the input
+     the controllers
+        @Validated //tells spring that validation should be perfromed in this classs
+        @Valid //@Valid tells that recived body is valid or not as per the DTOs and validAnnotation at DTO
+
+    

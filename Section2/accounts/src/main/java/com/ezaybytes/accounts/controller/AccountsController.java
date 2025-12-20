@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,12 +19,14 @@ import com.ezaybytes.accounts.dto.CustomerDto;
 import com.ezaybytes.accounts.dto.ResponseDto;
 import com.ezaybytes.accounts.service.IAccountsService;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping(path = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
 // path -> all api call will start with domain/api/...   and mediatype tells what format of data will be used which is json
 @AllArgsConstructor
+@Validated //tells spring that validation should be perfromed in this classs
 public class AccountsController {
 
     //we have seen already in case of a single constructor in a class we don't need autowire
@@ -32,7 +35,8 @@ public class AccountsController {
 
 
     @PostMapping("/create")
-    public ResponseEntity<ResponseDto> createAccount(@RequestBody CustomerDto customerDto){
+    public ResponseEntity<ResponseDto> createAccount(@Valid @RequestBody CustomerDto customerDto){
+        //@Valid tells that recived body is valid or not as per the DTOs and validAnnotation at DTO
         iAccountsService.createAccount(customerDto); //while creating account if exception occured it'll
         //go to global exception handler. it'll not come to our controller.
         //and from global exception handler will get there response.
@@ -50,7 +54,8 @@ public class AccountsController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ResponseDto> updateAccountDetails(@RequestBody CustomerDto customerDto){
+    public ResponseEntity<ResponseDto> updateAccountDetails(@Valid @RequestBody CustomerDto customerDto){
+        //@Valid tells that recived body is valid or not as per the DTOs and validAnnotation at DTO
         boolean isUpdated = iAccountsService.updateAccount(customerDto);
         if(isUpdated){
             return ResponseEntity
