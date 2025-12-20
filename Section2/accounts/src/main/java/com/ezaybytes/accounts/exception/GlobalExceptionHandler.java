@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
             LocalDateTime.now()    
         );
 
-        return new ResponseEntity<>(errorResponseDTO, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
                                                                             
     }
 }
