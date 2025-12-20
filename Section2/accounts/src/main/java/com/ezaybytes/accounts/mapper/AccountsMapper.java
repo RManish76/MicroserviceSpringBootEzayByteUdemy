@@ -15,7 +15,7 @@ public class AccountsMapper {
         return accountsDto;
     }
 
-    public static Accounts mapToAccountss(AccountsDto accountsDto, Accounts accounts){
+    public static Accounts mapToAccounts(AccountsDto accountsDto, Accounts accounts){
         //mapping data from accountsDto to account/entity/table class to store it in table
         accounts.setAccountNumber(accountsDto.getAccountNumber());
         accounts.setAccountType(accountsDto.getAccountType());
