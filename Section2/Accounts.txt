@@ -179,4 +179,13 @@
         @Validated //tells spring that validation should be perfromed in this classs
         @Valid //@Valid tells that recived body is valid or not as per the DTOs and validAnnotation at DTO
 
+        Since at /fetch and /delete api point we are not reciveing body in request we cannot use 
+        @vaild annotation.
+        So we'll directly metion the validations like we did in DTOs just after @RequestParam like below
+
+            @GetMapping("/fetch")
+            public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam 
+                                                        @Pattern(regexp = "(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
+                                                        String mobileNumber){
+
     
