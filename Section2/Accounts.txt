@@ -151,3 +151,54 @@
     Whenever a exception will occur spring will first look is there any custom exception deifned
     for that exception. If yes then it'll use that exception method else it'll exceute the execiption
     method for all other exception.
+
+*11* validation
+    While creating the project at spring initiliazer we added a dependency
+    "Validation I/O" and in our pom file it is present as
+    "spring-boot-starter-validation"
+    This dependency contains all the annotations and libraries which help us enforse validation
+    on input data which we recive from the clients.
+
+    We'll start with DTO's.
+    Whatever data we recive from the clients will get converted int DTOs.
+    So these DTOs are going to hold the data that we re going to receive from clients, which means
+    my spring boot has to perform the validations on the data stored inside the object of this
+    CustomerDto or any other DTO like AccountsDto.
+    the package name is import jakarta.validation.constraints....;
+    we have used few annotation like below, which check if received value as per the validation or not else send this message as response.
+
+        @NotEmpty(message = "Name can not be a null or empty") //tells to spring validatiion it cannot be empty. If empty recived return the messsage
+        @Size(min = 5, max = 30, message = "The lenth of the customer name should be between 5 and 30")
+        @Email(message = "Email address should be a vaild value") //check email format like @, domain format etc
+        @Pattern(regexp = "(^$|[0-9]{10})",message = "Mobile number must be 10 digits") 
+                //using pattern annotation we can define pattern validatiion
+                //and we have used regexp to define the pattern.
+
+    Now we need to goto place where we are using these DTOs ie the place where we are recving the input
+     the controllers
+        @Validated //tells spring that validation should be perfromed in this classs
+        @Valid //@Valid tells that recived body is valid or not as per the DTOs and validAnnotation at DTO
+
+        Since at /fetch and /delete api point we are not reciveing body in request we cannot use 
+        @vaild annotation.
+        So we'll directly metion the validations like we did in DTOs just after @RequestParam like below
+
+            @GetMapping("/fetch")
+            public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam 
+                                                        @Pattern(regexp = "(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
+                                                        String mobileNumber){
+
+    Now we are doing validation and when validation failed we are also returning message as well.
+    But we are not accepting that msg anywhere to send to client.
+    And as we have seen that if any kind issue we are handling thorugh exception and global exception
+    hence we'll also accept the message in global exception and return it.
+    And to do that first we'll extend GlobalExceptionHandler from ResponseEntityExceptionHandler
+    The ResponseEntityExceptionHandler has a method which will help us to get validation failuer 
+    and msgs.
+    the method is protected ResponseEntity<Object> handleMethodArgumentNotValid
+    we create a map where we'll store the key as field which failed the validatiion and
+        value as message of validation failuer
+    then created a list which collecting all validation occured then form this list
+    we are pull the field and msg and storing it in map then returning the map to client.
+
+    
