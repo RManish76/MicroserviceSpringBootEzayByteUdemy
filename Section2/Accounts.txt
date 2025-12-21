@@ -201,4 +201,37 @@
     then created a list which collecting all validation occured then form this list
     we are pull the field and msg and storing it in map then returning the map to client.
 
-    
+*12* Audit columns
+        We have included column createdAt, createdBy, updatedAt, updatedBy.
+        Till know we were not taking care of these columns.
+        Also till know we have not written a single query for other features.
+        Similarly for these audit columns we can handover the responsebility to Update
+        these column to Spring JPA by using some annotations.
+        So we'll update few annotations in BaseEntity.java as this class contains our
+        audit columns.
+            @CreatedDate, @CreatedBy,@LastModifiedDate, @LastModfiedBy we have added these
+        annotations.
+        Using these annotation we are telling to spring framework. Whenever you see these fields inside
+        a table or an entity, please make sure you are updating the date time based upon when the record is
+        being updated or inserted. The same applies for last modifed date as well and with the help of
+        createBy and last modified by, we are telling to the Spring data JPA framework like who is tryping
+        create or update the reocrds inside the database table.
+
+        Now the time can be picked from server time which spring will do but what about createdBy and
+        updatedBy. For that we need to define a class which will help us to identify the user.
+        For now we'll hardcord the user and when we implement the spring security will make it dynamic.
+        We'll create new package called audit and inside that package we will create a file called
+        AuditAwareImpl.java
+        We'll implement AuditorAware<DataType> interface in our class and override the method which will
+        get us the current auditor(hardcorded).
+        After doing that we need to mention an annotation @EntityKisteners(AuditingEntityListener.class)
+        at BaseEntity.java the AuditingEntityListener.class is a class present in spring data framework.
+
+        Once that done we need to goto AccountsApplication.java which is our application or root file.
+        there we need to enable Auditing and pass the audit class's bean which we created.
+            @EnableJpaAuditing(auditorAwareRef="auditAwareImpl") is the annotation we need to put there.
+        @EnableJpaAuditing tell to enable the audting and using param auditorAwareRef we passing the bean of
+        the audit class which need to be used.
+
+        After doing this we can remove the hardcorded value which we created for createdby, createdat 
+        etc in AccountsServiceImpl
