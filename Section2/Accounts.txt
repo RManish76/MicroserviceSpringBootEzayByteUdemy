@@ -276,4 +276,9 @@
                                     url = "https://www.eazybytes.com/swagger-ui.html"
                                 )
                             )
+        2. Now we'll the technical details which are showing like controller and dtos 
+            We have only one controller we can have mutlitple controllers.
+            to show different name for controllers we need to got to each controllerclass add annotation
+            @Tag which from springdoc only to class and then inside this annotation we can pass the
+            details related to controller such as name, description etc. like below
         

@@ -19,10 +19,15 @@ import com.ezaybytes.accounts.dto.CustomerDto;
 import com.ezaybytes.accounts.dto.ResponseDto;
 import com.ezaybytes.accounts.service.IAccountsService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 
+@Tag(
+    name = "CRUD REST APIs for Accounts in EazyBank",
+    description = "CRUD REST APIs in EazyBank to CREATE, UPDATE, FETCH AND DELETE account details"
+)
 @RestController
 @RequestMapping(path = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
 // path -> all api call will start with domain/api/...   and mediatype tells what format of data will be used which is json
