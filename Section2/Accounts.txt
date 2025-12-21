@@ -235,3 +235,17 @@
 
         After doing this we can remove the hardcorded value which we created for createdby, createdat 
         etc in AccountsServiceImpl
+
+*13* API Documentation
+
+        For API documentation we are going to use a dependency from springdoc.org (not offical from springInitalizer)
+        We just need to add the dependency present in there and refresh the Maven then run the application.
+        Affter running we need to go http://localhost:8080/swagger-ui/index.html 
+        There we'll able to see all of our api which we created documented as per Swagger convention.
+
+        This dependency scans the project and automatically create the documentation for us.
+
+        After doing this we'll abel to see the documentation of our API endpoints.
+        But there's a issue its showing our technical/object name in documentation like controllers, dto etc
+        also response/request payload it's showing "string" as input instead of any example value.
+        Hence we need to do some modification to make it look more professional.
