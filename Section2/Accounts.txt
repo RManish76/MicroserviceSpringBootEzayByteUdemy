@@ -281,4 +281,32 @@
             to show different name for controllers we need to got to each controllerclass add annotation
             @Tag which from springdoc only to class and then inside this annotation we can pass the
             details related to controller such as name, description etc. like below
+                    @Tag(
+                        name = "CRUD REST APIs for Accounts in EazyBank",
+                        description = "CRUD REST APIs in EazyBank to CREATE, UPDATE, FETCH AND DELETE account details"
+                    )
+                    @RestController
+                    @RequestMapping(path = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
+                    // path -> all api call will start with domain/api/...   and mediatype tells what format of data will be used which is json
+                    @AllArgsConstructor
+                    @Validated //tells spring that validation should be perfromed in this classs
+                    public class AccountsController {
+        
+        3. Now we'll change deails related to api endpoints.
+            We have defined api endpoints in the controller as methods.
+            So we will add annotations to methods like below
+                    @Operation(
+                        summary = "Delete Account & Customer Details REST API",
+                        description = "REST API to delete Customer & Account details based on a mobile number"
+                    )
+                    @ApiResponses({
+                        @ApiResponse(
+                            responseCode = "200",
+                            description = "HTTP Status OK"
+                        ),
+                        @ApiResponse(
+                            responseCode = "500",
+                            description = "HTTP Status Internal Server Error"
+                        )
+                    })
         

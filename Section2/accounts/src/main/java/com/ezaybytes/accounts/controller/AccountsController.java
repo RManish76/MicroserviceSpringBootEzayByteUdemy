@@ -19,6 +19,9 @@ import com.ezaybytes.accounts.dto.CustomerDto;
 import com.ezaybytes.accounts.dto.ResponseDto;
 import com.ezaybytes.accounts.service.IAccountsService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -39,7 +42,14 @@ public class AccountsController {
     //it'll automatically autowire as we have mentioned @AllArgsConstructor which will accecpt below param for below
     private IAccountsService iAccountsService;
 
-
+    @Operation( //summary and detail for endpoint in api documentation
+        summary = "Create Account REST API",
+        description = "REST API to create new Customer & Account inside EazyBank"
+    )
+    @ApiResponse( //example value of response statusCode and Status msg
+        responseCode = "201",
+        description = "HTPP Status CREARTED"
+    )
     @PostMapping("/create")
     public ResponseEntity<ResponseDto> createAccount(@Valid @RequestBody CustomerDto customerDto){
         //@Valid tells that recived body is valid or not as per the DTOs and validAnnotation at DTO
@@ -53,6 +63,15 @@ public class AccountsController {
                 .body(new ResponseDto(AccountsConstants.STATUS_201,AccountsConstants.MESSAGE_201));
     }
 
+
+    @Operation(
+        summary = "Fech Account Details REST API",
+        description = "REST API to fetch Customer & Account details based on a mobile number"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "HTTP Status OK"
+    )
     @GetMapping("/fetch")
     public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam 
                                                 @Pattern(regexp = "(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
@@ -61,6 +80,21 @@ public class AccountsController {
         return ResponseEntity.status(HttpStatus.OK).body(customerDto);
     }
 
+
+    @Operation(
+        summary = "Update Account Details REST API",
+        description = "REST API to update Customer & Account details based on an account number"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "HTTP Status OK"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "HTTP Status Internal Server Error"
+        )
+    })
     @PutMapping("/update")
     public ResponseEntity<ResponseDto> updateAccountDetails(@Valid @RequestBody CustomerDto customerDto){
         //@Valid tells that recived body is valid or not as per the DTOs and validAnnotation at DTO
@@ -76,6 +110,21 @@ public class AccountsController {
         }
     }
 
+
+    @Operation(
+        summary = "Delete Account & Customer Details REST API",
+        description = "REST API to delete Customer & Account details based on a mobile number"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "HTTP Status OK"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "HTTP Status Internal Server Error"
+        )
+    })
     @DeleteMapping("/delete")
     public ResponseEntity<ResponseDto> deleteAccountDetails(@RequestParam 
                                                         @Pattern(regexp = "(^$|[0-9]{10})",message = "Mobile number must be 10 digits")      
