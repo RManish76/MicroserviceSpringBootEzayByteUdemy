@@ -310,3 +310,15 @@
                         )
                     })
         
+        4. Now we'll add details related to request/response example.
+            Since request/response example is related DTO hence now we need to add annotations
+            related OpenAPI doc in DTO classes
+            We need add annotation at table/class level also at field level as well.
+            Note: By default it picks name from the code. so if we give name OpenAPI doc will use that
+                    else it'll use name which we have given in the code to class and field.
+                
+            We have added Schema to each dto at class as well as field level.
+                    @Schema(
+                        name = "Customer",
+                        description = "Schema to hold Customer and Account information"
+                    )
