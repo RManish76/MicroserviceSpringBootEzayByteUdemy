@@ -322,3 +322,10 @@
                         name = "Customer",
                         description = "Schema to hold Customer and Account information"
                     )
+
+        5. Previously ErrorResponseDto Schema at bottom of api doc was not showing.
+            where as other DTOs were showing.
+            It's because other DTOs were going through the controller which catching these DTOs
+            but the ErrorResponseDto is going to GlobalExceptionHandler instead of controller.
+                so in controller in update api we dedicately included the ErrorResponseDto class so
+                that OpenAPI doc know about it and include it.
