@@ -235,3 +235,115 @@
 
         After doing this we can remove the hardcorded value which we created for createdby, createdat 
         etc in AccountsServiceImpl
+
+*13* API Documentation
+
+        For API documentation we are going to use a dependency from springdoc.org (not offical from springInitalizer)
+        We just need to add the dependency present in there and refresh the Maven then run the application.
+        Affter running we need to go http://localhost:8080/swagger-ui/index.html 
+        There we'll able to see all of our api which we created documented as per Swagger convention.
+
+        This dependency scans the project and automatically create the documentation for us.
+
+        After doing this we'll abel to see the documentation of our API endpoints.
+        But there's a issue its showing our technical/object name in documentation like controllers, dto etc
+        also response/request payload it's showing "string" as input instead of any example value.
+        Hence we need to do some modification to make it look more professional.
+
+        Lets start with header.
+        1. Currently in big bold letter in documentation page "OpenAPI definiion" is writter we need
+            modify that
+            For that we need to add another annotation to our root/AccountsApplication.java/springboot main class
+            file.
+            We are adding @OpenAPIDefinition annotation like below wehre info is param like below
+                            @OpenAPIDefinition(
+                                info = @Info(
+                                    title = "Accounts microservice REST API Documentation",
+                                    description = "EzayBank Accounts microservice REST API Documentation",
+                                    version = "v1",
+                                    contact = @Contact(
+                                        name = "Madan Reddy",
+                                        email = "tutor@eazybytes.com",
+                                        url = "https://www.eazybytes.com"
+                                    ),
+                                    license = @License(
+                                        name = "Apache 2.0",
+                                        url = "http://licenceDetailUrl.com"
+                                    )
+                                ),
+                                externalDocs = @ExternalDocumentation(
+                                    description = "EazyBank Accounts microservice REST API Documentation",
+                                    url = "https://www.eazybytes.com/swagger-ui.html"
+                                )
+                            )
+        2. Now we'll the technical details which are showing like controller and dtos 
+            We have only one controller we can have mutlitple controllers.
+            to show different name for controllers we need to got to each controllerclass add annotation
+            @Tag which from springdoc only to class and then inside this annotation we can pass the
+            details related to controller such as name, description etc. like below
+                    @Tag(
+                        name = "CRUD REST APIs for Accounts in EazyBank",
+                        description = "CRUD REST APIs in EazyBank to CREATE, UPDATE, FETCH AND DELETE account details"
+                    )
+                    @RestController
+                    @RequestMapping(path = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
+                    // path -> all api call will start with domain/api/...   and mediatype tells what format of data will be used which is json
+                    @AllArgsConstructor
+                    @Validated //tells spring that validation should be perfromed in this classs
+                    public class AccountsController {
+        
+        3. Now we'll change deails related to api endpoints.
+            We have defined api endpoints in the controller as methods.
+            So we will add annotations to methods like below
+                    @Operation(
+                        summary = "Delete Account & Customer Details REST API",
+                        description = "REST API to delete Customer & Account details based on a mobile number"
+                    )
+                    @ApiResponses({
+                        @ApiResponse(
+                            responseCode = "200",
+                            description = "HTTP Status OK"
+                        ),
+                        @ApiResponse(
+                            responseCode = "500",
+                            description = "HTTP Status Internal Server Error"
+                        )
+                    })
+        
+        4. Now we'll add details related to request/response example.
+            Since request/response example is related DTO hence now we need to add annotations
+            related OpenAPI doc in DTO classes
+            We need add annotation at table/class level also at field level as well.
+            Note: By default it picks name from the code. so if we give name OpenAPI doc will use that
+                    else it'll use name which we have given in the code to class and field.
+                
+            We have added Schema to each dto at class as well as field level.
+                    @Schema(
+                        name = "Customer",
+                        description = "Schema to hold Customer and Account information"
+                    )
+
+        5. Previously ErrorResponseDto Schema at bottom of api doc was not showing.
+            where as other DTOs were showing.
+            It's because other DTOs were going through the controller which catching these DTOs
+            but the ErrorResponseDto is going to GlobalExceptionHandler instead of controller.
+                so in controller in update api we dedicately included the ErrorResponseDto class so
+                that OpenAPI doc know about it and include it.
+
+        6. Imporving the error message.
+            During the update if we receive false as update in the controller we were sending response
+            as 500 internal_server_error, and it's not correct response if it's not our server issue.
+            it might be logical or not valid issue.
+            Henece introduced 417 error msg which indicates failed operation as response of failuer
+            in case update and delete.
+
+            Now we need to update the OpenAPI documentation as well for it. hence we have added
+            the new error response as well as in other api endpoints we added 500 response as well.
+            As any api end can fail at any time.
+
+        7. Giving example alwasy is not good Idea
+            Now if we notice in the doc for update and delete, in case of response 200,417 and 500
+            the response Status code is alwasy showing 200 code in example payload because
+            in our dto we have hardcord the 200 response as example. Hence
+            since we have mutlitple response and we don't want to confuse our client, we will
+            remove status code example from ResponseDto. OpenAPI example as string or as per dataType
