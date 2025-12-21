@@ -249,3 +249,31 @@
         But there's a issue its showing our technical/object name in documentation like controllers, dto etc
         also response/request payload it's showing "string" as input instead of any example value.
         Hence we need to do some modification to make it look more professional.
+
+        Lets start with header.
+        1. Currently in big bold letter in documentation page "OpenAPI definiion" is writter we need
+            modify that
+            For that we need to add another annotation to our root/AccountsApplication.java/springboot main class
+            file.
+            We are adding @OpenAPIDefinition annotation like below wehre info is param like below
+                            @OpenAPIDefinition(
+                                info = @Info(
+                                    title = "Accounts microservice REST API Documentation",
+                                    description = "EzayBank Accounts microservice REST API Documentation",
+                                    version = "v1",
+                                    contact = @Contact(
+                                        name = "Madan Reddy",
+                                        email = "tutor@eazybytes.com",
+                                        url = "https://www.eazybytes.com"
+                                    ),
+                                    license = @License(
+                                        name = "Apache 2.0",
+                                        url = "http://licenceDetailUrl.com"
+                                    )
+                                ),
+                                externalDocs = @ExternalDocumentation(
+                                    description = "EazyBank Accounts microservice REST API Documentation",
+                                    url = "https://www.eazybytes.com/swagger-ui.html"
+                                )
+                            )
+        
