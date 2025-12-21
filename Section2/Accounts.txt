@@ -329,3 +329,21 @@
             but the ErrorResponseDto is going to GlobalExceptionHandler instead of controller.
                 so in controller in update api we dedicately included the ErrorResponseDto class so
                 that OpenAPI doc know about it and include it.
+
+        6. Imporving the error message.
+            During the update if we receive false as update in the controller we were sending response
+            as 500 internal_server_error, and it's not correct response if it's not our server issue.
+            it might be logical or not valid issue.
+            Henece introduced 417 error msg which indicates failed operation as response of failuer
+            in case update and delete.
+
+            Now we need to update the OpenAPI documentation as well for it. hence we have added
+            the new error response as well as in other api endpoints we added 500 response as well.
+            As any api end can fail at any time.
+
+        7. Giving example alwasy is not good Idea
+            Now if we notice in the doc for update and delete, in case of response 200,417 and 500
+            the response Status code is alwasy showing 200 code in example payload because
+            in our dto we have hardcord the 200 response as example. Hence
+            since we have mutlitple response and we don't want to confuse our client, we will
+            remove status code example from ResponseDto. OpenAPI example as string or as per dataType

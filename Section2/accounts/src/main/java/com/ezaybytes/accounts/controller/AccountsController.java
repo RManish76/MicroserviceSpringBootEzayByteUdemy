@@ -51,10 +51,20 @@ public class AccountsController {
         summary = "Create Account REST API",
         description = "REST API to create new Customer & Account inside EazyBank"
     )
-    @ApiResponse( //example value of response statusCode and Status msg
-        responseCode = "201",
-        description = "HTPP Status CREARTED"
-    )
+    @ApiResponses({
+        @ApiResponse( //example value of response statusCode and Status msg
+            responseCode = "201",
+            description = "HTPP Status CREARTED"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "HTTP Statusn Internal Server Error",
+            content = @Content(
+                schema = @Schema(implementation = ErrorResponseDto.class)
+            )
+        )
+    })
+
     @PostMapping("/create")
     public ResponseEntity<ResponseDto> createAccount(@Valid @RequestBody CustomerDto customerDto){
         //@Valid tells that recived body is valid or not as per the DTOs and validAnnotation at DTO
@@ -73,10 +83,19 @@ public class AccountsController {
         summary = "Fech Account Details REST API",
         description = "REST API to fetch Customer & Account details based on a mobile number"
     )
-    @ApiResponse(
-        responseCode = "200",
-        description = "HTTP Status OK"
-    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "HTTP Status OK"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "HTTP Statusn Internal Server Error",
+            content = @Content(
+                schema = @Schema(implementation = ErrorResponseDto.class)
+            )
+        )
+    })
     @GetMapping("/fetch")
     public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam 
                                                 @Pattern(regexp = "(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
@@ -94,6 +113,10 @@ public class AccountsController {
         @ApiResponse(
             responseCode = "200",
             description = "HTTP Status OK"
+        ),
+        @ApiResponse(
+            responseCode = "417",
+            description = "Exception Failed"
         ),
         @ApiResponse(
             responseCode = "500",
@@ -127,6 +150,10 @@ public class AccountsController {
         @ApiResponse(
             responseCode = "200",
             description = "HTTP Status OK"
+        ),
+        @ApiResponse(
+            responseCode = "471",
+            description = "Exception Failed"
         ),
         @ApiResponse(
             responseCode = "500",
