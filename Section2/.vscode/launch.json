@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-AccountsApplication<accounts>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.eazybytes.accounts.AccountsApplication",
+            "projectName": "accounts",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=60938 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=accounts"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-CardsApplication<cards>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.eazybytes.cards.CardsApplication",
+            "projectName": "cards",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
