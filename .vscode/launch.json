@@ -9,6 +9,26 @@
             "projectName": "accounts",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AccountsApplication<com.ezaybytes-accounts>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.ezaybytes.accounts.AccountsApplication",
+            "projectName": "com.ezaybytes-accounts",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AccountsApplication<com.eazybytes-accounts>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.eazybytes.accounts.AccountsApplication",
+            "projectName": "com.eazybytes-accounts",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

@@ -30,6 +30,8 @@ public class GlobalExceptionHandler  extends ResponseEntityExceptionHandler {
         validationErrorList.forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String validationMsg = error.getDefaultMessage();
+            //added . check as accountUmber validation json was returning accountsDto.accountNumber hence we are trying remove accountsDto
+            fieldName = fieldName.substring(fieldName.lastIndexOf(".") + 1);
             validationErrors.put(fieldName, validationMsg);
         });
         return new ResponseEntity<>(validationErrors, HttpStatus.BAD_REQUEST);
