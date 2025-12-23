@@ -95,11 +95,17 @@
     </dependencies>
 
     <build>
+        <finalName>loansMicroservice</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <!-- docker image name using buildpacks (Heruko - packeto) -->
+                    <!-- ${project.artifactId} will pick the artifactId and use it. artifactId is at top in pom -->
+                    <image>
+                        <name>pdcourse/${project.artifactId}:s4</name>
+                    </image>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
