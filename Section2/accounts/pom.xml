@@ -103,9 +103,9 @@
 				<configuration>
                     <!-- docker image name using buildpacks (Heruko - packeto) -->
                     <!-- ${project.artifactId} will pick the artifactId and use it. artifactId is at top in pom -->
-                    <image>
+                    <!-- <image>
                         <name>pdcourse/${project.artifactId}:s4</name>
-                    </image>
+                    </image> -->
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
@@ -126,6 +126,16 @@
 					</excludes>
 				</configuration>
 			</plugin>
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <to>
+            <image>pdcourse/${project.artifactId}:s4</image>
+          </to>
+        </configuration>
+      </plugin>
 		</plugins>
 	</build>
 
