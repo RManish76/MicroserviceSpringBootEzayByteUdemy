@@ -12,7 +12,7 @@
 	<artifactId>accounts</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<!-- tells type of package jar/war. not needed as default is jar as we selected jar in spring.io -->
-	<!-- <packaging>jar</packaging> -->
+	<packaging>jar</packaging>
 	<name>accounts</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
