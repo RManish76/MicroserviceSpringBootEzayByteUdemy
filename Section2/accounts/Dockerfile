@@ -1,11 +1,11 @@
 #Start with a base image containing Java runtime
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk
 
 
 # MAINTAINER instruction is deprecated in favor of using label
 # MAINTAINER eazybytes.com
 #Information around who maintains the image
-LABEL "Manis"
+LABEL "manish"="com.manish"
 
 # Add the application's jar to the image
 COPY target/accountsMicroservice.jar accountsMicroservice.jar
