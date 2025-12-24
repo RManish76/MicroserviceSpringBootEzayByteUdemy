@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,12 +33,19 @@ import org.springframework.web.bind.annotation.*;
 )
 @RestController
 @RequestMapping(path="/api", produces = {MediaType.APPLICATION_JSON_VALUE})
-@AllArgsConstructor
+// @AllArgsConstructor
 @Validated
 public class AccountsController {
 
-    private IAccountsService iAccountsService;
+    private final IAccountsService iAccountsService;
 
+    //due to AllArgsConstructor we were getting error as, its a constructor of all arguments
+    //it was trying to find bean of String as well for our buildVersion as well.
+    //so commenting it and creation a constructor manually
+    @Autowired //still optional as we have single constructor.
+    public AccountsController(IAccountsService iAccountsService){
+        this.iAccountsService = iAccountsService;
+    }
 
     @Value("${build.version}") //this pull the value of build.version form application.yml file and put it in below variable buildVersion. Now we'll send this value to client vai REST
     private String buildVersion;
