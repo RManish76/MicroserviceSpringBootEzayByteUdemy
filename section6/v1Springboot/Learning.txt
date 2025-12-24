@@ -82,3 +82,39 @@
 
         Now question is if we want to activate the prod one then we need to edit the application.yml and change
         the qa to prod. we will see how can we do that without making change in qa
+
+    5. Activate the profiles externally without need to make change in code base to activate the profile
+        i. using command-line arguments
+            We have seen previously the build of jar file and running it from command line using command
+            in same command we add key value pair with double dash(--) prefix which will overwrite that
+            value in application.yml and to overwrite multiple fields give space after 1st key value than again -- and key value pair example 
+                java -jar accounts-service-0.01-SNAPSHOT.jar --build.version="1.1"
+            note we are not rebuilding the jar again we overwriteing it at runtime.
+
+        ii. using JVM system properties
+            jvm system properties has lower priority compaired ot command line but
+            higher than hardcoded value in yml file
+
+            we need prefix the keyvalue with -D like below
+            java -Dbuild.version="1.2" -jar accounts-service-0.0.1-SNAPSHOT.jar
+
+        iii. using Environment variables
+            Environment variables are widely used for externalized configuration as they offer portability
+            across different operating systems, as they are universally supported. Most programming 
+            languages, including java, provide mechanisms to access environment variables, such as the 
+            system.getenv() method.
+
+            To map Spring property key to an enviroment variable, you need to convert all letters to uppercase
+            and replace any dots or dashes with underscores. SpringBoot will handle this mapping correctly
+            internaly. For example, an enviroment variable named BUILD_VERSION will be recognized as the property
+            build.version. This feature is known as relaxed binding.
+
+            windows
+                env:BUILD_VERSION="1.3";java -jar accunts-service-0.0.1-SNAPSHOT.jar
+
+            linux based os
+                BUILD_VERSION="1.3" java -jar accounts-service-0.0.1-SNAPSHOT.jar
+        
+        Presidance of way to overwrite properties
+        application.yml < OS Environment variables < Java System Properties (System.getProperties()).JNDI attributes from java:com/env <
+        < ServledContext init parameters < servletConfig init parameters < Command Line arguments
