@@ -1,0 +1,26 @@
+*1* Perviosuly we have seen ways to create image using 3 ways.
+    1. using Dockerfile - > need learn too many things - not recomanded
+    2. Build pack (heruko(packeto)) -> this downloads a docker image and that docker image helps to create
+        docker images of jar file.
+        we just need to add image name in pom under congifuration and run the command inside the project
+        like accounts, loans, card and the command is "mvn spring-boot:build-image".
+        Used in industries and available for most of the programming languages.
+    3. jib google. - Developed by google. works only for java and this is we are going to use as it is fast
+        and consume less space as it does not download too much things.
+        
+        We just need to add jib pulgin and edit the docker image name in pulgin then
+        we just need to run the command "mvn compile jib:dockerBuild" 
+        this does not download any support image and also it can work without docker desktop.
+
+
+*2* Now the problem comes that we need to manually run the containers one by one giving them port etc
+        To handle that we can create a file docker-compose.yml and add all details like images, ports etc
+        and run that file, it'll create the containers and run it for us with single command.
+
+        we just need to go to directory where our docker-compose.yml file is run command 
+            "docker compose up -d"   -d for detach mode so that it does not ocupy the terminal
+            "docker compose up -d"  --> creates containers from image and run them if container is not present. if persent it runs them
+            "docker compose start" --> run the container if existing and if not existing will fail
+        and to stop the containers 
+            "docker compose stop" -  to stop the containers
+            "docker compose down" - to stop and delete the containers (recomnded) and will be using
