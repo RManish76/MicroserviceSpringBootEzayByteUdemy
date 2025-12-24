@@ -50,3 +50,35 @@
                 Now we can use spring.profile.active = prod        this will activate on prod one.
                     and if we need to activate multiple file then we can pass comma seprated value.
             Second option is passing the value from outside lets see
+
+    4. Use of multiple profile for different Environments
+        Now we have three profile defined
+            application.yml -> default or for dev
+            application_qa.yml -> for qa/testing Environment
+            application_prod.yml -> for prod Environment
+
+        Now the port of our application and H2 database is not going to change based on Environment
+        as of now only the other value which defined under account prefix is going to change.
+            We choose version as 3.0 for default or dev then 2.0 for qa and 1.0 for prod
+            also other value also going to change.
+        
+        Other than build version and details we have added below which convey spring to use this profile
+        i try to activate name using qa. Similarly we'll do for prod.
+                        spring:
+                            config:
+                                activate:
+                                    on-profile:"qa"
+
+        Now once done that we need to tell spring boot we have created 2 extra profiles in default application.yml
+                spirng.config.import={application_qa.yml, application_prod.yml} in yml format as we are using .yml not .properties
+
+        By default spring is going to use application.yml, if we want to use other profile we need to active it
+        using below in application.yml under the sping:    this will activate the qa one
+                                profiles:
+                                    active:
+                                    - "qa"
+        what springboot does is that it check properties defined in default and qa. then whatever diffence
+        if finds it overrides internally from qa to default then run the appplication.
+
+        Now question is if we want to activate the prod one then we need to edit the application.yml and change
+        the qa to prod. we will see how can we do that without making change in qa
