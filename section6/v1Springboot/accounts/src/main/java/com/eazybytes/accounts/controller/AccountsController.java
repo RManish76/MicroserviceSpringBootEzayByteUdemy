@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +52,11 @@ public class AccountsController {
     private String buildVersion;
 
 
+
+    @Autowired
+    private Environment environment; //help pulling data from enviroment variables whiout hardcoding the variable name like we did previosuly in case of build.version
+
+    
     @Operation(
             summary = "Create Account REST API",
             description = "REST API to create new Customer &  Account inside EazyBank"
@@ -178,6 +184,8 @@ public class AccountsController {
     }
 
 
+    //returning build.version using hardcoded value which we got using @Value annotation
+    //proble we need to hardcode the variable name defined in application.yml like build.version
     @Operation(
             summary = "Get Build information",
             description = "Get Build information that is deployed into accounts microservice"
@@ -203,5 +211,33 @@ public class AccountsController {
                 .body(buildVersion);
     }
 
+
+    //returning java version using enviorment variable. Better than @Value to pull enviroment details
+    // problem - we need harcode the value key name like JAVA_HOME, MAVEN_HOME etc and need to pull everything one by one.
+    @Operation(
+            summary = "Get Java information",
+            description = "Get Java information that is deployed into accounts microservice"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
+    @GetMapping("/java-version")
+    public ResponseEntity<String> getJavaVersion(){
+        String response = environment.getProperty("JAVA_HOME")+"\n"+environment.getProperty("MAVEN_HOME");
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
 
 }
