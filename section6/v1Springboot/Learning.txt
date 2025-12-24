@@ -1,0 +1,52 @@
+*1* We want to access variables/properties value stored in application.yml.
+    Till Now we have seen 3 methods.
+    1. using @Value annotation
+        In this method we use @Value("${build.version}"). Using this we are pulling build.version value
+        from application.yml then assiging it to the variables we defined below it like below.
+                    @Value("${build.version}") 
+                    private String buildVersion;
+        Problem: In this method we are hardcoding the properties variables and also if multiple value need to
+            fetch then we have to do it manually.
+            And if we have multiple controller then in each controller we need to do that.
+
+        Another issue faced that we were using AllArgsConstructor and after running the application it caused
+        failur beacuase it was looking for bean of buildVersion variables which we created.
+        So commented the @AllArgsConstructor and build constructor dedicatly for IAccountServices.
+
+
+
+    2. using Environment class
+        In this method we first fetched Environment class.
+        Now in this Environment class we have certian keywords using which we can fetch properties value.
+        Like JAVA_HOME to pull the version of java being used in project.
+                MAVEN_HOME to pull maven version being used in project.
+
+        Pro: we don't need to hardcode the variables names of application.yml anymore.
+        Con: Still we need remember or get what is the keywords for our requirement and also again
+            for multiple controller we need use the same again and again
+
+    3. using Configuration properties
+        In this method whatever properties we want to fetch from application.yml we need to give it a prefix
+        Same we did and the prefix is account.
+        And inside that account we defined centain variables 
+
+        Now to pull these values we created a DTO and this is of RECORD type not class not interface.
+        In this Dto we just need to add annotation @ConfigurationProperties and pass the prefix which we created
+                @ConfigurationProperties(prefix = "accounts")
+        and we just need to pass the variables of application.yml and it should be same as defined in application.yml
+
+            Now we can use this Dto where we want to pull the properties value
+        Note: we need to add annotation at root/AccountsApplication.java and pass the dto class here
+                    @EnableConfigurationProperties(value = {AccountsContactInfoDto.class})
+
+        Pro: No need of hardcoding anymore also since we have DTO we can easyly use it anywhere no
+                matter how manually controller we have
+
+        Cons: we are still keeping things hardcode in application.yml and if we are changing the Environment
+            like dev, uat, prod then we may need to change the values in application.yml which needs code change
+
+            We have two option for it one is profile creation and spirng will pick the profile what we pass
+                like application_uat.yml, application_dev.yml, application_prod.yml
+                Now we can use spring.profile.active = prod        this will activate on prod one.
+                    and if we need to activate multiple file then we can pass comma seprated value.
+            Second option is passing the value from outside lets see

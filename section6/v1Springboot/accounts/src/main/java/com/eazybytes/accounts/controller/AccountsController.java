@@ -1,6 +1,7 @@
 package com.eazybytes.accounts.controller;
 
 import com.eazybytes.accounts.constants.AccountsConstants;
+import com.eazybytes.accounts.dto.AccountsContactInfoDto;
 import com.eazybytes.accounts.dto.CustomerDto;
 import com.eazybytes.accounts.dto.ErrorResponseDto;
 import com.eazybytes.accounts.dto.ResponseDto;
@@ -41,7 +42,7 @@ public class AccountsController {
     private final IAccountsService iAccountsService;
 
     //due to AllArgsConstructor we were getting error as, its a constructor of all arguments
-    //it was trying to find bean of String as well for our buildVersion as well.
+    //it was trying to find bean of String of build version as well for our buildVersion as well.
     //so commenting it and creation a constructor manually
     @Autowired //still optional as we have single constructor.
     public AccountsController(IAccountsService iAccountsService){
@@ -55,6 +56,9 @@ public class AccountsController {
 
     @Autowired
     private Environment environment; //help pulling data from enviroment variables whiout hardcoding the variable name like we did previosuly in case of build.version
+
+    @Autowired
+    private AccountsContactInfoDto accountsContactInfoDto; //for 3rd method of pulling enviorment variable form applicaition.yml
 
     
     @Operation(
@@ -240,4 +244,30 @@ public class AccountsController {
                 .body(response);
     }
 
+
+
+    @Operation(
+            summary = "Get Contact Info",
+            description = "Contact Info details that can be reached out in case of any issues"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
+    @GetMapping("/contact-info")
+    public ResponseEntity<AccountsContactInfoDto> getContactInfo(){
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(accountsContactInfoDto);
+    }
 }
