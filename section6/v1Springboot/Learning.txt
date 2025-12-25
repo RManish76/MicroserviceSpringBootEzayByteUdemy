@@ -122,3 +122,13 @@
         I tried above command to run jib file as i am using vs code not intelij idea.
         so i had to uncomment the maven plugin and create the jar file then run the above commands
         without maven plugin generated jar file will not work.
+
+But we still have issue that we need to create profiles also we are storing sensitive data like
+database password and important properties in application it self. which is visible to any dev and which is
+what we don't want.
+So We'll move to next stage which is centralized configuration.
+Like springboot theres a project spring cloud project in spring ecosytem which which works on differtn
+cloud/microservice based project like Discovery/registry, routing/tracing, load balancing, spring cloud security,
+    distribuited tracing/ messaging, spring cloud config etc.
+
+    The spring cloud config is going to help us create a centerlaised service for properties
