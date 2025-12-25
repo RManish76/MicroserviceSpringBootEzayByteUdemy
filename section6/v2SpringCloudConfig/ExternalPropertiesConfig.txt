@@ -19,4 +19,32 @@
 *3* Added name of server which we want
         in application.yml we need to add spring.application.name="configserver"
         the name can be anything and this is the name we are going to use to for this sever and
-        connect to this server
+        connect to this server.
+
+        Added confgiuration related to accounts, cards, loans in config folder under resources in configserver project
+
+        now added spring.profiles.active=native in application.yml of configserver project
+            this tell to spring cloud config servet that to cativate a native profile of spring cloud config
+            server, so whenever we are trying to use a classpath to store all our configuration, we need to
+            make sure we are activating the native profile.
+
+            Once we define the profile activation details.
+
+            now we need to add spring.cloud.config.server.native.search-locations="classpath/config"
+            this mentions the serach location of profiles, using this property only we tell spring cloud
+            config server where our properties are stored. And right now our properties are stored inside
+            the classpath -> where properties are         config -> folder location of classpath
+
+        now intital setup is done. lets run the configserver applicatiion
+        after running we can serach in browser
+            GET        localhost:8071/accounts/prod  -> to fetch accounts_prod.yml and accounts.yml properties
+            GET        localhost:8071/cards/prod      -> to fetch cards_prod.yml and cards.yml properties
+            GET        localhost:8071/accounts/default -> to get only default profile
+        
+        we got issue as we are getting only default accounts.yml with  link localhost:8071/accounts/prod 
+            the issue is file nameing convetion.
+            the name should be accounts-prod.yml not accounts_prod.yml similarly for others.
+
+        After correcting the issue we are getting both default and prod profile.
+        which is expected and when we activate the other application with prod profile they will pick
+        the prod profile and ignore the default one.
