@@ -118,3 +118,7 @@
         Presidance of way to overwrite properties
         application.yml < OS Environment variables < Java System Properties (System.getProperties()).JNDI attributes from java:com/env <
         < ServledContext init parameters < servletConfig init parameters < Command Line arguments
+
+        I tried above command to run jib file as i am using vs code not intelij idea.
+        so i had to uncomment the maven plugin and create the jar file then run the above commands
+        without maven plugin generated jar file will not work.

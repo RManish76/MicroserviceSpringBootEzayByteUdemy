@@ -116,7 +116,7 @@
 			</plugin>
 			
 			<!-- as per instructor after adding google jib, we don't need spring boot maven plugin -->
-			<!-- <plugin>
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
@@ -127,7 +127,7 @@
 						</exclude>
 					</excludes>
 				</configuration>
-			</plugin> -->
+			</plugin>
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
