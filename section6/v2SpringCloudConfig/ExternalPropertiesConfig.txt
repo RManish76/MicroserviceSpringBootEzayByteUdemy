@@ -1,0 +1,11 @@
+*1* Spring cloud project provides a dependency known as spring config server and spring config client.
+        spring config server - > stores the details and properties so that other application can fetch
+                                    details from here.
+        Spring config client - > application which will fetch config details from config server.
+
+        added dependency in configserver project
+                -> config server, actuator
+
+*2* Start
+    Added @EnableConfigServer  --> saying to spring this project will be storing confgiuration/properties
+            and other applications will fetch those details from it.
