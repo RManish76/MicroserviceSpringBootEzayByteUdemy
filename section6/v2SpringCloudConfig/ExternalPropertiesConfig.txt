@@ -9,3 +9,9 @@
 *2* Start
     Added @EnableConfigServer  --> saying to spring this project will be storing confgiuration/properties
             and other applications will fetch those details from it.
+
+    There multiple way to store confgiuration details like classpath, file sysem, database, githubrepo etc
+    we are going to discuss 3 of them
+        1. Class Path storage
+        2. Store it in file system in local or server and then we can read from that folder
+        3. using github
