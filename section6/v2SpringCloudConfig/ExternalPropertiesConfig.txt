@@ -56,3 +56,7 @@
         only kept applicatiion name as our applicatiion is going to find same name on config server
         then we also mentioned a default profile as prod so that our applicatiion start with prod profile
         by defaule if it able to find prod profile in config server.
+
+    Added config client dependency to pom of accounts microservice.
+    and since we are adding configClient we need not add spring cloude version as well and
+    dependencyManagement also

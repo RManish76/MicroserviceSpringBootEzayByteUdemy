@@ -30,6 +30,8 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+<!-- Since we added config client/statret below spring-cloud version is needed -->
+    	<spring-cloud.version>2025.1.0</spring-cloud.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -85,13 +87,31 @@
 		</dependency>
 		
 		<!-- For API documentation -->
-	<dependency>
-		<groupId>org.springdoc</groupId>
-		<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-		<version>2.8.14</version>
-	</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.8.14</version>
+		</dependency>
 
+		<!-- For config client from spring initalizer -->
+		<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
 	</dependencies>
+
+<!-- Since we added config client/statret below depencyManagement is needed -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
 	<build>
 		<!-- Name of jar file created using maven -->
