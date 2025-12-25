@@ -48,3 +48,11 @@
         After correcting the issue we are getting both default and prod profile.
         which is expected and when we activate the other application with prod profile they will pick
         the prod profile and ignore the default one.
+
+
+*4* spring cloud config clinet
+    Now we'll do configuration in accounts, card, loans as config client
+        1st in accounts default profile applicatiion.yml we removed all profile details
+        only kept applicatiion name as our applicatiion is going to find same name on config server
+        then we also mentioned a default profile as prod so that our applicatiion start with prod profile
+        by defaule if it able to find prod profile in config server.
