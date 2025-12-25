@@ -3,6 +3,6 @@ server:
   
 spring:
   application:
-    name: configserver
+    name: configserver # name of the server or application
 
 

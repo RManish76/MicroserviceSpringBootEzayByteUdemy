@@ -15,3 +15,8 @@
         1. Class Path storage
         2. Store it in file system in local or server and then we can read from that folder
         3. using github
+
+*3* Added name of server which we want
+        in application.yml we need to add spring.application.name="configserver"
+        the name can be anything and this is the name we are going to use to for this sever and
+        connect to this server
