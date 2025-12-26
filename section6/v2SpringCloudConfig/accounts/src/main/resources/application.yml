@@ -1,0 +1,26 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: accounts
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  config:
+    import:
+    - "optional:configserver:http://localhost:8071"
+
+
+  profiles:
+    active:
+      - "prod"  #by default our acounts project will start with prod profile. we have application name and using same application name it'll look for profile in spring cloud config server

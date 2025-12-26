@@ -1,0 +1,11 @@
+build:
+  version: "2.0"
+
+accounts: # accounts is prefix - can be anything. we will use this in third method to pull the propery value using @E we would need dto(AccountsContactInfoDto,java ->Record not class or interface ) for that
+  message: "Welcome to EazyBank accounts related QA APIs"
+  contactDetails:
+    name: "Smita Ray - QA Lead"
+    email: "smitha@eazybank.com"
+  onCallSupport:
+    -(666)265-3765
+    -(666)734-8371

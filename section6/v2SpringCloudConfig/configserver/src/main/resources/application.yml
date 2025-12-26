@@ -1,0 +1,16 @@
+server:
+  port: 8071
+  
+spring:
+  application:
+    name: configserver # name of the server or application
+  profiles:
+    active:
+    - native # telling to spring cloud server that to cativate a native profile of cloud config server. required when we store config detals as classpath
+  cloud:
+    config:
+      server:
+        native:
+          search-locations:
+          - "classpath:/config"
+
