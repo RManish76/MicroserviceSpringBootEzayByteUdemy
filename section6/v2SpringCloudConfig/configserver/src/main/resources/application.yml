@@ -6,11 +6,24 @@ spring:
     name: configserver # name of the server or application
   profiles:
     active:
-    - native # telling to spring cloud server that to cativate a native profile of cloud config server. required when we store config detals as classpath
+      # - native # telling to spring cloud server that to cativate a native profile of cloud config server. required when we store config detals as classpath and folder based
+      - git # when we put the profile files in some repo
   cloud:
     config:
       server:
-        native:
-          search-locations:
-          - "file:///E:\\01_SpringBootEzaybytesUdemy\\section6\\v2SpringCloudConfig\\configForFileType\\config"
+        # native: #for classpaht(profile file inside the project) and folder(profile file outside of project local/remote)
+          # search-locations:
+          # - "classpath:/config"  #when the config in the project itself resources/confiles/
+          # - "file:///E:\\01_SpringBootEzaybytesUdemy\\section6\\v2SpringCloudConfig\\configForFileType\\config"
+        
+        git:
+          uri: https://github.com/RManish76/eazybytes-config.git #public repo link where profile file exist
+          default-label: main  #branch from where the file needs to be read
+          timeout:  5  #config server should wait only for 5sec to connect to repo. if fails throw an exception
+          clone-on-start: true  # it tells make clone of repo at start of the application itself. if not set true the cloning of the GitHub repo wil
+                                # will happenonly when the very first request come to your config server and this may result into some issues like your config
+                                # server may get started properly, but whenthe very first request coming towards your config server like in the form of accounts
+                                # microservice or cards/loans MS, the it cannot clone and it cannot read the configuration.
+          force-pull: true # tells to override all the local changes whever we are trying to start or restart the config server.
+                            # this will make sure the configserver always reading the properties from the master location which is Github repo
 
