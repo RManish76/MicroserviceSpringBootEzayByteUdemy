@@ -78,3 +78,12 @@
 
 
     Now with same process lets update the cards and loan microservice as config clinet
+
+    *2* Now we'll modify the configserver to filetype from classpath(stored with code)
+        issue with classpath is that any developer working on configserver will able to see all
+        properties which creates security issue as those developer might not be authorised to
+        look at properties.
+
+        In file path system we need palce all profile in a folder local/remote and then we'll
+        update applicatiion.yml of ConfigServer from classpath to filsystem and give the location
+        of that folder.
