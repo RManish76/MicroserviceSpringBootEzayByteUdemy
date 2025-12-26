@@ -75,3 +75,6 @@
     start with prod profile.
     and if we want to activete another profile we can run it using command line. like below
         java -jar accoutnsMicroservice.jar --spring.profiles.active=qa
+
+
+    Now with same process lets update the cards and loan microservice as config clinet
