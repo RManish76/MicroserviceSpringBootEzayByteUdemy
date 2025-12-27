@@ -50,6 +50,11 @@
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-starter-bus-amqp</artifactId>
 		</dependency>
+		<!-- Spring Cloud webhook dependency -->
+		<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-config-monitor</artifactId>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

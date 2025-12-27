@@ -205,3 +205,74 @@
     bus service then we can hit POST http://localhost:8080/actuator/busrefresh or from any other MS but need to do
     only one time which will send the event to
     rabbitMQ to refresh the profile config and all MS connected to this RabbitMQ will refresh automatically
+
+
+
+*6* Now we'll introduce WebHooks.
+        we'll have to  inster the configServer link to github repo at webhook option.
+        Now whenever we make changes to repo and commit it. it'll make version change then
+        github will send webhooks request to our configServer that a change happened at repo you need to refresh the
+        config at your end and after reciving the info, busrefresh will get trigger with help of rabbitMQ.
+        and our MS will get refresed with new config profile.
+
+        But our MS is in our local PC ane we cannot give that link to github repo.
+        So we'll use a midiator. which will get install in our local machine.
+        Then using that we will make a public available link for configServer and that link we'll
+        insert it in github repo at WebHooks option.
+        Now request will go to midiator and midiator will redirect it to  our local pc.
+
+        
+        
+        So, first we need to add below dependency in our configServer MS for webHooks.
+        And below dependency will expose a api path to used in webhooks. Not this is not under actuator.
+        the api will be exposed by spring cloud config server.
+        and that rest end point is http://localhost:8071/monitor
+            <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-config-monitor</artifactId>
+            </dependency>
+        
+        And add below configuration in applicatiion.yml of configserver
+                    management:
+                        endpoints:
+                            web:
+                                exposure:
+                                    include: "*"
+        enabling this means we enabled the actuator all rest endpoints hence now the configserver MS
+        will able to call the busrefresh rest endpoint and make sure rabbitMQ properties are there
+        if your rabbitMQ is not running on default properties.
+
+        The midiator which we are going to use is hookdeck.com follow the instruction
+        and install it as per the website
+        hookdeck.com -> product -> console -> Add distination(top)-> select localhost
+            install as per the windows
+
+            first we need scoop in windows to install hookdeck
+            to scoop used below command in powershell https://github.com/ScoopInstaller/Install#readme
+                >>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+                >>irm get.scoop.sh | iex
+            scoop installation successful.
+
+            Now install hookdeck and run it using below command in cmd or powershell
+            >> scoop bucket add hookdeck https://github.com/hookdeck/scoop-hookdeck-cli.git
+            >> scoop install hookdeck
+            >> hookdeck login --cli-key 5kac2ezc7o1c1hw86y0qcpov9ewthzlrs3b9grspr0075ffoto
+            >> hookdeck listen 8071 Source --cli-path /monitor
+
+            here 8071 is port of configserver in our MS and /monitor is the api endpoint where our
+            MS configserver will listin the webhook request.
+                full api linke is http://localhost;8071/monitor
+
+            After runninig the hookdeck below is showing at hookdeck running session in cmd
+
+                Requests to -> https://hkdk.events/yr3w81syycwblp
+                Forwards to -> http://localhost:8071/monitor
+
+            Now let's insert this https://hkdk.events/yr3w81syycwblp hookdeck url to our repo at payload url
+            and make content type as JSON.
+
+            Now lets run the configserver and then other MS.
+            then make changes in config and now after some time it should reflect the changes
+            in other MS as well without hitting any refresh or busrefres api endpoint manualy.
+            and we did it successfully.
+            
