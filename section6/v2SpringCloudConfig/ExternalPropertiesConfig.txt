@@ -159,3 +159,49 @@
 
     But we still have issue that if we have a lot of MS the we need to execute the refresh endpoint many
     times which is inconvinece.
+
+
+*6* Now we are going to introduce spring cloud bus in project.
+    As we have seen previously that we need call the actuator refresh endpoint multiple times manualy
+    as we have multiple MS.
+    To mitegate it we need some message broker which will publish event to refresh the config 
+    and each MS will refresh as response of that event.
+    To achieve this we have SPRING CLOUD BUS which works with both RabbitMQ and Kaffka.
+    
+    we are going to use the RabbitMQ. So we need to install the RabbitMQ localy.
+    We are going to use docker to install the RabbitMQ using below cmd in cmd. present at RabbitMQ website
+    below command will install and will run the rabbitmq also
+
+        docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:4-management
+
+    post that we need add dependency in each MS including configServer. in spring intitalizer found similar but not exact dependency as the below 
+    but it was mentioned in spring cloud Bust website: https://docs.spring.io/spring-cloud-bus/reference/quickstart.html and available in maven repo
+		<!-- Spring Cloud Bus for RabbitMQ -->
+		<dependency>
+		    <groupId>org.springframework.cloud</groupId>
+		    <artifactId>spring-cloud-starter-bus-amqp</artifactId>
+		</dependency>      
+
+    After this make sure we re enabling the actuator API path which is bus refresh inside all our MS instances.
+        we have already enabled using "*" which will enable all actuator/management endpoint. no need to dedicately enbale bus refresh end point.
+
+    Now like we provide details of database like port username password, similarly we need to do that for
+    RabbitMQ as well. and since we want all or our MS to connect to same RabbitMQ we need mention same details
+    at all MS in applicatiion.yml
+
+                    #detail of rabbitMQ
+                    rabbitmq:
+                        host: "localhost"
+                        port: 5672
+                        username: "guest"
+                        password: "guest"
+
+    The above details of rabbitMQ is default value. and even if we don't mention it, springboot is smart
+    enough to connect to the rabbitMQ with default value.
+
+    now lets start the configServer MS then other MS. after that we can make changes to config profiles like
+    we did earlier and hit application specific contact-info endpoint we'll see that changes not reflecting
+    like eariler. now either we have to hit POST request of refresh actuator for each MS or as we have implemented
+    bus service then we can hit POST http://localhost:8080/actuator/busrefresh or from any other MS but need to do
+    only one time which will send the event to
+    rabbitMQ to refresh the profile config and all MS connected to this RabbitMQ will refresh automatically
