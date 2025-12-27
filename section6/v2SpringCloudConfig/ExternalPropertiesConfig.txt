@@ -87,3 +87,27 @@
         In file path system we need palce all profile in a folder local/remote and then we'll
         update applicatiion.yml of ConfigServer from classpath to filsystem and give the location
         of that folder.
+
+    *3* After that we moved to repo based
+        we put all our config file in a repo then modified the applicatiion.yml of configserver to
+        fetch the config files from the repo at start of the application.
+
+    *4* Introducing the encyrption/decytprion
+        we can introduce a encyrption key in the applicatiion.yml of configserver.
+        After Introducing the encyrption in applicatiion.yml the applicatiion automatically expose a
+        rest endpoint which is http://localhost:8071/encrypt for encryption and http://localhost:8071/decrypt for decryption.
+        Now we can make a call to http://localhost:8071/encrypt and pass the text in body
+        it'll return us the encrypted form of that text as per key.
+        And in request if we sent the encrypted (no need of any prefix) text to http://localhost:8071/decrypt then it'll return us the decrypted value
+
+        similarly if our data is encrypted in repo/file and we have configred the key applicatiion.yml
+        then when we request that through config server vai any request/application it'll first decrypt that data then return to us.
+        here only conditionis that at repo we need to add prefix cipherr like "{cipher} encrypted data" to let configserver
+        know that the text which you are reciving is encrypted. if this prefix is not there then it'll treat as normal data.
+
+        for demo: we'll encrypt the email id of accounts_prod user the will try to make request for that
+        from http://localhost:8071/accounts/prod of config server or http://localhost:8080/api/contact-info of accountsMS in boht cases
+        we should get the emailid from the repo instead of the encrypted data.
+        email:aishwarya@eazybank.com    encrypted: 35a1f2cccec24dc948d4d129704d9ce5f63548c388cc0c99fa91255d22a76cc22af55212d59e94ae89fc826a98bdebca
+        at repo "{cipher}35a1f2cccec24dc948d4d129704d9ce5f63548c388cc0c99fa91255d22a76cc22af55212d59e94ae89fc826a98bdebca"
+        restarted the configserver. in response only email we are getting

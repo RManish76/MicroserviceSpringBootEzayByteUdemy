@@ -27,3 +27,8 @@ spring:
           force-pull: true # tells to override all the local changes whever we are trying to start or restart the config server.
                             # this will make sure the configserver always reading the properties from the master location which is Github repo
 
+encrypt:
+  key: "12DFDF34DF932459GDFD90234ND-0124NFKS93" #randomly i have provided. we can put pgp key and other thing.
+              # after introducing the key the application will automatically introduce a restapi end point
+              # of encryption/decryption which localhost:8071/encrypt  for encryption and http://localhost:8071/decrypt for decryption.
+
