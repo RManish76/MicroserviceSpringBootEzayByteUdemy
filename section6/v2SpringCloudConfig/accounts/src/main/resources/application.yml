@@ -19,6 +19,13 @@ spring:
   config:
     import:
     - "optional:configserver:http://localhost:8071"
+  #detail of rabbitMQ
+  rabbitmq:
+    host: "localhost"
+    port: 5672
+    username: "guest"
+    password: "guest"
+
 
 
   profiles:

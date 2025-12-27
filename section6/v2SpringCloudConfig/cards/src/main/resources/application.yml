@@ -22,6 +22,12 @@ spring:
   profiles:
     active:
     - "prod"
+  #detail of rabbitMQ
+  rabbitmq:
+    host: "localhost"
+    port: 5672
+    username: "guest"
+    password: "guest"
 
 management:
   endpoints:

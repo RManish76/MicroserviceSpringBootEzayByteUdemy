@@ -102,6 +102,11 @@
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
+		<!-- Spring Cloud Bus for RabbitMQ -->
+		<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-bus-amqp</artifactId>
+		</dependency>
     </dependencies>
 
 <!-- Since we added config client/statret below depencyManagement is needed -->
