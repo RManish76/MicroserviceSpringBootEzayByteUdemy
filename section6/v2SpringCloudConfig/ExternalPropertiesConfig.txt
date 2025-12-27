@@ -111,3 +111,51 @@
         email:aishwarya@eazybank.com    encrypted: 35a1f2cccec24dc948d4d129704d9ce5f63548c388cc0c99fa91255d22a76cc22af55212d59e94ae89fc826a98bdebca
         at repo "{cipher}35a1f2cccec24dc948d4d129704d9ce5f63548c388cc0c99fa91255d22a76cc22af55212d59e94ae89fc826a98bdebca"
         restarted the configserver. in response only email we are getting
+
+*5* Refresh of config if configfiles have some change without restarting the code.
+    First we need actuator dependency in pom to achieve that.
+    then update AccountsContactInfoDto in accoutnsMicroservice from record type to class.
+    As we know that record type only allow us to 1st time update the record from null as
+    all parameter in record is final.
+    And in our case we want to update the data if config changed means we can no longer use record type.
+    For loans and card i have keept the contactinfodto as class only.
+
+    After that we need to update the applicatiion.yml to enable the actuator in all MS
+        management.endpoints.web.exposure.include="*"  it'll expose all actuator restendpoint.
+        if we want expose only refresh then we need to mention ="refresh". it'll expose only refresh
+        endpoint of actuator.
+        management is actuator  and although we only need only resfresh rest endpoing but going for all
+        do the same in loans, cards.
+
+    Now once everything is done we can make changes to config profile in repo and when we hit
+    rest endpoints of ConfigServer it'll show the refreshed data.
+    But but but, when we try to get data from any other MS like accounts, loans we'll get old data only.
+    because when these MS started then only they connected to configServer and pulled the required details and
+    when we are trying to get detials from these MS, they are not reaching to configServer again they'll show
+    the old data only.
+    Now to get the new data for these MS we need hit the actuator refrest POST request to ask these
+    each MS that they need to refresh their profile data by reaching the config server again.
+    if we go to https://localhost:8080/actuator  --> it'll show all actuator rest point as we have use "*" in enable
+        to refresh the data from the refresh endpoint is without any body 
+            POST http://localhost:9000/actuator/refresh --> for cards MS
+                response 
+                        [
+                            "config.client.version",
+                            "cards.message"
+                        ]
+            POST http://localhost:8000/actuator/refresh --> for accountss MS
+                response 
+                        [
+                            "config.client.version",
+                            "accounts.message"
+                        ]
+            POST http://localhost:8090/actuator/refresh --> for loans MS
+                response 
+                        [
+                            "config.client.version",
+                            "loans.message"
+                        ]
+        after hitting this endpoints we'll get new data from the repo.
+
+    But we still have issue that if we have a lot of MS the we need to execute the refresh endpoint many
+    times which is inconvinece.
