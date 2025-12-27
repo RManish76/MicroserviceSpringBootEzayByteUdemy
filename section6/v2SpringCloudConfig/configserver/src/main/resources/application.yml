@@ -37,3 +37,9 @@ encrypt:
               # after introducing the key the application will automatically introduce a restapi end point
               # of encryption/decryption which localhost:8071/encrypt  for encryption and http://localhost:8071/decrypt for decryption.
 
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
