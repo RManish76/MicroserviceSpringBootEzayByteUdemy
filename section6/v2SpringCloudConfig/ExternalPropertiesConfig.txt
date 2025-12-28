@@ -384,4 +384,7 @@
             that all MS depends on rabbitMQ. It's beacuse other MS is depended on configserver and configserver is
             depended on rabbitMQ hence indirecly other MS is also depended on rabbitMQ
                                     
+    Currently the docker-compose.yml consist a lot of repatitive configuration.
+        so we are going to create common-config.yml in same folder which will contain
+        all the repatitive configuration
             
