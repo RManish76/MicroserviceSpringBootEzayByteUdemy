@@ -261,7 +261,7 @@
 
             here 8071 is port of configserver in our MS and /monitor is the api endpoint where our
             MS configserver will listin the webhook request.
-                full api linke is http://localhost;8071/monitor
+                full api linke is http://localhost:8071/monitor
 
             After runninig the hookdeck below is showing at hookdeck running session in cmd
 
@@ -275,4 +275,116 @@
             then make changes in config and now after some time it should reflect the changes
             in other MS as well without hitting any refresh or busrefres api endpoint manualy.
             and we did it successfully.
+
+    
+*7* Dockeris all MS
+    We'll make multiple images for instance wise like default,qa, prod.
+    we'll follow docker compose like eariler.
+    first moved the docker-compose.yml from accounts MS to default folder and we'll modify that.
+    added image for configserver in docker-compose.yml
+
+    Now we have to let other MS docker image know how to connect to configserver container.
+        as we did in normal MS in each MS applicatiion.yml using below
+            spring.config.import = "optional:configserver:http://localhost:8071/"
+        same we need to for containers as well, as the configserver will run in docker container not in
+        local machine. so we have to overwrite this config.import for each MS. like below
+
+            we removed optional, because we want MS to fail if they are not able connect to configserver.
+            In local optional was fine, but incase of production we want that each MS should be able to 
+            connect to configserver  like below  -->  SPRING_CONFIG_IMPORT: "prefix:http://dockerServiceName:8071"
+                prefix = configserver -->fixed --> using this word other MS will connect as we have spring-cloud-starter-config dependency in other MS
+                dockerServiceName = configserver --> service name which we have given in docoker for configserver
+                        environment:
+                            SPRING_APPLICATION_NAME: "accounts"  --> application name which we have defined in each MS
+                            SPRING_CONFIG_IMPORT: "configserver:http:/confiserver:8071"
+                            SPRING_PROFILES_ACTIVE: default   --> as the current compose file in default folder,
+                                                                if the images runs, from default folder. it should run for default profile
+                        with these details other MS should be abel to talk with configserver MS docker as well as other MS as all are same network eazybytes
+                                                        
+            Now everything is almost setup but we have a issue.
+            We want our configserver MS to start first then other MS as we want other MS to connect with configserver
+            But the current configuration will start all container parllel which we don't want.
+
+        To solve the above issue first we need to understand two concepts Liveness and Readiness probes
+            Liveness: return true if application is alive. if not alive means need to take action like
+                            restart or new instance etc by container architestrain like kubernaties
+                
+                            Note live does not mean it is ready to accept the request
+            Readiness: if true means ready to accept the request. if false means it is not ready for
+                        request, might be doing some background processing. collecting dependency etc
+
+                
+            Inside spring boot apps, actuator gathers the "Liveness" and "Readiness" information from
+            the ApplicationAvailability interface and uses that information in dedicated health indicators:
+            LivenessStateHealthIndicator and RedinessStaeHealthIndicator.
+            These indicators are shown on the global health endpoing ("acuator/health"). They are also
+            exposed as separate HTTP probes by using health groups: "/actuator/health/liveness" and
+                    "/actuator/health/readiness"
+
+            Now we need to enable the health probe inside the configserver applicatiion.yml using below
+                management.health.readiness-state.enabled = true --> enabled for actuator to check the status
+                management.health.liveness-state.enabled= true --> enabled for actuator to check the status
+                management.endpoint.health.probes.enabled = true --> note its endpoint not endpoints --> check the status of
+                                                                    readiness and liveness through rest endpoints
+
+                after settingup above we can goto
+                    http://localhost:8071/actuator/health
+                    http://localhost:8071/actuator/health/liveness
+                    http://localhost:8071/actuator/health/readiness
+
+            now that configuration in configserver completed lets go to docker-compose and modify it.
+                service.configserver.healthcheck.test= "curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1"
+                service.configserver.healthcheck.interval = 10s
+                service.configserver.healthcheck.timeout = 5s
+                service.configserver.healthcheck.retries = 10
+                service.configserver.healthcheck.start_period = 10s
+
+                added above in configserver category in docker-composer.yml
+                    where localhost:8071/actuator/health/readiness is rest endpoint
+                    grep UP ---> will check if UP is there in response or not
+                    exit 1 ---> exit the health check command, hence the health is not proper.
+                    start_period=10s --> start checking health after 10s when application starts as application will have some background process
+                    retries: 10 --> if there is failure or down response the retry upto 10 times
+                    timeout=5s --> wait for max 5 sec for response upon the req
+                    interval=10s --> retry on 10s interval.
+
+                now dependency of above configuration needs to add in other MS accounts, cards, loans
+                    we can mention like 
+                        accounts.depends_on = configserver
+                        but issue is that with this command, it'll check the configserver but it'll not wait
+                        for the configserver started or not it'll instantly check as soon as accounts MS
+                        starts. instead we'll use below command
+                        accounts.depends_on.configserver.condition = service_completed_successfully
+
+                        above will check if config service started completly and healthy.
+
+                        need to define same for all MS accounts, cards, loans
+        
+        Also as we are using rabbitMQ for spring cloud bus we need to add that as well in docker-composeusing as service like below
+                services:
+                    rabbit:
+                        image: rabbitmq:3.12-management
+                        hostname: rabbitmq
+                        ports:
+                            - "5672:5672" #for rabitmq core activities
+                            - "15672:15672" # managment of rabbitMq
+                        healthcheck:
+                            test: rabbitmq-diagnostics check_port_connectivity # from rabitmq offical documentation
+                            interval: 10s
+                            timeout: 5s
+                            retries: 10
+                            start_period: 5s
+        
+        Now since we have rabitmq service and also we know that other MS including configserver depend on rabbitMQ
+        We'll add the rabbitMQ dependency all MS like we did added the dependency of configserver for other MS
+                                depends_on:
+                                    rabbit:
+                                        condition: service_healthy
+            if we notice that we have added the above dependency at only configserver not other MS where as we know
+            that all MS depends on rabbitMQ. It's beacuse other MS is depended on configserver and configserver is
+            depended on rabbitMQ hence indirecly other MS is also depended on rabbitMQ
+                                    
+    Currently the docker-compose.yml consist a lot of repatitive configuration.
+        so we are going to create common-config.yml in same folder which will contain
+        all the repatitive configuration
             
