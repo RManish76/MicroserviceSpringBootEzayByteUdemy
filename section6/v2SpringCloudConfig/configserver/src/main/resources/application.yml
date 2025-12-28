@@ -43,3 +43,14 @@ management:
     web:
       exposure:
         include: "*"
+  health:
+    readiness-state:
+      enabled: true #enabled for actuator
+    liveness-state:
+      enabled: true #enbale to check for actuator
+  endpoint:
+    shutdown:
+      enabled: true # Enable graceful shutdown via REST API
+    health:
+      probes:
+        enabled: true #enabled to check readiness and liveness through rest endpoints
