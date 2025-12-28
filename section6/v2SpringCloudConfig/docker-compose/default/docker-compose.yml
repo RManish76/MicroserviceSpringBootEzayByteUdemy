@@ -40,7 +40,7 @@ services:
       - "8080:8080"
     depends_on:
       configserver:
-        conditon: service_healthy
+        condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "accounts"
     extends:
@@ -54,7 +54,7 @@ services:
       - "8090:8090"
     depends_on:
       configserver:
-        conditon: service_healthy
+        condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "loans"
     extends:
@@ -68,7 +68,7 @@ services:
       - "9000:9000"
     depends_on:
       configserver:
-        conditon: service_healthy
+        condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "cards"
     extends:
