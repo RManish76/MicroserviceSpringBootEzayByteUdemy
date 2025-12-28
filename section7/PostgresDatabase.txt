@@ -1,0 +1,13 @@
+*1* Cleanup of the code.
+    First we want to remove the rabbitMQ, SpringCloudBus and its dependency as in upcoming section it is not
+    needed also. since local machine has limited resources we need to make space for upcoming section.
+    As we don't want to run too much docker containers.
+
+    1st let's remove the spring-cloud-stater-bus-amqp (busRefresh, rabbitMQ)and spring-cloud-config-monitor (webhook)
+    from the configserver Ms.
+    Now go to application.yml of config server and remove below.
+        rabbitmq.host=     rabbitmq.pror   ....
+
+    Now go to pom of accounts and remove the spring-cloud-starter-bus-amqp then delete properties of
+    rabbitmq from application.yml
+    Do the same for cards and loan MS.
