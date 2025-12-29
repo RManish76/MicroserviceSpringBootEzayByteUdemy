@@ -1,0 +1,43 @@
+*1* Cleanup of the code.
+    First we want to remove the rabbitMQ, SpringCloudBus and its dependency as in upcoming section it is not
+    needed also. since local machine has limited resources we need to make space for upcoming section.
+    As we don't want to run too much docker containers.
+
+    1st let's remove the spring-cloud-stater-bus-amqp (busRefresh, rabbitMQ)and spring-cloud-config-monitor (webhook)
+    from the configserver Ms.
+    Now go to application.yml of config server and remove below.
+        rabbitmq.host=     rabbitmq.pror   ....
+
+    Now go to pom of accounts and remove the spring-cloud-starter-bus-amqp then delete properties of
+    rabbitmq from application.yml
+    Do the same for cards and loan MS.
+
+*2* Install and run the mySQL docker
+
+    >> docker run -p 3306:3306 --name accountsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=accountsdb -d mysql
+
+    3306 --> default port of mySQL
+    --name --> name of the container which we want. else random name will be assigned by docker
+    -e --> saying next element is enviorment variable
+    MYSQL_ROOT_PASSWORD --> root password of the database. we have give root as pasword and username is root by default
+    MYSQL_DATABASE  --> by default when we install any database, it does not have any schema/server installed.
+                        we want to create a schema/server in database and the name is accountsdb
+    -d --> to run the docker in detached mode
+    mysql --> the name of the image which we want to download
+
+    similary we created the container for loans at port 3307 and cards at port 3308
+    >> docker run -p 3307:3306 --name loansdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=loansdb -d mysql
+    >> docker run -p 3308:3306 --name cardsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cardsdb -d mysql
+
+*3* Install a client to connect the database
+    Now to connect the database we need a client (GUI Interface like pgAdmin we have for postgress)
+    Database runs on server and to talk that we need a clint like pdAdmin and in springboot
+    we the JDBC will act as client. but we need a GUI or dedicated client to verify the changes manually.
+
+    The client is SQLECTRON   https://sqlectron.github.io/
+
+    after downloading the app we directly use it by opening it as its protable type app no need of installation.
+    Given below detials to make the connectioin
+        name: LocalAccountsDB; Database Type: MySQL; ServerAddress:localhost; port:3306; user: root; password: root
+        name: LocalLoansDB; Database Type: MySQL; ServerAddress:localhost; port:3307; user: root; password: root
+        name: LocalCardsDB; Database Type: MySQL; ServerAddress:localhost; port:3308; user: root; password: root
