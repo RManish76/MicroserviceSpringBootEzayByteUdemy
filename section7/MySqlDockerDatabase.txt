@@ -76,3 +76,31 @@
 
     Now lets edit the docker compose file in default folder.
         Now we are not using the rabbitMQ anymore so we'll remove it and related details from compose.
+        Then created 3 service in docker-compose.yml for accountsdb, loansdb and cardsdb.
+
+        Since we heave keept the username ad password for the all database same root and root.
+        we added username and password in common-config.yml under microservice-configserver-config.
+            SPRING_DATASOURCE_USERNAME: root       SPRING_DATASOURCE_PASSWORD: root
+
+        Then we also need to add url of the databases in our MS but since its not common we need to
+        add it in docker-compose.yml for accounts, cards, and loans service.
+            For accounts service SPRING_DATASOURCE_URL:jdbc:mysql://accountsdb:3306/accountsdb
+                where url:jdbc:mysql://server:port/schemaName
+                        server = accounts --> the service which we created in docker-compose. and since it is present in eazybytes network
+                                                    it'll able to find that container with the service name only
+                        port = 3306 --> port where the accountsdb container is exposed to outside world
+                        schemaName = accounts --> the schema to which the connection to be made.
+
+            similarly we need to do that for the others like cards and loan
+                    SPRING_DATASOURCE_URL: "jdbc:mysql://loansdb:3307/loansdb"
+                    SPRING_DATASOURCE_URL: "jdbc:mysql://cardsdb:3308/cardsdb"
+
+        Now we also need to tell each MS data you are depended on the db sercives and before you 
+        start your service you should check related db container is started and accepeting the request or not.
+        We have already added a variable in each database sercives to prob its health status using
+                healthcheck:
+                    test: ["CMD","mysqladmin", "ping","-h","localhost"]
+            below was added in each MS sercives for there relatable db service
+                            depends_on:
+                                accountsdb:
+                                    condition: service_healthy

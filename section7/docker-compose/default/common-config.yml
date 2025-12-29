@@ -23,3 +23,5 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: default #this does not required for rabbitmq hence created two seprate service
       SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      SPRING_DATASOURCE_USERNAME: root #as username and password is common for all database container
+      SPRING_DATASOURCE_PASSWORD: root
