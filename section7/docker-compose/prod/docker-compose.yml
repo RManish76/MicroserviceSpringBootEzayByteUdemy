@@ -54,7 +54,7 @@ services:
       service: microservice-db-config
 
   configserver: #service name
-    image: "pdcourse/configserver:s6" 
+    image: "pdcourse/configserver:s7" 
     container_name: configserver-ms  
     ports:
       - "8071:8071"
@@ -72,7 +72,7 @@ services:
       service: microservice-base-config
   
   accounts:  #service name
-    image: "pdcourse/accounts:s6" 
+    image: "pdcourse/accounts:s7" 
     container_name: accounts-ms  
     ports:
       - "8080:8080"
@@ -90,7 +90,7 @@ services:
       service: microservice-configserver-config
   
   loans: #service name
-    image: "pdcourse/loans:s6"
+    image: "pdcourse/loans:s7"
     container_name: loans-ms
     ports:
       - "8090:8090"
@@ -108,7 +108,7 @@ services:
       service: microservice-configserver-config
   
   cards: #service name
-    image: "pdcourse/cards:s6"
+    image: "pdcourse/cards:s7"
     container_name: cards-ms
     ports:
       - "9000:9000"
