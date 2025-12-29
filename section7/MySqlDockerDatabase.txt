@@ -104,3 +104,7 @@
                             depends_on:
                                 accountsdb:
                                     condition: service_healthy
+
+    Cleanup of docker-compose.yml
+        rightnow in docker-compose.yml if we see in accountsdb, loansdb, cardsdb there are many common/repeatitve
+        lines which we can put in common-config and make docker-compose look more cleaner.

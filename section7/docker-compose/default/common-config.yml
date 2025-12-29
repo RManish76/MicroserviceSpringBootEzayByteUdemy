@@ -4,6 +4,19 @@ services:
     networks:
       - eazybank  #docker network need in all service including rabbitMQ
 
+  microservice-db-config:
+    extends:
+      service: network-deploy-service
+    image: mysql
+    healthcheck:
+      test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
+      timeout: 10s
+      retries: 10
+      interval: 10s
+      start_period: 10s
+    environment:
+      MYSQL_ROOT_PASSWORD: root #set the database password
+
   microservice-base-config:
     extends:
       service: network-deploy-service

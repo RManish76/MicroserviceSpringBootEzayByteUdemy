@@ -1,57 +1,57 @@
 services:
   accountsdb:
-    image: mysql
+    # image: mysql
     container_name: accountsdb
     ports:
       - 3306:3306
-    healthcheck:
-      test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
-      timeout: 10s
-      retries: 10
-      interval: 10s
-      start_period: 10s
+    # healthcheck:
+    #   test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
+    #   timeout: 10s
+    #   retries: 10
+    #   interval: 10s
+    #   start_period: 10s
     environment:
-      MYSQL_ROOT_PASSWORD: root #set the database password
+      # MYSQL_ROOT_PASSWORD: root #set the database password
       MYSQL_DATABASE: accountsdb #set the schema name
     extends:
       file: common-config.yml
-      service: network-deploy-service
+      service: microservice-db-config
 
   loansdb:
-    image: mysql
+    # image: mysql
     container_name: loansdb
     ports:
       - 3307:3306
-    healthcheck:
-      test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
-      timeout: 10s
-      retries: 10
-      interval: 10s
-      start_period: 10s
+    # healthcheck:
+    #   test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
+    #   timeout: 10s
+    #   retries: 10
+    #   interval: 10s
+    #   start_period: 10s
     environment:
-      MYSQL_ROOT_PASSWORD: root #set the password
+      # MYSQL_ROOT_PASSWORD: root #set the password
       MYSQL_DATABASE: loansdb #set the schema name
     extends:
       file: common-config.yml
-      service: network-deploy-service
+      service: microservice-db-config
 
   accountsdb:
-    image: mysql
+    # image: mysql
     container_name: cardsdb
     ports:
       - 3308:3306
-    healthcheck:
-      test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
-      timeout: 10s
-      retries: 10
-      interval: 10s
-      start_period: 10s
+    # healthcheck:
+    #   test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
+    #   timeout: 10s
+    #   retries: 10
+    #   interval: 10s
+    #   start_period: 10s
     environment:
-      MYSQL_ROOT_PASSWORD: root #set the password
+      # MYSQL_ROOT_PASSWORD: root #set the password
       MYSQL_DATABASE: cardsdb #schema name
     extends:
       file: common-config.yml
-      service: network-deploy-service
+      service: microservice-db-config
 
   configserver: #service name
     image: "pdcourse/configserver:s6" 
