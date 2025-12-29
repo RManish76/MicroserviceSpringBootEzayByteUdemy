@@ -108,3 +108,29 @@
     Cleanup of docker-compose.yml
         rightnow in docker-compose.yml if we see in accountsdb, loansdb, cardsdb there are many common/repeatitve
         lines which we can put in common-config and make docker-compose look more cleaner.
+
+        updated the dockercompose for s7 and removed the rabbitMQ dependency from configserver service.
+
+*6* Not able to connect with loans and cards database.
+        the accounts service was able to connect to accountsdb but the loans and cards service
+        was not able to connect their respective database container.
+
+        Its because for loans and cards we have given port as 3307 and 3308.
+        When one container tries to connect with another container on same network then it
+        does not goes outside of docker to connect it internally tries to connect.
+        And we know that internally the loans and cards database are running on 3306 port.
+        and but in configuration we are asking to look for 3307 and 3308 port hence the
+        MS services not able to find the database.
+        where as since for account we have given the port 3306 it is able to find the accountsdb.
+
+        then why we are exposing the loansdb and cardsdb thorugh 3307 and 3308 port.
+        Its because we want connect the database externally through the client to 
+        check the data there.
+
+        after making the changes. we ran docker compose up -d and all containers working fine.
+
+*7* From mySQL to h2.
+    In next section Again we'll move from mysql to h2 database. because of course number of
+    containers.
+    Since we are already running 4 MS containers and adding 3 more database container puts
+    too much load we'll move to h2 embedded database in next section.
