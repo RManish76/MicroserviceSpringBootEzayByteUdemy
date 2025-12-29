@@ -73,3 +73,6 @@
     Mean we have to overwrite the database url using the enviorment variable in docker-compose.
 
     First lets edit the tag from s6 to s7 in pom, to build the new image using jib
+
+    Now lets edit the docker compose file in default folder.
+        Now we are not using the rabbitMQ anymore so we'll remove it and related details from compose.
