@@ -1,20 +1,58 @@
 services:
-  rabbit:
-    image: rabbitmq:4-management
-    hostname: rabbitmq
+  accountsdb:
+    # image: mysql
+    container_name: accountsdb
     ports:
-      - "5672:5672" #for rabitmq core activities
-      - "15672:15672" # managment of rabbitMq
-    healthcheck:
-      test: rabbitmq-diagnostics check_port_connectivity # from rabitmq offical documentation
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 5s
+      - 3306:3306
+    # healthcheck:
+    #   test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
+    #   timeout: 10s
+    #   retries: 10
+    #   interval: 10s
+    #   start_period: 10s
+    environment:
+      # MYSQL_ROOT_PASSWORD: root #set the database password
+      MYSQL_DATABASE: accountsdb #set the schema name
     extends:
       file: common-config.yml
-      service: network-deploy-service
-  
+      service: microservice-db-config
+
+  loansdb:
+    # image: mysql
+    container_name: loansdb
+    ports:
+      - 3307:3306
+    # healthcheck:
+    #   test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
+    #   timeout: 10s
+    #   retries: 10
+    #   interval: 10s
+    #   start_period: 10s
+    environment:
+      # MYSQL_ROOT_PASSWORD: root #set the password
+      MYSQL_DATABASE: loansdb #set the schema name
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
+  accountsdb:
+    # image: mysql
+    container_name: cardsdb
+    ports:
+      - 3308:3306
+    # healthcheck:
+    #   test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
+    #   timeout: 10s
+    #   retries: 10
+    #   interval: 10s
+    #   start_period: 10s
+    environment:
+      # MYSQL_ROOT_PASSWORD: root #set the password
+      MYSQL_DATABASE: cardsdb #schema name
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
   configserver: #service name
     image: "pdcourse/configserver:s6" 
     container_name: configserver-ms  
@@ -43,6 +81,10 @@ services:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "accounts"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://accountsdb:3306/accountsdb"
+    depends_on:
+      accountsdb:
+        condition: service_healthy
     extends:
       file: common-config.yml
       service: microservice-configserver-config
@@ -57,6 +99,10 @@ services:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "loans"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://loansdb:3307/loansdb"
+    depends_on:
+      loansdb:
+        condition: service_healthy
     extends:
       file: common-config.yml
       service: microservice-configserver-config
@@ -71,6 +117,10 @@ services:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "cards"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://cardsdb:3308/cardsdb"
+    depends_on:
+      cardsdb:
+        condition: service_healthy
     extends:
       file: common-config.yml
       service: microservice-configserver-config
