@@ -1,1 +1,1 @@
-{"image":"pdcourse/accounts:s6","imageId":"sha256:0227d149a22b0a3cf313e60ffc65c6a3a17ea8d0b6da39fa101604f369175135","imageDigest":"sha256:477e5eb200f047b7b776433b2ff9c83ecd1dd78e67885802a57554acb23929cc","tags":["s6"],"imagePushed":false}
+{"image":"pdcourse/accounts:s7","imageId":"sha256:ea8b77c02879ca7fdad7ce7de9492941ac86a17c5307747412c247b7a5c4b151","imageDigest":"sha256:aadf645ad1dc606e3182c7db3b2efeb8f5dd12e683061dfb8cd8a2fd10f44838","tags":["s7"],"imagePushed":false}

@@ -63,3 +63,13 @@
                         mode: always  #In case of other database except the h2embedded one the spring expects table will be there so we added this
                                     #this tells to springboot/JPA to excute the command present in resources/schema.sql and there we have
                                     #written IF NOT EXIST means that create table comman will only execute if table is not present.
+
+
+*5* Doker the new version.
+    Now if notice that just above in database details in application.yml we have mentioned localhost as
+    the server of the database in details. But when we moved our application from local to docker
+    the application inside the docker will not able to find the database as the database is running on
+    the seprate container compaired to the application.
+    Mean we have to overwrite the database url using the enviorment variable in docker-compose.
+
+    First lets edit the tag from s6 to s7 in pom, to build the new image using jib
