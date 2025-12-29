@@ -41,3 +41,7 @@
         name: LocalAccountsDB; Database Type: MySQL; ServerAddress:localhost; port:3306; user: root; password: root
         name: LocalLoansDB; Database Type: MySQL; ServerAddress:localhost; port:3307; user: root; password: root
         name: LocalCardsDB; Database Type: MySQL; ServerAddress:localhost; port:3308; user: root; password: root
+
+*4* Change in code for MySQL database from h2Databae.
+        Updated the pom of aaounts, loans and cards from h2 to MySql dependency.
+        This dependency  is also available at springIntializer.
