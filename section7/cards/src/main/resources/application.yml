@@ -4,18 +4,20 @@ spring:
   application:
     name: "cards"
   datasource:
-    url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password: ''
-  h2:
-    console:
-      enabled: true
+    url: jdbc:mysql://localhost:3308/cardsdb  #jdbc:databasetype://server:port/schemaName
+    # driverClassName: org..Driver
+    username: root
+    password: root
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: update
+    # database-platform: org.hibernate.dialect.H2Dialect
+    # hibernate:
+    #   ddl-auto: update
     show-sql: true
+  sql:
+    init:
+      mode: always  #In case of other database except the h2embedded one the spring expects table will be there so we added this
+                    #this tells to springboot/JPA to excute the command present in resources/schema.sql and there we have
+                    #written IF NOT EXIST means that create table comman will only execute if table is not present.
   config:
     import: "optional:configserver:http://localhost:8071"
 

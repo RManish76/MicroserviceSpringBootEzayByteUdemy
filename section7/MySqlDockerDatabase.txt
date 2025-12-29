@@ -1,0 +1,136 @@
+*1* Cleanup of the code.
+    First we want to remove the rabbitMQ, SpringCloudBus and its dependency as in upcoming section it is not
+    needed also. since local machine has limited resources we need to make space for upcoming section.
+    As we don't want to run too much docker containers.
+
+    1st let's remove the spring-cloud-stater-bus-amqp (busRefresh, rabbitMQ)and spring-cloud-config-monitor (webhook)
+    from the configserver Ms.
+    Now go to application.yml of config server and remove below.
+        rabbitmq.host=     rabbitmq.pror   ....
+
+    Now go to pom of accounts and remove the spring-cloud-starter-bus-amqp then delete properties of
+    rabbitmq from application.yml
+    Do the same for cards and loan MS.
+
+*2* Install and run the mySQL docker
+
+    >> docker run -p 3306:3306 --name accountsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=accountsdb -d mysql
+
+    3306 --> default port of mySQL
+    --name --> name of the container which we want. else random name will be assigned by docker
+    -e --> saying next element is enviorment variable
+    MYSQL_ROOT_PASSWORD --> root password of the database. we have give root as pasword and username is root by default
+    MYSQL_DATABASE  --> by default when we install any database, it does not have any schema/server installed.
+                        we want to create a schema/server in database and the name is accountsdb
+    -d --> to run the docker in detached mode
+    mysql --> the name of the image which we want to download
+
+    similary we created the container for loans at port 3307 and cards at port 3308
+    >> docker run -p 3307:3306 --name loansdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=loansdb -d mysql
+    >> docker run -p 3308:3306 --name cardsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cardsdb -d mysql
+
+*3* Install a client to connect the database
+    Now to connect the database we need a client (GUI Interface like pgAdmin we have for postgress)
+    Database runs on server and to talk that we need a clint like pdAdmin and in springboot
+    we the JDBC will act as client. but we need a GUI or dedicated client to verify the changes manually.
+
+    The client is SQLECTRON   https://sqlectron.github.io/
+
+    after downloading the app we directly use it by opening it as its protable type app no need of installation.
+    Given below detials to make the connectioin
+        name: LocalAccountsDB; Database Type: MySQL; ServerAddress:localhost; port:3306; user: root; password: root
+        name: LocalLoansDB; Database Type: MySQL; ServerAddress:localhost; port:3307; user: root; password: root
+        name: LocalCardsDB; Database Type: MySQL; ServerAddress:localhost; port:3308; user: root; password: root
+
+*4* Change in code for MySQL database from h2Databae.
+        Updated the pom of aaounts, loans and cards from h2 to MySql dependency.
+        This dependency  is also available at springIntializer.
+
+        Now lets update the configuration in application.yml for each MS
+        We updated the below only changed the port as per the MS
+                datasource:
+                    url: jdbc:mysql://localhost:3306/accountsdb  #jdbc:databasetype://server:port/schemaName
+                    # driverClassName: org..Driver
+                    username: root
+                    password: root
+                jpa:
+                    # database-platform: org.hibernate.dialect.H2Dialect
+                    # hibernate:
+                    #   ddl-auto: update
+                    show-sql: true
+                sql:
+                    init:
+                        mode: always  #In case of other database except the h2embedded one the spring expects table will be there so we added this
+                                    #this tells to springboot/JPA to excute the command present in resources/schema.sql and there we have
+                                    #written IF NOT EXIST means that create table comman will only execute if table is not present.
+
+
+*5* Doker the new version.
+    Now if notice that just above in database details in application.yml we have mentioned localhost as
+    the server of the database in details. But when we moved our application from local to docker
+    the application inside the docker will not able to find the database as the database is running on
+    the seprate container compaired to the application.
+    Mean we have to overwrite the database url using the enviorment variable in docker-compose.
+
+    First lets edit the tag from s6 to s7 in pom, to build the new image using jib
+
+    Now lets edit the docker compose file in default folder.
+        Now we are not using the rabbitMQ anymore so we'll remove it and related details from compose.
+        Then created 3 service in docker-compose.yml for accountsdb, loansdb and cardsdb.
+
+        Since we heave keept the username ad password for the all database same root and root.
+        we added username and password in common-config.yml under microservice-configserver-config.
+            SPRING_DATASOURCE_USERNAME: root       SPRING_DATASOURCE_PASSWORD: root
+
+        Then we also need to add url of the databases in our MS but since its not common we need to
+        add it in docker-compose.yml for accounts, cards, and loans service.
+            For accounts service SPRING_DATASOURCE_URL:jdbc:mysql://accountsdb:3306/accountsdb
+                where url:jdbc:mysql://server:port/schemaName
+                        server = accounts --> the service which we created in docker-compose. and since it is present in eazybytes network
+                                                    it'll able to find that container with the service name only
+                        port = 3306 --> port where the accountsdb container is exposed to outside world
+                        schemaName = accounts --> the schema to which the connection to be made.
+
+            similarly we need to do that for the others like cards and loan
+                    SPRING_DATASOURCE_URL: "jdbc:mysql://loansdb:3307/loansdb"
+                    SPRING_DATASOURCE_URL: "jdbc:mysql://cardsdb:3308/cardsdb"
+
+        Now we also need to tell each MS data you are depended on the db sercives and before you 
+        start your service you should check related db container is started and accepeting the request or not.
+        We have already added a variable in each database sercives to prob its health status using
+                healthcheck:
+                    test: ["CMD","mysqladmin", "ping","-h","localhost"]
+            below was added in each MS sercives for there relatable db service
+                            depends_on:
+                                accountsdb:
+                                    condition: service_healthy
+
+    Cleanup of docker-compose.yml
+        rightnow in docker-compose.yml if we see in accountsdb, loansdb, cardsdb there are many common/repeatitve
+        lines which we can put in common-config and make docker-compose look more cleaner.
+
+        updated the dockercompose for s7 and removed the rabbitMQ dependency from configserver service.
+
+*6* Not able to connect with loans and cards database.
+        the accounts service was able to connect to accountsdb but the loans and cards service
+        was not able to connect their respective database container.
+
+        Its because for loans and cards we have given port as 3307 and 3308.
+        When one container tries to connect with another container on same network then it
+        does not goes outside of docker to connect it internally tries to connect.
+        And we know that internally the loans and cards database are running on 3306 port.
+        and but in configuration we are asking to look for 3307 and 3308 port hence the
+        MS services not able to find the database.
+        where as since for account we have given the port 3306 it is able to find the accountsdb.
+
+        then why we are exposing the loansdb and cardsdb thorugh 3307 and 3308 port.
+        Its because we want connect the database externally through the client to 
+        check the data there.
+
+        after making the changes. we ran docker compose up -d and all containers working fine.
+
+*7* From mySQL to h2.
+    In next section Again we'll move from mysql to h2 database. because of course number of
+    containers.
+    Since we are already running 4 MS containers and adding 3 more database container puts
+    too much load we'll move to h2 embedded database in next section.

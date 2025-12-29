@@ -4,6 +4,19 @@ services:
     networks:
       - eazybank  #docker network need in all service including rabbitMQ
 
+  microservice-db-config:
+    extends:
+      service: network-deploy-service
+    image: mysql
+    healthcheck:
+      test: ["CMD","mysqladmin", "ping","-h","localhost"] #check the health of databasee, run this ping command at localhost of container
+      timeout: 10s
+      retries: 10
+      interval: 10s
+      start_period: 10s
+    environment:
+      MYSQL_ROOT_PASSWORD: root #set the database password
+
   microservice-base-config:
     extends:
       service: network-deploy-service
@@ -11,8 +24,8 @@ services:
       resources:
         limits:
           memory: 500m
-    environment:
-      SPRING_RABBITMQ_HOST: "rabbit" #need to overwrite only host from localhost with servicename of rabbit and other properties are default no need to overwrite.
+    # environment:
+    #   SPRING_RABBITMQ_HOST: "rabbit" #need to overwrite only host from localhost with servicename of rabbit and other properties are default no need to overwrite.
                                       #as localhost means itself but all other microservice is running on different container not at same like running on same laptop.
                                       #hence we need to overwrite the host, so that they know that rabbitMq is running on different container and it has look at different
                                       #container on ezybyte network not on itselfs localhost network where that MS containers are running..
@@ -23,3 +36,5 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod #this does not required for rabbitmq hence created two seprate service
       SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      SPRING_DATASOURCE_USERNAME: root #as username and password is common for all database container
+      SPRING_DATASOURCE_PASSWORD: root
