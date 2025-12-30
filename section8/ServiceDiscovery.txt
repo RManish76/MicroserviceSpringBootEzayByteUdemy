@@ -139,3 +139,86 @@
         which is mobile number.
 
         Now lets do the same for loans as well with name LoansFeignClient.java
+
+*6*  Creation rest endpoint in accountsMS to get all details accounts, cards and loans
+
+        We are going to create restendpoint in accountsMS which upon request it'll response with all details
+        customer including accounts, cards and loans.
+
+        Since we are going to send all these details we also going to need of dto to send all of these
+        so lets create a dto in accountsMS with name CustomerDetailsDto.java
+            Copy pasted form CustomerDto.java to CustomerDetailsDto
+            similarly like we have mentioned the accountDto at bottom in CustomerDto or CustomerDetailsDto
+            we can add the LoansDto and CardsDto.
+
+        Now next we go to controller file and creata a new controller with name CustomerController
+        and add the restendpoint to fetch CustomerDetailsDto upon request responed with CustomerDetailsDto to client.
+
+        To fetch the customer details we need a interface in service like we have IAccountService interface,
+        we give the interface name as ICustomerService.java
+        Also we would need one file implementation of that interface like we have AccountServiceImpl.java
+
+        We need a mapper class as well to map the data to dto which we want to send after fetching it
+        form different places. Like mapping of customer and accounts data CustomerDetailsDto.
+        So crealted a new class(instructer did in CustomerMapper.java only) CustomerDetailsMapper.class
+
+        then called the method to map customer to new object of CustomerDetailsDto and stored that 
+        in a vairable customerDetailsDto of type CustomerDetailsDto.
+        Now we need to set the accounts, loans, and card detaisl in same vairbale customerDetailsDto.
+
+        The question is we mapped the customer to customerDetailsDto but for accounts, loans and cards why do we need to
+        use setter.
+        Its because in CustomerDetailsDto class the main fields are related to customer and
+        second thing is that once we have variable of customerDetailsDto in which fields of customer
+        if filled by mapper then to fill the accountDto, LoansDto and CardsDto we would need to use setter.
+        But to set these values we'll use the mapper only.
+
+        Now after setting customer and accounts details we need to fetch the loans and cards details
+        to fetch the loans and cards details we trigger the OpenFeign client from which
+        we'll get ResponseEntity<T>. from this ResponseEntity we fetched the body and used the setter
+        to set the loans and cards details in customerDetailsDto variable
+        then returned the customerDetailsDto.
+
+
+        Now let's go back to our new CustomerController class and inject the ICustomerService.
+        And fetch the details of CustomerDetailsDto using that and send to client as response.
+
+**GEMINI CHAT**
+        @GetMapping("/fetchCustomerDetails") public ResponseEntity<CustomerDetailsDto> fetchCustomerDetails(@RequestParam @Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits") String mobileNumber) {
+
+        CustomerController.java: 3 lines selected
+        Shouldn't here CustomerServiceImpl should be used instead of iCustoerService as iCustomerService is a interface how would it know what to do with the request, where as CustomerServiceImpl knows what to do with that request
+
+        CustomerController.java: 8 lines selected
+
+        Gemini
+        Responding with gemini-3-pro
+        Thinking
+        Hello! As an experienced software engineer, I can clarify why using the interface (ICustomersService) is actually the preferred approach over using the implementation class (CustomersServiceImpl) directly.
+
+        The short answer is: No, you should keep using ICustomersService. The code is correct and follows standard software engineering best practices.
+
+        Here is a detailed explanation of why this works and why it is better:
+
+        1. How does it know what to do? (Polymorphism & Spring DI)
+        You are correct that an interface (ICustomersService) is just a contract with no implementation logic. However, at runtime, the variable iCustomersService does not hold an "interface"; it holds an instance of the class that implements it.
+
+        Spring Dependency Injection: When the application starts, Spring scans your code. It sees CustomersServiceImpl annotated with @Service and creates an object (a Bean) of that class.
+        Wiring: When Spring creates the CustomerController, it sees the constructor requires an ICustomersService. Spring looks for a Bean that is-a ICustomersService. Since CustomersServiceImpl implements that interface, Spring injects that specific instance.
+        So, effectively, inside the computer's memory:
+
+        java
+        ICustomersService iCustomersService = new CustomersServiceImpl(...);
+        When you call iCustomersService.fetchCustomerDetailsDto(), Java executes the code inside CustomersServiceImpl.
+
+        2. Why use the Interface instead of the Class?
+        Using the interface is a core principle called "Programming to an interface, not an implementation."
+
+        Loose Coupling: The Controller doesn't need to know how the service works, only what it does. If you later decide to rewrite the logic in a new class (e.g., NewFastCustomersServiceImpl), you can just swap the @Service annotation without changing a single line of code in the Controller.
+        Easier Testing: When writing unit tests for the Controller, you can easily create a "Mock" of the interface (using tools like Mockito) to simulate behavior without needing the real database or complex logic connected to the real CustomersServiceImpl.
+        JDK Dynamic Proxies: Spring often wraps beans in proxies (for things like Transactions, Security, or AOP). These proxies often work best or require interfaces to function transparently.
+        Conclusion
+        Your code is written correctly. By defining the field as ICustomersService, you gain flexibility and testability, while Spring ensures that the logic from CustomersServiceImpl is executed at runtime.
+
+*7* Every thing working locally fine.
+        Next is dockerising all the applications
