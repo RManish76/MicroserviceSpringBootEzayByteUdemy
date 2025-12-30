@@ -1,3 +1,15 @@
 *1* Cleanup
     Since we have copied the code from secion6 v2 we need to some Cleanup.
-    Like removing rabbitMQ, BusRefresh, webhooks
+    Like removing rabbitMQ, BusRefresh, webhooks.
+
+*2* Creation of eurekaserver MS
+    Below dependency were involved in this project from spring initalizer
+        Eureka Server(Spring Cloud Discovery): this dependency will help us to store the api of other MS.
+                                                Bascily this dependency will make this MS act as registry
+                                                which will maintain the api links of other MS.
+                                    
+        Config Client(Spring Cloud Config): This is the dependency which helps to fetch profile/configuration
+                                            from external soruce.
+
+        Spring Boot Actuator(OPS): Supports built in (or custom) endpoints that let you monitor and
+                                    manage your application - such as application health, metrics, sessions, etc.
