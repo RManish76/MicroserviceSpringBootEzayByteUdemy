@@ -80,3 +80,5 @@
                     version: "1.0.0"
 
         Also added actuator endpoint to enable shutdown and added enpoints expose to shutdown the application
+
+    Now let's make similar changes the loans and cards MS.

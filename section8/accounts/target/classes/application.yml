@@ -43,7 +43,8 @@ management:
 
 endpoints:
   shutdown:
-    enabled: true
+    enabled: true # to expose actuator shutdown rest api endpoint
+    
 #eureka server details --> As accountsMS is eureka client, it need details of eureka server to connect to eureka server
 eureka:
   instance:
