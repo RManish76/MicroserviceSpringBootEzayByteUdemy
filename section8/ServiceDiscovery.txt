@@ -23,4 +23,24 @@
         ConfigServer Details -> so that profiles can be fetched from the server for different instances
         Health checkup -> we also enabled managment/Actuator in application.yml to prob the health status
                             of eurekaserver MS as we want the eurekaserver MS running and healty before the accounts,
-                            loans and cards MS run and eur
+                            loans and cards MS runs.
+
+    Added remaining properties of application.yml in git repo
+        Added a file eureakserver.yml in git repo which stores additional config details which we
+        do not want to keep in application directly.
+        if notice we have only one profile in git repo which eureakserver.yml not like defaul,qa and prod
+        it's becasue our eurekaserver will behave same in all instances hence multiple profile not required.
+        below is code.
+
+                server:
+                    port: 8070
+                eureka:
+                    instance:
+                        hostname: localhost
+                    client:
+                        fetchRegistry: false #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
+                        registerWithEureka: false #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
+                        serviceUrl:
+                            defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
+
+
