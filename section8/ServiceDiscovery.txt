@@ -13,3 +13,8 @@
 
         Spring Boot Actuator(OPS): Supports built in (or custom) endpoints that let you monitor and
                                     manage your application - such as application health, metrics, sessions, etc.
+
+*3* Make changes for eurekaserver
+    Added @EnableEurekaServer in root java file/ EurekaserverApplication.java
+        @EnableEurekaServer --> using this annotation we are trying to convert a normal springboot to act as
+                                a service Discovery agent with help of eureka service library which we added in pom.
