@@ -44,3 +44,39 @@
                             defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
 
 
+*4* Making changes in accounts, loans, and cards MS
+    Now we'll update the accounts, loans and cards MS so that they can register themselv over
+    eurekaserver and also send the heartbeat to eureakserver automatically.
+
+    Added eureka-client dependency in accounts MS pom file.
+		<!-- EurakClient to register to eureakServer and send heartbeat -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+
+        Now we'll update the application.yml file of accounts MS for eureka client
+            #eureka server details --> As accountsMS is eureka client, it need details of eureka server to connect to eureka server
+            eureka:
+                instance:
+                    # hostname: localhost #no need in client as it's not a server
+                    preferIpAddress: true #by default cliet register themselv using hostname and it works when we have DNS mapping.
+                                        #But in our local we don't have any DNS, so we should prefer IP address so that they can find each other
+                                        #using IP address
+                client:
+                    fetchRegistry: true #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
+                    registerWithEureka: true #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
+                    serviceUrl:
+                        defaultZone: http://localhost:8070/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
+
+            #details which we want to show at eureka server for this app.
+            #these infor information will be exposed as part of an actuator endpoint URL
+            #Since by default the infor related actuator URL is not enabled, we need to enable the same by adding
+            #a property under management followed by info.
+            info:
+                app:
+                    name: "accounts"
+                    description: "Eazy Bank Accounts Application"
+                    version: "1.0.0"
+
+        Also added actuator endpoint to enable shutdown and added enpoints expose to shutdown the application
