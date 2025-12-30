@@ -9,7 +9,7 @@
                                                 which will maintain the api links of other MS.
                                     
         Config Client(Spring Cloud Config): This is the dependency which helps to fetch profile/configuration
-                                            from external soruce.
+                                            from external soruce(Config Server MS).
 
         Spring Boot Actuator(OPS): Supports built in (or custom) endpoints that let you monitor and
                                     manage your application - such as application health, metrics, sessions, etc.
@@ -18,3 +18,9 @@
     Added @EnableEurekaServer in root java file/ EurekaserverApplication.java
         @EnableEurekaServer --> using this annotation we are trying to convert a normal springboot to act as
                                 a service Discovery agent with help of eureka service library which we added in pom.
+
+    Added details in application.yml
+        ConfigServer Details -> so that profiles can be fetched from the server for different instances
+        Health checkup -> we also enabled managment/Actuator in application.yml to prob the health status
+                            of eurekaserver MS as we want the eurekaserver MS running and healty before the accounts,
+                            loans and cards MS run and eur
