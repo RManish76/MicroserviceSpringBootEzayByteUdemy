@@ -1,1 +1,13 @@
 *1* Added jib plugin in pom of gatewayserver MS.
+    and modified the application.yml for it
+
+*2* Added config profile for gatewayserver in git config repo
+    Since gatewayserver will behave same everywhere, we'll have only one config profile.
+    In the config file we mentioned the port of gatewayserver server and eureka details. we have not
+    kept those in application.yml
+
+    After that added one configuration in application.yml
+        spring.cloud.gateway.server.webflux.discovery.locator.enabled = true
+        
+        This telling to gatewayserver to connect with discovery service and located all the address from
+        there then use the same to forward he external traffic to individual MS.

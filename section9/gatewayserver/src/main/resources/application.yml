@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: "gatewayserver"
+  config:
+    import:
+    - "optional:configserver:http://localhost:8071"
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true #locate all the endpoint from deiscovery service and use the same to forward the extrenal traffic to individual MS
+              
+
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - "*"   #include all rest endpoint. we can mention refresh api alone but going for all.
+                    #for only refresh endpoint, we can mention "refresh". it'll expose only refres endpoint
+                    # of actuator
+  endpoint:  # allow showtdown appliction using post call of actuator. we need to enable additonal endpoints for it. and below did
+    shutdown:
+      enabled: true
+    gateway:
+      enabled: unrestricted
+  info:   # to fetch enviorment/app info details using acutator end point.
+    env:
+      enabled: true
+
+endpoints:
+  shutdown:
+    enabled: true # to expose actuator shutdown rest api endpoint
+
+#will add the eureka server details in config file at remote
+#eureka server details --> As accountsMS is eureka client, it need details of eureka server to connect to eureka server
+# eureka:
+#   instance:
+#     # hostname: localhost #no need in client as it's not a server
+#     preferIpAddress: true #by default cliet register themselv using hostname and it works when we have DNS mapping.
+#                           #But in our local we don't have any DNS, so we should prefer IP address so that they can find each other
+#                           #using IP address
+#   client:
+#     fetchRegistry: true #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
+#     registerWithEureka: true #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
+#     serviceUrl:
+#       defaultZone: http://localhost:8070/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
+
+#details which we want to show at eureka server for this app.
+#these infor information will be exposed as part of an actuator endpoint URL
+#Since by default the infor related actuator URL is not enabled, we need to enable the same by adding
+#a property under management followed by info.
+info:
+  app:
+    name: "gatewayserver"
+    description: "Eazy Bank Gateway Server Application"
+    version: "1.0.0"
