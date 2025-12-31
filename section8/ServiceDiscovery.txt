@@ -222,3 +222,17 @@
 
 *7* Every thing working locally fine.
         Next is dockerising all the applications
+
+*8* Changing docker compose to run the docker images
+    removed rabbitMQ and its dependency
+    then created new service of eurekaserver with health check config as we have already enabled them in
+    application.yml.
+    Also added depends on ConfigServer ans eureakServer going to load it's profile from ConfigServer.
+    added enviroment variable under eureakServer service of application name.
+                    #to overwrite the application name in application.yml (not mandatory as we have kept same name in applicaton.yml)
+                    #this name is used to fetch the config file from the configserver.
+                    Giveing this name here anyone can know what is the application name in code. better visibility
+
+    Now we know our MS accounts, loans and cards need to register on eureakServer means.
+    the eureakServer should be healthy before these MS starts. Hence we need to metion the
+    depends on all 3, and since we need mention it repartitvely we'll add it in common config file.
