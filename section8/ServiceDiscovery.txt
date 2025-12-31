@@ -1,0 +1,238 @@
+*1* Cleanup
+    Since we have copied the code from secion6 v2 we need to some Cleanup.
+    Like removing rabbitMQ, BusRefresh, webhooks.
+
+*2* Creation of eurekaserver MS
+    Below dependency were involved in this project from spring initalizer
+        Eureka Server(Spring Cloud Discovery): this dependency will help us to store the api of other MS.
+                                                Bascily this dependency will make this MS act as registry
+                                                which will maintain the api links of other MS.
+                                    
+        Config Client(Spring Cloud Config): This is the dependency which helps to fetch profile/configuration
+                                            from external soruce(Config Server MS).
+
+        Spring Boot Actuator(OPS): Supports built in (or custom) endpoints that let you monitor and
+                                    manage your application - such as application health, metrics, sessions, etc.
+
+*3* Make changes for eurekaserver
+    Added @EnableEurekaServer in root java file/ EurekaserverApplication.java
+        @EnableEurekaServer --> using this annotation we are trying to convert a normal springboot to act as
+                                a service Discovery agent with help of eureka service library which we added in pom.
+
+    Added details in application.yml
+        ConfigServer Details -> so that profiles can be fetched from the server for different instances
+        Health checkup -> we also enabled managment/Actuator in application.yml to prob the health status
+                            of eurekaserver MS as we want the eurekaserver MS running and healty before the accounts,
+                            loans and cards MS runs.
+
+    Added remaining properties of application.yml in git repo
+        Added a file eureakserver.yml in git repo which stores additional config details which we
+        do not want to keep in application directly.
+        if notice we have only one profile in git repo which eureakserver.yml not like defaul,qa and prod
+        it's becasue our eurekaserver will behave same in all instances hence multiple profile not required.
+        below is code.
+
+                server:
+                    port: 8070
+                eureka:
+                    instance:
+                        hostname: localhost
+                    client:
+                        fetchRegistry: false #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
+                        registerWithEureka: false #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
+                        serviceUrl:
+                            defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
+
+
+*4* Making changes in accounts, loans, and cards MS
+    Now we'll update the accounts, loans and cards MS so that they can register themselv over
+    eurekaserver and also send the heartbeat to eureakserver automatically.
+
+    Added eureka-client dependency in accounts MS pom file.
+		<!-- EurakClient to register to eureakServer and send heartbeat -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+
+        Now we'll update the application.yml file of accounts MS for eureka client
+            #eureka server details --> As accountsMS is eureka client, it need details of eureka server to connect to eureka server
+            eureka:
+                instance:
+                    # hostname: localhost #no need in client as it's not a server
+                    preferIpAddress: true #by default cliet register themselv using hostname and it works when we have DNS mapping.
+                                        #But in our local we don't have any DNS, so we should prefer IP address so that they can find each other
+                                        #using IP address
+                client:
+                    fetchRegistry: true #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
+                    registerWithEureka: true #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
+                    serviceUrl:
+                        defaultZone: http://localhost:8070/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
+
+            #details which we want to show at eureka server for this app.
+            #these infor information will be exposed as part of an actuator endpoint URL
+            #Since by default the infor related actuator URL is not enabled, we need to enable the same by adding
+            #a property under management followed by info.
+            info:
+                app:
+                    name: "accounts"
+                    description: "Eazy Bank Accounts Application"
+                    version: "1.0.0"
+
+        Also added actuator endpoint to enable shutdown and added enpoints expose to shutdown the application
+
+    Now let's make similar changes the loans and cards MS.
+
+*5* Communication between MS
+    We are going to create a new rest endpoint in accounts MS.
+    which going to consolidate the details of cards and loans MS for a particualr customer on request.
+
+    --> Added OpenFeign dependency in accounts pom file.
+        this dependency will help us to do Communication between MS more easily
+        else we can follow RestTemplate to make Communication which is a mannual task.
+        The OpenFeign is like JPA. like in case of query we did not write any implementation code(query/code).
+        Using JPA we only written declarative code (findByCustomerId etc)in a interface, and beind the scene the JPA will
+        generate implementation code for us at run time.
+        similarlly using OpenFeign we only need to write the declarative code(abstract) in an interface for calling
+        other MS restendpoint and behind the scene OpenFeign will do the implementation code.
+
+
+        After adding feign dependency we go to AccountsApplication.java and add
+        @EnableFeignClient annotation to the class.
+        This annotation will enable functionality realted feign, with that account MS
+        will able to connect to other MS.
+
+        Now lets create a folder under service folder with name client and inside the client
+        folder we are going to create an interface as CardsFeignClient.java to connect with Cards MS
+        To use the OpenFeign library we need annotat the interface with @FeignClient.
+        and inside this annotation we need to add the MS name which we have registered in eureakServer.
+        and that was cards only. so the annotation will be
+            @FeignClient("cards")
+        So the feign client will connect with the Eureka server at the runtime and it will try to get all
+        the instance details with the logical name cards.
+
+        After the annotation we are going to define the abstract method. we can copy the rest method and
+        put it here from cards MS. we need fetch request method here. After doing it, it'll look like below.
+
+                @FeignClient("cards")
+                public interface CardsFeignClient {
+                    @GetMapping(value = "/api/fetch", consumes = "application/json")
+                    public ResponseEntity<CardsDto> fetchCardDetails(@RequestParam String mobileNumber);
+                }
+            Notice we have kept the restendpoint as well and its same and have to same what we have in cardsMS.
+            Also we have added consumes to tell what to of datastructure will this rest endpoint will use.
+            the method name we can keep any thing but the method signature like response type, request type should
+            be as it was in cardsMS.
+            we removed the validation code from the method as validation will be performed at REST api level not here.
+            But if notice it need the CardsDto, so we need to create the CardsDto in accountsMS as well.
+            So copied the CardsDto from cardsMS and pasted in accountsMS in dto folder.
+            Also copied the LoansDto from LoansMS and pasted in accountsMS in dto folder as we would nedd that as
+            well, as we are going to fetch details realted to loan as well.
+
+
+        So behid the scenes, the cards FeignClient will connect with EurekaServer and try to fetch all the instances
+        that are registered with the logical name cards.
+        And once it receives 1 0t 2 or any ohter instances details, it will try to cache those details for 30s,
+        which is default period, And within these 30s it is not going to connect again with the EurekaServer, but instead
+        it going to leverage the details present inside the cache.
+        So based upon the IP details inside the cache, it is going to invoke this API along with the request
+        which is mobile number.
+
+        Now lets do the same for loans as well with name LoansFeignClient.java
+
+*6*  Creation rest endpoint in accountsMS to get all details accounts, cards and loans
+
+        We are going to create restendpoint in accountsMS which upon request it'll response with all details
+        customer including accounts, cards and loans.
+
+        Since we are going to send all these details we also going to need of dto to send all of these
+        so lets create a dto in accountsMS with name CustomerDetailsDto.java
+            Copy pasted form CustomerDto.java to CustomerDetailsDto
+            similarly like we have mentioned the accountDto at bottom in CustomerDto or CustomerDetailsDto
+            we can add the LoansDto and CardsDto.
+
+        Now next we go to controller file and creata a new controller with name CustomerController
+        and add the restendpoint to fetch CustomerDetailsDto upon request responed with CustomerDetailsDto to client.
+
+        To fetch the customer details we need a interface in service like we have IAccountService interface,
+        we give the interface name as ICustomerService.java
+        Also we would need one file implementation of that interface like we have AccountServiceImpl.java
+
+        We need a mapper class as well to map the data to dto which we want to send after fetching it
+        form different places. Like mapping of customer and accounts data CustomerDetailsDto.
+        So crealted a new class(instructer did in CustomerMapper.java only) CustomerDetailsMapper.class
+
+        then called the method to map customer to new object of CustomerDetailsDto and stored that 
+        in a vairable customerDetailsDto of type CustomerDetailsDto.
+        Now we need to set the accounts, loans, and card detaisl in same vairbale customerDetailsDto.
+
+        The question is we mapped the customer to customerDetailsDto but for accounts, loans and cards why do we need to
+        use setter.
+        Its because in CustomerDetailsDto class the main fields are related to customer and
+        second thing is that once we have variable of customerDetailsDto in which fields of customer
+        if filled by mapper then to fill the accountDto, LoansDto and CardsDto we would need to use setter.
+        But to set these values we'll use the mapper only.
+
+        Now after setting customer and accounts details we need to fetch the loans and cards details
+        to fetch the loans and cards details we trigger the OpenFeign client from which
+        we'll get ResponseEntity<T>. from this ResponseEntity we fetched the body and used the setter
+        to set the loans and cards details in customerDetailsDto variable
+        then returned the customerDetailsDto.
+
+
+        Now let's go back to our new CustomerController class and inject the ICustomerService.
+        And fetch the details of CustomerDetailsDto using that and send to client as response.
+
+**GEMINI CHAT**
+        @GetMapping("/fetchCustomerDetails") public ResponseEntity<CustomerDetailsDto> fetchCustomerDetails(@RequestParam @Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits") String mobileNumber) {
+
+        CustomerController.java: 3 lines selected
+        Shouldn't here CustomerServiceImpl should be used instead of iCustoerService as iCustomerService is a interface how would it know what to do with the request, where as CustomerServiceImpl knows what to do with that request
+
+        CustomerController.java: 8 lines selected
+
+        Gemini
+        Responding with gemini-3-pro
+        Thinking
+        Hello! As an experienced software engineer, I can clarify why using the interface (ICustomersService) is actually the preferred approach over using the implementation class (CustomersServiceImpl) directly.
+
+        The short answer is: No, you should keep using ICustomersService. The code is correct and follows standard software engineering best practices.
+
+        Here is a detailed explanation of why this works and why it is better:
+
+        1. How does it know what to do? (Polymorphism & Spring DI)
+        You are correct that an interface (ICustomersService) is just a contract with no implementation logic. However, at runtime, the variable iCustomersService does not hold an "interface"; it holds an instance of the class that implements it.
+
+        Spring Dependency Injection: When the application starts, Spring scans your code. It sees CustomersServiceImpl annotated with @Service and creates an object (a Bean) of that class.
+        Wiring: When Spring creates the CustomerController, it sees the constructor requires an ICustomersService. Spring looks for a Bean that is-a ICustomersService. Since CustomersServiceImpl implements that interface, Spring injects that specific instance.
+        So, effectively, inside the computer's memory:
+
+        java
+        ICustomersService iCustomersService = new CustomersServiceImpl(...);
+        When you call iCustomersService.fetchCustomerDetailsDto(), Java executes the code inside CustomersServiceImpl.
+
+        2. Why use the Interface instead of the Class?
+        Using the interface is a core principle called "Programming to an interface, not an implementation."
+
+        Loose Coupling: The Controller doesn't need to know how the service works, only what it does. If you later decide to rewrite the logic in a new class (e.g., NewFastCustomersServiceImpl), you can just swap the @Service annotation without changing a single line of code in the Controller.
+        Easier Testing: When writing unit tests for the Controller, you can easily create a "Mock" of the interface (using tools like Mockito) to simulate behavior without needing the real database or complex logic connected to the real CustomersServiceImpl.
+        JDK Dynamic Proxies: Spring often wraps beans in proxies (for things like Transactions, Security, or AOP). These proxies often work best or require interfaces to function transparently.
+        Conclusion
+        Your code is written correctly. By defining the field as ICustomersService, you gain flexibility and testability, while Spring ensures that the logic from CustomersServiceImpl is executed at runtime.
+
+*7* Every thing working locally fine.
+        Next is dockerising all the applications
+
+*8* Changing docker compose to run the docker images
+    removed rabbitMQ and its dependency
+    then created new service of eurekaserver with health check config as we have already enabled them in
+    application.yml.
+    Also added depends on ConfigServer ans eureakServer going to load it's profile from ConfigServer.
+    added enviroment variable under eureakServer service of application name.
+                    #to overwrite the application name in application.yml (not mandatory as we have kept same name in applicaton.yml)
+                    #this name is used to fetch the config file from the configserver.
+                    Giveing this name here anyone can know what is the application name in code. better visibility
+
+    Now we know our MS accounts, loans and cards need to register on eureakServer means.
+    the eureakServer should be healthy before these MS starts. Hence we need to metion the
+    depends on all 3, and since we need mention it repartitvely we'll add it in common config file.
