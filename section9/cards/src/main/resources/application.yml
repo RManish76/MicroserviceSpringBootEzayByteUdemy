@@ -29,9 +29,18 @@ management:
       exposure:
         include:
         - "*"
-  endpoint:  # allow showtdown appliction using post call of actuator. we need to enable additonal endpoints for it. and below did
+  health:
+    readiness-state:
+      enabled: true #enabled for actuator
+    liveness-state:
+      enabled: true #enbale to check for actuator
+  endpoint:
     shutdown:
-      enabled: true
+      enabled: true # Enable graceful shutdown via REST API
+    health:
+      probes:
+        enabled: true #enabled to check readiness and liveness through rest endpoints
+        
   info:   # to fetch enviorment/app info details using acutator end point.
     env:
       enabled: true

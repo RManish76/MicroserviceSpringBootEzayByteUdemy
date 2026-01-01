@@ -155,3 +155,9 @@
     Then we created a logger object with logger varaible which we will use to print log statement.
     All implementation completed in MS java code.
     Next is update the application.yml of these MS to print log for DEBUG like we did fot gateewayserver.
+
+*8* Docker image creation
+    Before we create docker images we need to enable the health prob and endpoint to check health status
+    like liveness and readiness for all 3 MS accounts, loans and cards.
+    As we want that before our gateewayserver starts all MS should be running.
+    So to do same in docker-compose we need to enable those endpoints.
