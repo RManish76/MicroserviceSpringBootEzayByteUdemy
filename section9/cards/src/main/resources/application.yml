@@ -77,5 +77,5 @@ info:
 logging:
   level:
     com:
-      eazaybytes:
+      eazybytes:
         cards: DEBUG

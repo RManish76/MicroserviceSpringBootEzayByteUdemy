@@ -73,5 +73,5 @@ info:
 logging:
   level:
     com:
-      eazaybytes:
+      eazybytes:
         loans: DEBUG

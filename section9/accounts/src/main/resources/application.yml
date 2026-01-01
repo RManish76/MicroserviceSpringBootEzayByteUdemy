@@ -83,5 +83,5 @@ info:
 logging:
   level:
     com:
-      eazaybytes:
+      eazybytes:
         accounts: DEBUG

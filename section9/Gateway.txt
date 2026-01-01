@@ -161,3 +161,7 @@
     like liveness and readiness for all 3 MS accounts, loans and cards.
     As we want that before our gateewayserver starts all MS should be running.
     So to do same in docker-compose we need to enable those endpoints.
+
+*9* Now lets update the docker-compose file
+    Just like otheres we need to create another server for gatewayServer.
+    After creating service, we enabled the health from the container for all 3 MS accounts, loans and cards

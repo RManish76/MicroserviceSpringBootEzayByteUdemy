@@ -68,5 +68,5 @@ info:
 logging:
   level:
     com:
-      eazaybytes:
-        gateewayserver: DEBUG
+      eazybytes:
+        gatewayserver: DEBUG
