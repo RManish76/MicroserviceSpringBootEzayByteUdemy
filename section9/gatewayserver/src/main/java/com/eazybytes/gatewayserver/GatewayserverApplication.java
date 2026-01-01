@@ -1,5 +1,7 @@
 package com.eazybytes.gatewayserver;
 
+import java.time.LocalDateTime;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -17,18 +19,21 @@ public class GatewayserverApplication {
 	public RouteLocator eazyBankRouteConfig(RouteLocatorBuilder routeLocatorBuilder){
 		return routeLocatorBuilder.routes()
 								.route(p -> p
-									.path("/eazybank/accounts/**")
-									.filters(f -> f.rewritePath("/eazybank/accounts/(?<remaning>.*)","/${remaning}"))
+									.path("/eazybank/accounts/**")  //know as predicate or path predicate
+									.filters(f -> f.rewritePath("/eazybank/accounts/(?<remaning>.*)","/${remaning}")
+											.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
 								.uri("lb://ACCOUNTS"))
 
 								.route(p -> p
 									.path("/eazybank/loans/**")
-									.filters(f -> f.rewritePath("/eazybank/loans/(?<remaning>.*)","/${remaning}"))
+									.filters(f -> f.rewritePath("/eazybank/loans/(?<remaning>.*)","/${remaning}")
+											.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
 								.uri("lb://LOANS"))
 
 								.route(p -> p
 									.path("/eazybank/cards/**")
-									.filters(f -> f.rewritePath("/eazybank/cards/(?<remaning>.*)","/${remaning}"))
+									.filters(f -> f.rewritePath("/eazybank/cards/(?<remaning>.*)","/${remaning}")
+											.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
 								.uri("lb://CARDS")).build();
 	}
 }

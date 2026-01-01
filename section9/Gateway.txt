@@ -86,4 +86,25 @@
         will be the remaning one.
             spring.cloud.gateway.server.webflux.discovery.locator.lowerCaseServiceId = false
 
+*5* Adding more filter in custom api link
+    In GatewayserverApplication.java currently we  are first checking predicate of request api link using .path
+    then using predefined filter which rewritePath we are trying to rewrite the path which we have recived
+    then forward it to actual MS.
+                    .route(p -> p
+                        .path("/eazybank/accounts/**")
+                        .filters(f -> f.rewritePath("/eazybank/accounts/(?<remaning>.*)","/${remaning}"))
+                    .uri("lb://ACCOUNTS"))
+
+
+    Let see how we can add more filters.
+    We'll add a filter which can help to send header with response which we are going to send to the client
+    we added filted called
+             .addResponseHeader("X-Response-Time", LocalDateTime.now().toString())
+    using this when we send response to client they will get additonal header compaired to previous one
+    and the header title will be X-Response-Time and value will be the dateTime at which response was sent.
+
+    doc link https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/addresponseheader-factory.html
+    Note: in doc they have shown yml based filer or configuration but we are following java based configuration and it's recommended
+            So we need to find the similiar filiters and name would be similar which we have used in above line
+
                     
