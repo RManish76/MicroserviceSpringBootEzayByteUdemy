@@ -11,7 +11,7 @@ spring:
           discovery:
             locator:
               enabled: true #locate all the endpoint from deiscovery service and use the same to forward the extrenal traffic to individual MS
-              
+
 
 
 
@@ -27,7 +27,7 @@ management:
     shutdown:
       enabled: true
     gateway:
-      enabled: unrestricted
+      enabled: true
   info:   # to fetch enviorment/app info details using acutator end point.
     env:
       enabled: true
