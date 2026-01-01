@@ -1,0 +1,167 @@
+*1* Added jib plugin in pom of gatewayserver MS.
+    and modified the application.yml for it
+
+*2* Added config profile for gatewayserver in git config repo
+    Since gatewayserver will behave same everywhere, we'll have only one config profile.
+    In the config file we mentioned the port of gatewayserver server and eureka details. we have not
+    kept those in application.yml
+
+    After that added one configuration in application.yml
+        spring.cloud.gateway.server.webflux.discovery.locator.enabled = true
+        
+        This telling to gatewayserver to connect with discovery service and located all the address from
+        there then use the same to forward he external traffic to individual MS.
+
+        We can go to http://localhost:8072/actuator/gateway/routes see all api link accessable through
+        gatewayserver.
+
+*3* Adding small letter in api link
+    Currently when we trigger the api of other MS through gatewayServer we need to pass the application
+    name in capital letter in api link. As the application name in eurekaServer by default populate in capital form.
+    like below
+        http://localhost:8072/ACCCOUNTS/api/create
+        http://localhost:8072/LOANS/api/create
+        http://localhost:8072/CARDS/api/create
+
+    We can't ask client, hey pass the application name in api link in capital
+    To solve this we can add one more configuration in application.yml of gatewayServer
+
+        spring.cloud.gateway.server.webflux.discovery.locator.lowerCaseServiceId = true
+    
+    This Configuration allowe to pass application name in lower case in api link. like
+            http://localhost:8072/accounts/api/create
+            http://localhost:8072/loans/api/create
+            http://localhost:8072/cards/api/create
+
+*4* Custom gateweay api link
+    we can get requirements to add some words/letters in the api link like below
+        http://localhost:8072/eazybanks/accounts/api/create
+    Here we got request that add eazybanks in api links
+
+    to accheive the same we'll go to the main class of gatewayServer which GatewayserverApplication.java
+    and define a method like below
+        @Bean
+        public RouteLocator eazyBankRouteConfig(RouteLocatorBuilder routeLocatorBuilder){
+            return routeLocatorBuilder.routes()
+                                    .route(p -> p
+                                        .path("/eazybank/accounts/**")
+                                        .filters(f -> f.rewritePath("/eazybank/accounts/(?<remaning>.*)","/${remaning}"))
+                                    .uri("lb://ACCOUNTS"))
+
+                                    .route(p -> p
+                                        .path("/eazybank/loans/**")
+                                        .filters(f -> f.rewritePath("/eazybank/loans/(?<remaning>.*)","/${remaning}"))
+                                    .uri("lb://LOANS"))
+
+                                    .route(p -> p
+                                        .path("/eazybank/cards/**")
+                                        .filters(f -> f.rewritePath("/eazybank/cards/(?<remaning>.*)","/${remaning}"))
+                                    .uri("lb://CARDS")).build();
+        }
+    here we are telling whenever you get request like /eazybank/accounts/** or /eazybank/loans/** or /eazybank/cards/**
+        then from this fiter out the remaning words after or which was in place of **
+        then use the eurekaServer to and get the application api link related to accounts or loans or cards and
+        forward the request to that application then use the spring cloud loadbanalancer and send the request correct instance of that application
+    
+        Now if we go to http://localhost:8072/actuator/gateway/routes we'll see two types  api links
+        one is custome which we created and one is default which we got before we created the custome like below
+
+
+                    http://localhost:8072/eazybank/accounts/api/create
+                    http://localhost:8072/eazybank/loans/api/create
+                    http://localhost:8072/eazybank/cards/api/creat
+
+
+                    http://localhost:8072/accounts/api/create
+                    http://localhost:8072/loans/api/create
+                    http://localhost:8072/cards/api/creat
+
+        Having two or more types of api link to accheive the same will create the confusion.
+        So we'll keep only one which is the custom link and as we know the default link
+        came from the configuration which we created in application.yml of gatewayServer MS.
+        and that configuration is below
+            spring.cloud.gateway.server.webflux.discovery.locator.enabled = true
+
+        We'll set it as false which will deactivate the default api link and only the custom
+        will be the remaning one.
+            spring.cloud.gateway.server.webflux.discovery.locator.lowerCaseServiceId = false
+
+*5* Adding more filter in custom api link
+    In GatewayserverApplication.java currently we  are first checking predicate of request api link using .path
+    then using predefined filter which rewritePath we are trying to rewrite the path which we have recived
+    then forward it to actual MS.
+                    .route(p -> p
+                        .path("/eazybank/accounts/**")
+                        .filters(f -> f.rewritePath("/eazybank/accounts/(?<remaning>.*)","/${remaning}"))
+                    .uri("lb://ACCOUNTS"))
+
+
+    Let see how we can add more filters.
+    We'll add a filter which can help to send header with response which we are going to send to the client
+    we added filted called
+             .addResponseHeader("X-Response-Time", LocalDateTime.now().toString())
+    using this when we send response to client they will get additonal header compaired to previous one
+    and the header title will be X-Response-Time and value will be the dateTime at which response was sent.
+
+    doc link https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/addresponseheader-factory.html
+    Note: in doc they have shown yml based filer or configuration but we are following java based configuration and it's recommended
+            So we need to find the similiar filiters and name would be similar which we have used in above line
+
+
+*6* ADD Custom filter 
+    Requirement: As soon as gatewayserver/we recived a external request, it has to 1st generate a unique co-relation id.
+                    And same co-relation id should be sent to other MS where the request is going to travel.
+
+                For Example: If a request came to gatewayserver and then from gatewayserver the request going to travel
+                            accounts, loans and MS service then we want to make sure that same traceId/co-relation id.
+                            And using the same co-relation Id we are going add some logger statements inside
+                            the MS.
+                            Also while sending the response back to the client, we want to add the same correlationID
+                            inside the response header so that in future, whenever my client has some issues with a particular
+                            request saying that the dida is not correct or there is an exception happened.
+                            So using that correlation ID my developer, he can look at the logs and identify up to which microservice
+                            the request has travelled andif there is an exception under which MS the exception received.
+
+        So we are going to create a package/folder with name filters and inside that created 3 filters.
+
+            RequestTraceFilter.java --> //responsible to generate the trace/CoRelatiion id
+            ResponseTraceFilter.java --> //responsible to add the corelation/trace id to the response
+            FilterUtility.java --> //this class will store the common logic between RequestTraceFilter and ResponseTraceFilter class.
+
+
+
+            In RequestTraceFilter we implemented GlobalFilter interface to define the Bean
+            where as in ResponseTraceFilter instead of using GlobalFilter we defined our own custome filter
+            by using @Bean and created the method of type of GlobalFilter, this method will return the object of GlobalFilter
+
+            now we have mentioned 3 logger three custome files which we created and all logger
+            is type of debug. to print these logger we need enable certain properties in application.yml of
+            gatewayserver.
+                #we are telling that to spring boot if you see any log which is type of DEBUG
+                #executing in package of com.eazaybytes.gateewayserver 
+                logging.level.com.eazaybytes.gateewayserver = DEBUG
+
+
+*7* Making changes in MS for request/correlation/trace id.
+
+    Since we have introduced a correlationID for each request going through webserver we need o make
+    changes in our MS as well to consume and keep that correlationID throughout the process.
+
+        Insturctor is going to immplement this change for only fetchCustomerDetails api endpoint
+        which is customerDetailController.java as this endpoint travells through loans and cards as well.
+        For others I need to do by myself only.
+
+    First we added a @RequestHeader in the parameter of api method which is for correlationID.
+    Then we created a logger object with logger varaible which we will use to print log statement.
+    All implementation completed in MS java code.
+    Next is update the application.yml of these MS to print log for DEBUG like we did fot gateewayserver.
+
+*8* Docker image creation
+    Before we create docker images we need to enable the health prob and endpoint to check health status
+    like liveness and readiness for all 3 MS accounts, loans and cards.
+    As we want that before our gateewayserver starts all MS should be running.
+    So to do same in docker-compose we need to enable those endpoints.
+
+*9* Now lets update the docker-compose file
+    Just like otheres we need to create another server for gatewayServer.
+    After creating service, we enabled the health from the container for all 3 MS accounts, loans and cards
