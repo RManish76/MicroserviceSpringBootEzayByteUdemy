@@ -107,4 +107,36 @@
     Note: in doc they have shown yml based filer or configuration but we are following java based configuration and it's recommended
             So we need to find the similiar filiters and name would be similar which we have used in above line
 
-                    
+
+*6* ADD Custom filter 
+    Requirement: As soon as gatewayserver/we recived a external request, it has to 1st generate a unique co-relation id.
+                    And same co-relation id should be sent to other MS where the request is going to travel.
+
+                For Example: If a request came to gatewayserver and then from gatewayserver the request going to travel
+                            accounts, loans and MS service then we want to make sure that same traceId/co-relation id.
+                            And using the same co-relation Id we are going add some logger statements inside
+                            the MS.
+                            Also while sending the response back to the client, we want to add the same correlationID
+                            inside the response header so that in future, whenever my client has some issues with a particular
+                            request saying that the dida is not correct or there is an exception happened.
+                            So using that correlation ID my developer, he can look at the logs and identify up to which microservice
+                            the request has travelled andif there is an exception under which MS the exception received.
+
+        So we are going to create a package/folder with name filters and inside that created 3 filters.
+
+            RequestTraceFilter.java --> //responsible to generate the trace/CoRelatiion id
+            ResponseTraceFilter.java --> //responsible to add the corelation/trace id to the response
+            FilterUtility.java --> //this class will store the common logic between RequestTraceFilter and ResponseTraceFilter class.
+
+
+
+            In RequestTraceFilter we implemented GlobalFilter interface to define the Bean
+            where as in ResponseTraceFilter instead of using GlobalFilter we defined our own custome filter
+            by using @Bean and created the method of type of GlobalFilter, this method will return the object of GlobalFilter
+
+            now we have mentioned 3 logger three custome files which we created and all logger
+            is type of debug. to print these logger we need enable certain properties in application.yml of
+            gatewayserver.
+                #we are telling that to spring boot if you see any log which is type of DEBUG
+                #executing in package of com.eazaybytes.gateewayserver 
+                logging.level.com.eazaybytes.gateewayserver = DEBUG
