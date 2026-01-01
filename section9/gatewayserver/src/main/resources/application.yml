@@ -11,6 +11,7 @@ spring:
           discovery:
             locator:
               enabled: true #locate all the endpoint from deiscovery service and use the same to forward the extrenal traffic to individual MS
+              lowerCaseServiceId: true
 
 
 
