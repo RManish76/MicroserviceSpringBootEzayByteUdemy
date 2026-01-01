@@ -67,3 +67,12 @@ info:
     name: "accounts"
     description: "Eazy Bank Accounts Application"
     version: "1.0.0"
+
+
+#we are telling that to spring boot if you see any log which is type of DEBUG
+#executing in package of com.eazaybytes.gateewayserver 
+logging:
+  level:
+    com:
+      eazaybytes:
+        accounts: DEBUG

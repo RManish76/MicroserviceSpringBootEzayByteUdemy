@@ -140,3 +140,18 @@
                 #we are telling that to spring boot if you see any log which is type of DEBUG
                 #executing in package of com.eazaybytes.gateewayserver 
                 logging.level.com.eazaybytes.gateewayserver = DEBUG
+
+
+*7* Making changes in MS for request/correlation/trace id.
+
+    Since we have introduced a correlationID for each request going through webserver we need o make
+    changes in our MS as well to consume and keep that correlationID throughout the process.
+
+        Insturctor is going to immplement this change for only fetchCustomerDetails api endpoint
+        which is customerDetailController.java as this endpoint travells through loans and cards as well.
+        For others I need to do by myself only.
+
+    First we added a @RequestHeader in the parameter of api method which is for correlationID.
+    Then we created a logger object with logger varaible which we will use to print log statement.
+    All implementation completed in MS java code.
+    Next is update the application.yml of these MS to print log for DEBUG like we did fot gateewayserver.

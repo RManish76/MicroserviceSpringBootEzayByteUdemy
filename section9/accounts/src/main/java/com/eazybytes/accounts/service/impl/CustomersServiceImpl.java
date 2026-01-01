@@ -39,7 +39,7 @@ public class CustomersServiceImpl implements ICustomersService{
      * @return Customer Details based on a give mobileNumber
      */
     @Override
-    public CustomerDetailsDto fetchCustomerDetailsDto(String mobileNumber) {
+    public CustomerDetailsDto fetchCustomerDetailsDto(String mobileNumber, String correlationId) {
         Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
                 () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
         );
@@ -52,12 +52,12 @@ public class CustomersServiceImpl implements ICustomersService{
 
         //loans and cardr realted dto need to set in customerDetailsDto variable
 
-        ResponseEntity<LoansDto> loansDtoResponseEntity = loansFeignClient.fetchLoanDetails(mobileNumber);
+        ResponseEntity<LoansDto> loansDtoResponseEntity = loansFeignClient.fetchLoanDetails(correlationId, mobileNumber);
         //above like will trigger the feign client, which will get the details form loansMS.
         //the reponse which we'll get from feign client will of type ResponseEntity.
         customerDetailsDto.setLoansDto(loansDtoResponseEntity.getBody());
 
-        ResponseEntity<CardsDto> cardsDtoResponseEntity = cardsFeignClient.fetchCardDetails(mobileNumber);
+        ResponseEntity<CardsDto> cardsDtoResponseEntity = cardsFeignClient.fetchCardDetails(correlationId, mobileNumber);
         //above like will trigger the feign client, which will get the details form loansMS.
         //the reponse which we'll get from feign client will of type ResponseEntity.
         customerDetailsDto.setCardsDto(cardsDtoResponseEntity.getBody());
