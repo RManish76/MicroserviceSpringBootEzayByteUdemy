@@ -12,6 +12,9 @@
         This telling to gatewayserver to connect with discovery service and located all the address from
         there then use the same to forward he external traffic to individual MS.
 
+        We can go to http://localhost:8072/actuator/gateway/routes see all api link accessable through
+        gatewayserver.
+
 *3* Adding small letter in api link
     Currently when we trigger the api of other MS through gatewayServer we need to pass the application
     name in capital letter in api link. As the application name in eurekaServer by default populate in capital form.
@@ -25,5 +28,53 @@
 
         spring.cloud.gateway.server.webflux.discovery.locator.lowerCaseServiceId = true
     
-    This Configuration allowe to pass application name in lower case in api link.
-        
+    This Configuration allowe to pass application name in lower case in api link. like
+            http://localhost:8072/accounts/api/create
+            http://localhost:8072/loans/api/create
+            http://localhost:8072/cards/api/create
+
+*4* Custom gateweay api link
+    we can get requirements to add some words/letters in the api link like below
+        http://localhost:8072/eazybanks/accounts/api/create
+    Here we got request that add eazybanks in api links
+
+    to accheive the same we'll go to the main class of gatewayServer which GatewayserverApplication.java
+    and define a method like below
+        @Bean
+        public RouteLocator eazyBankRouteConfig(RouteLocatorBuilder routeLocatorBuilder){
+            return routeLocatorBuilder.routes()
+                                    .route(p -> p
+                                        .path("/eazybank/accounts/**")
+                                        .filters(f -> f.rewritePath("/eazybank/accounts/(?<remaning>.*)","/${remaning}"))
+                                    .uri("lb://ACCOUNTS"))
+
+                                    .route(p -> p
+                                        .path("/eazybank/loans/**")
+                                        .filters(f -> f.rewritePath("/eazybank/loans/(?<remaning>.*)","/${remaning}"))
+                                    .uri("lb://LOANS"))
+
+                                    .route(p -> p
+                                        .path("/eazybank/cards/**")
+                                        .filters(f -> f.rewritePath("/eazybank/cards/(?<remaning>.*)","/${remaning}"))
+                                    .uri("lb://CARDS")).build();
+        }
+    here we are telling whenever you get request like /eazybank/accounts/** or /eazybank/loans/** or /eazybank/cards/**
+        then from this fiter out the remaning words after or which was in place of **
+        then use the eurekaServer to and get the application api link related to accounts or loans or cards and
+        forward the request to that application then use the spring cloud loadbanalancer and send the request correct instance of that application
+    
+        Now if we go to http://localhost:8072/actuator/gateway/routes we'll see two types  api links
+        one is custome which we created and one is default which we got before we created the custome like below
+
+
+                    http://localhost:8072/eazybank/accounts/api/create
+                    http://localhost:8072/eazybank/loans/api/create
+                    http://localhost:8072/eazybank/cards/api/creat
+
+
+                    http://localhost:8072/accounts/api/create
+                    http://localhost:8072/loans/api/create
+                    http://localhost:8072/cards/api/creat
+
+        Having two or more types of api link to accheive the same will create the confusion.
+                    
