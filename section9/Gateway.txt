@@ -77,4 +77,13 @@
                     http://localhost:8072/cards/api/creat
 
         Having two or more types of api link to accheive the same will create the confusion.
+        So we'll keep only one which is the custom link and as we know the default link
+        came from the configuration which we created in application.yml of gatewayServer MS.
+        and that configuration is below
+            spring.cloud.gateway.server.webflux.discovery.locator.enabled = true
+
+        We'll set it as false which will deactivate the default api link and only the custom
+        will be the remaning one.
+            spring.cloud.gateway.server.webflux.discovery.locator.lowerCaseServiceId = false
+
                     

@@ -10,7 +10,8 @@ spring:
         webflux:
           discovery:
             locator:
-              enabled: true #locate all the endpoint from deiscovery service and use the same to forward the extrenal traffic to individual MS
+              enabled: false #locate all the endpoint from deiscovery service and use the same to forward the extrenal traffic to individual MS
+                              #made it false later as we decided to go with custom api(configured in GatewayserverApplication.java) link instead of default api link
               lowerCaseServiceId: true
 
 
