@@ -8,4 +8,35 @@
     Note we are adding reactor-resilience4j as the GatewayServer is build on spring reactive model,
     hence we need to make usre we are mentioning the artifact id as spring-cloud-starter-circuitbreaker-reactor-resilience4j
 
-    
+    now like we added rewrite and addresponsefilter, similiarly we'll add one more filter which is for
+    circuitBreaker.
+            .circuitBreaker(config -> config.setName("accountsCircuitBreaker")) //the name accountsCircuitBreakfer is given by us and can be anything.
+                    It is to identify for which api this circuitBreaker is.
+
+    Now since we have circuitBreaker, we need to set some property related to it as well which we'll do in
+    application.yml of GatewayServer
+
+            resilience4j.circuitbreaker:
+                configs:
+                    default: #default means these properties for all circuit breaker inside the gatewayServer MS. If we want to set properties for any particular circuit breaker we can metion the name which we give in GatewayserverApplication.java in place of default.
+                        slidingWindowSize: 10 #Monitor atleast 10 request before moving to open from close
+                        permittedNumberOfCallsInHalfOpenState: 2 #max 2 calls allowed in HalfOpen State. Take decision to go back to open or close status based  on these 2 request beahivour
+                        failureRateThreshold: 50 # if alteast 50% of request failed the circuit breaker can move from open status to close status.
+                        waitDurationInOpenState: 10000 #10000milisec-->10s wait for 10s in open state then only move to Half_Open state
+
+*2* Testing GatewayServer circuitBreaker
+        After staring the MS and gatewayServer we can check eureka server if the MS and gatewayserver able
+        to register themselve or not. http://localhost:8070
+
+        Then we goto gatewayServer actuator to see all actuator end point.
+            http://localhost:8072/actuator/
+        in this page we'll able to find lot of circuitBreaker urls, we can go one of them, and see
+        like        http://localhost:8072/actuator/circuitbreakers
+            currently this page should not show any info as we have not triggred the accounts api endpoint.
+            and note we have configured the circuitBreaker for only accounts endpoint.
+
+        Now to test it we can trigger the accounts api endpoint. And then refresh the circuitBreaker page
+        it should show some info like circuitbreaker name which we have given and in what state the circuitbreaker is and other info.
+
+        similiarly if we goto http://localhost:8072/actuator/circuitbreakerevents?name=accountsCircuitBreaker
+        it will show all event happend till now. like request success or not time taken, when this event occured etc.

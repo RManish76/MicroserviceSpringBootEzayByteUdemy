@@ -21,7 +21,9 @@ public class GatewayserverApplication {
 								.route(p -> p
 									.path("/eazybank/accounts/**")  //know as predicate or path predicate
 									.filters(f -> f.rewritePath("/eazybank/accounts/(?<remaning>.*)","/${remaning}")
-											.addResponseHeader("X-Response-Time", LocalDateTime.now().toString()))
+											.addResponseHeader("X-Response-Time", LocalDateTime.now().toString())
+											.circuitBreaker(config -> config.setName("accountsCircuitBreaker")) //the name accountsCircuitBreakfer is given by us and can be anything. It is to identify for which api this circuitBreaker is.
+										)
 								.uri("lb://ACCOUNTS"))
 
 								.route(p -> p

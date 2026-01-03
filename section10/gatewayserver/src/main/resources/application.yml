@@ -70,3 +70,12 @@ logging:
     com:
       eazybytes:
         gatewayserver: DEBUG
+
+
+resilience4j.circuitbreaker:
+  configs:
+    default: #default means these properties for all circuit breaker inside the gatewayServer MS. If we want to set properties for any particular circuit breaker we can metion the name which we give in GatewayserverApplication.java in place of default.
+      slidingWindowSize: 10 #Monitor atleast 10 request before moving to open from close
+      permittedNumberOfCallsInHalfOpenState: 2 #max 2 calls allowed in HalfOpen State. Take decision to go back to open or close status based  on these 2 request beahivour
+      failureRateThreshold: 50 # if alteast 50% of request failed the circuit breaker can move from open status to close status.
+      waitDurationInOpenState: 10000 #10000milisec-->10s wait for 10s in open state then only move to Half_Open state
