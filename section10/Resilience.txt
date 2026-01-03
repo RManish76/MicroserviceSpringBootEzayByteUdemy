@@ -1,0 +1,111 @@
+*1* Why Resiliency
+    i. How Do We Avoid Cascading Failures?
+            One Failed or slow service should not have a ripple effect on the other microservices.
+            Like in the scenarios of multiple microservices are communicating, we need to make sure that
+            the entire chain of microservices does not fail with the failure of a single microservice.
+
+    ii. How Do We Handle Failures Gracefully With Fallbacks?
+            In a chain of multiple microservices, how do we build a Fallback mechanism if one of the
+            microservice is not working. Like returning a default value or return values from cache or
+            call another service/DB to fetch the results etc.
+
+    iii. How To Make Our Service Self-Healing Capable
+            In the cases of slow performing service, how do we configure timeouts, retries and give
+            time for a failed service to recover itself.
+
+    Ensuring system stability and resilience is crucial for providing a reliable service to users.
+    One of the critical aspects in achieving a stable and resilient system for production is managing
+    the integration points between services over a network.
+
+    There exist various patterns for building resilient applications. In the Java ecosystem, Hystrix,
+    a library developed by Netflix, was widely used for implementing such patterns. However, Hystrix entered
+    maintenance mode in 208 and is no longer being actively developed. To address this, Resilience4J has
+    gained significant popularity, stepping in to fill the gap left by Hystrix.
+    Resilience4J provides a comprehensive set of features for building resilient applications and has
+    become a go-to choice for Java developers.
+
+
+*2* Resiliency Using Resilience4J
+        Resilience4J is a lightweight fault tolerance library designed for functional programming. It
+        offers the following patterns for increasing fault tolerance due to network problems or failure
+        of any of the multiple service:
+        i.      Circuit breaker - Used to stop making requests when a service invoked is failing
+        ii.     Fallback - Alternative paths to failing requests
+        iii.    Retry - Used to make retries when a service has temporarily failed
+        iv.     Rate Limit - Limits the number of calls that a service receives in a time
+        v.      Bulkhead - Limits the number of outgoing concurrent requests to a service to avoid overloading
+
+        Website: resilience4j.readme.io -->core modules -> view more
+
+*3* Circuit Breaker Pattern
+
+        In a distributed environment, calls to remote resources and services can fail due to transient
+        faults, such as slow network connections, timeouts, or the resources being overcommitted or 
+        temporarily unavailable. These faults typically correct themselves after a short period of
+        time, and a robust cloud application should be prepared to handle them.
+
+        The circuit breaker pattern which inspired from electrical circuit breaker will monito the remote
+        calls. If the calls take too long, the circuit breaker will intercede and kill the call.
+        Also the circuit breaker will monitor all calls to a resource, and if enough calls fail,
+        the circuit break implementation will pop, failing fast and preventing future calls to the failing
+        remote resource.
+
+        The Circuit Breaker pattern also enables an application to detect whether the fault has been
+        resolved. If the problem appears to have been fixed, the application can try to invoke the
+        operation.
+
+        The advantages with circuit breaker pattern are,
+                a. Fail fast
+                b. Fail Gracefully
+                c. Recover seamlessly -->The circuit breaker is going to help MS to recover seamlessly
+                            because it is going to give them some rest for a short period of time, Like
+                            30s or 90s.
+                            Based upon your configurations within the 30s or 90s, the MS will try to recover
+                            because there is no incoming traffic.
+                            And if there is some network problem within 30 or 90s, most of the time the
+                            network problems will also get resolved.
+
+        Stages of Circuit Breaker
+            i. Closed: all request allowed to go to MS. like in electrical when circuit is close current is following.
+            ii.Open:   request are not allowed to flow to MS. like in electrical when circuit is open current is not allowed to flow.
+            iii. Half_Open: Only few request are allowed to flow as per configurations to test if the issue with MS
+                            is resolved or not. If resolved close the circuit else open it again.
+
+            
+*4* Working of Circuit Breaker:
+    By default circuit breaker pattern is not going to monitor all your microservice.
+    We need to configure this circuit breaker pattern wherever we need.
+
+    When we have configured the circuit breaker pattern for one of the microservice.
+    Then whenever we activate the circuit breaker pattern on any MS, it is going to control the flow
+    of traffic towards the MS by using 3 different states.
+
+    1st is closed state. Initially, when the application starts by default, the circuit breaker will be 
+        in closed state.
+        With this closed status, the circuit breaker pattern is going to monito all the requests coming
+        towards the MS and it will try to understand whether the MS is responsding properly or if there
+        are any network issue or there are any slow response from the microservice.
+        So based upon these monitoring and analysis, if the the circuit breaker identifies that most of the 
+        requests comming to MS are being failed, then it is going to immediately jump to the OPEN status.
+        It is going to transation from close to open status is based upon the failure rate threshold that
+        you have defined. like configured if 50% of my traffic that is comming towards my MS is failing,
+        then please move to the open status.
+
+    2nd stage Open Stage.
+        When circuit breaker is in open status, that means it is not going to send any request to the
+        actual MS. Instead, it is going to fail immediately and send the error response to the invoking MS
+        at the client application.
+        This way it will make sure there is no ripple effect on the invoking MS due to issue in a particular MS.
+
+    3rd stage Half_Open
+        Once circuit bereaker is in open status, it'll remain open only till time we have configured like
+        90s. Once that time reache the circuit will move to Half_Open state. because the time which we gave
+        MS, it maybe able to recover or network issue is resolved.
+        So in Half_Open state the circuit breaker will allow only few request based on the configurations
+        like 10 or 20 requests. And again if at least 50% of the request are failing, then it will again
+        jump back to  the open status and wait again for 90s.
+        So this cycle fom open to Half_Open and Half_Open to open will continusously happen peridically.
+        
+        At some point of time when my circuit breaker realizes that majority of the trafic or the requests
+        are being processed successfully, then it will move from Half_Open to CLOSED status.
+    

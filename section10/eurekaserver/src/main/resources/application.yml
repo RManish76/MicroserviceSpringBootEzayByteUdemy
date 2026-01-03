@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: eurekaserver
+  config:
+    import: "optional:configserver:http://localhost:8071"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true #enabled for actuator
+    liveness-state:
+      enabled: true #enbale to check for actuator
+  endpoint:
+    shutdown:
+      enabled: true # Enable graceful shutdown via REST API
+    health:
+      probes:
+        enabled: true #enabled to check readiness and liveness through rest endpoints
