@@ -1,0 +1,11 @@
+*1* Update in GatewayServer
+    First we'll work on GatewayServer.
+
+    Lets update the the pom for circuit breaker dependency.
+
+    copy the eureka client past it and update as below.
+
+    Note we are adding reactor-resilience4j as the GatewayServer is build on spring reactive model,
+    hence we need to make usre we are mentioning the artifact id as spring-cloud-starter-circuitbreaker-reactor-resilience4j
+
+    
