@@ -40,3 +40,19 @@
 
         similiarly if we goto http://localhost:8072/actuator/circuitbreakerevents?name=accountsCircuitBreaker
         it will show all event happend till now. like request success or not time taken, when this event occured etc.
+
+*3* Adding Fallback
+
+    When issue is occuring we are througing runtime error response like service unavalaiable or gateway 
+    timeout exception.
+    In real business application throwing RuntimeExceptions to the client applications or to the UI
+    applications is not a valid approach.
+    So we'll add some fallback mechanism and inside this fallback mechanism we can write some logic
+    where we can send some message to the client applications, which is going to make sense for them
+    to create a fallback mechanism for circuit breaker pattern.
+
+    we'll create a controller in gatewayServer MS with name FallbackController.java
+    Inside this controller we created a rest endpoint /contactSupport which we want to trigger as fallback
+    
+    To call this against accountsCircuitBreaker we can add one more setup after .setName with .setFallbackUri()
+    and pass the api link to it.

@@ -22,7 +22,8 @@ public class GatewayserverApplication {
 									.path("/eazybank/accounts/**")  //know as predicate or path predicate
 									.filters(f -> f.rewritePath("/eazybank/accounts/(?<remaning>.*)","/${remaning}")
 											.addResponseHeader("X-Response-Time", LocalDateTime.now().toString())
-											.circuitBreaker(config -> config.setName("accountsCircuitBreaker")) //the name accountsCircuitBreakfer is given by us and can be anything. It is to identify for which api this circuitBreaker is.
+											.circuitBreaker(config -> config.setName("accountsCircuitBreaker") //the name accountsCircuitBreakfer is given by us and can be anything. It is to identify for which api this circuitBreaker is.
+																			.setFallbackUri("forward:/contactSupport")) //this will forward the call to /contactSupport api endpoint which we defined in controller of gatewayserver if any issue found by ciructbraker
 										)
 								.uri("lb://ACCOUNTS"))
 
