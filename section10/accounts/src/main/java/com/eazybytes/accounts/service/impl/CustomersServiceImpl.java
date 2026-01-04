@@ -55,12 +55,16 @@ public class CustomersServiceImpl implements ICustomersService{
         ResponseEntity<LoansDto> loansDtoResponseEntity = loansFeignClient.fetchLoanDetails(correlationId, mobileNumber);
         //above like will trigger the feign client, which will get the details form loansMS.
         //the reponse which we'll get from feign client will of type ResponseEntity.
-        customerDetailsDto.setLoansDto(loansDtoResponseEntity.getBody());
+        if(null!=loansDtoResponseEntity){
+            customerDetailsDto.setLoansDto(loansDtoResponseEntity.getBody());
+        }
 
         ResponseEntity<CardsDto> cardsDtoResponseEntity = cardsFeignClient.fetchCardDetails(correlationId, mobileNumber);
         //above like will trigger the feign client, which will get the details form loansMS.
         //the reponse which we'll get from feign client will of type ResponseEntity.
-        customerDetailsDto.setCardsDto(cardsDtoResponseEntity.getBody());
+        if(null!=cardsDtoResponseEntity){
+            customerDetailsDto.setCardsDto(cardsDtoResponseEntity.getBody());
+        }
 
 
         return customerDetailsDto;

@@ -56,3 +56,59 @@
     
     To call this against accountsCircuitBreaker we can add one more setup after .setName with .setFallbackUri()
     and pass the api link to it.
+
+
+*4*  Now we'll implement the circuitBreaker in accounts MS using Feign Client.
+    official do link: https://docs.spring.io/spring-cloud-openfeign/reference/spring-cloud-openfeign.html#spring-cloud-feign-circuitbreaker
+
+    Now lets add the circuitbreaker dependency in accounts MS pom.
+    This time we'll add non-reactive or normal circuitbreaker dependency as our MS are built on
+    normal type/non-reactive.
+
+
+		<!-- circuit breaker normal type / non-reactive -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+		</dependency>
+
+    Now we'll add below config in application.yml as per the spring cloud doc as we already have openfeign
+        spring.cloud.openfeign.circuitbreaker.enabled=true
+
+    Now after adding above we need to mention other properties like timeout, number of requests in application.yml
+
+    After adding all of above the circuitbreaker is active in our accounts MS as metioned in spring doc.
+            If Spring Cloud CircuitBreaker is on the classpath and spring.cloud.openfeign.circuitbreaker.enabled=true,
+            Feign will wrap all methods with a circuit breaker.
+
+    Now we need to add fallback mechanism as well in the circuitbreaker of accounts MS
+        doc: https://docs.spring.io/spring-cloud-openfeign/reference/spring-cloud-openfeign.html#spring-cloud-feign-circuitbreaker-fallback
+
+        As per the docs, we need to implement the feignclient interface using a class.
+        that class will overwirte the methods present in the feignclient as fallback.
+        we would add annotation to the interface and let circuitbreaker know that this class is fallback
+        method if something goes wrong.
+
+        So in accounts MS, inside service/client we'll define a class with name LoanFallback And
+        CardsFallback and both class will implement the interface LoansFeignClient and CardsFeignClient
+        respectively as fallback.
+
+        We have written methods to return null in case of loans of cards MS is not working as feign
+        instead of returning runtime error if one of MS is not working.
+
+        now let's update the interfaces annotation for fallback like below
+            Before: @FeignClient("loans")
+            Now:  @FeignClient(name = "loans", fallback = LoansFallback.class)
+            similiarly we'll do for cards 
+
+        Now since we are returning null from cards and loans feignclient means we need handled the null as
+        well if we are reciving the object and trying to fetch the value from it.
+        And we are reciving these value in our CustomersServiceImpl.java to set to dto.
+        So we need to update there as well.
+
+    So till now what we have done is that if loans or cards MS is not working and client made
+    request to fetchCustomerDetails which is in accounts MS and also pull details form loans and cards MS
+    then instead of returning RuntimeExceptions we'll return null using circuitbreaker fallback mechanism.
+
+
+
