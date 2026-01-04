@@ -112,3 +112,48 @@
 
 
 
+*5* limt the wait time
+    currently for all MS where circuitbreaker is not implemented(loans & cards), if we made any request to that MS then
+    client will wait for the response it does not matter how much time it takes.
+    Means if there is slow response from any MS for any reason we would have an open thread which will
+    be occupied just waiting for the response.
+    Idealy in MS if after sometime any request should timeout if response is taking a lot of time.
+    We have seen that in gatewayserver we have implemented the circuitbreaker, so in case of accounts MS
+    if the requests take more than 1sec the circuitbreaker in gatewayserver will kill the request and
+    will fallback to fallback mechanism which we configured. 
+    Because by default the circuitbreakers are configured to wait for 1sec on any request for response.
+
+    But we may not be using the circuitbreaker throughout our MSs. So to handle these problem in other
+    places like loans and cards MS, where we are not using the circuitbreaker pattern, we need to 
+    configure that timeout configuration so that the gateway server or any other MS, ther are not 
+    going to wait for the response for a long time.
+
+    doc for timeout: https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/http-timeouts-configuration.html
+
+        So we need to add the configs in application.yml as per the doc.
+            connect-timeout --> in miliSec this is the which takes to makes connection to a MS
+                        For example the gatewayserver made request to loan MS but to reach the loan MS
+                        or we can say that to establish the connection between gatewayserver and loan MS
+                        is time we are considering here.
+            response-timeout --> as name sussgest max wait time for response
+
+        so add below in application.yml
+                spring:
+                    cloud:
+                        gateway:
+                        httpclient:
+                            connect-timeout: 1000
+                            response-timeout: 5s
+
+    So this timout which we added is global means whatever request will flow thorugh the gatewayserver
+    this timout will be applicable except if we have circuitbreaker configured for any particular
+    request.
+    Means if there are both circuitbreaker and defaulttime like above then circuitbreaker config will have
+    have higher precedence.
+
+    In doc if we see we can define the timeout like above for each route/api request using yml or java
+    And also if we notice in same section of doc there metion about -1 timeout.
+    This timeout is for that if we want that for any particular api should not be bound by gloabl timeout
+    which we configured then we'll can mention timeout as -1 this will exempt that api from global
+    timeout means for that request gatewayserver will wait untill we kill the request manually or 
+    we have dedicatly configured a timeout for that api link
