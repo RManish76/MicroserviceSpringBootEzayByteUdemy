@@ -224,3 +224,5 @@ in gatewayserver.
 
 So to solve this either we can decrease the waitduration of retry logic in MS or increase the timeout of
 circuitbreaker in gatewayserver.
+
+Now lets see the how we can change the default timeout which is 1sec in gatewayserver for circuitbreaker.
