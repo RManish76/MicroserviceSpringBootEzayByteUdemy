@@ -19,7 +19,8 @@
             "mainClass": "com.eazybytes.eurekaserver.EurekaserverApplication",
             "projectName": "eurekaserver",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=51802 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=eurekaserver"
         },
         {
             "type": "java",
@@ -29,7 +30,8 @@
             "mainClass": "com.eazybytes.accounts.AccountsApplication",
             "projectName": "accounts",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=56420 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=accounts"
         },
         {
             "type": "java",
@@ -38,6 +40,17 @@
             "cwd": "${workspaceFolder}",
             "mainClass": "com.eazybytes.gatewayserver.GatewayserverApplication",
             "projectName": "gatewayserver",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=56032 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=gatewayserver"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-LoansApplication<loans>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.eazybytes.loans.LoansApplication",
+            "projectName": "loans",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         }

@@ -181,3 +181,14 @@
         Idempotent Operations: Ensure that the retried operation is idempotent, meaning it produces the same
                                 result regardless of how many times it is invoked. This prevents unintended
                                 side effects or duplicate operations.
+
+*7* Implementation of Retry logic
+    Since in gatewayserver for accounts request we already have circuitbreaker. lets implement
+    the retry logic for other endpoint loans.
+        So we are going add a retry filter in GatewayserverApplication.java like added the other filter.
+        We have many retry filter, in one of them we can simply pass the integer value which is number of
+        retry but we want to implement other configuration as well so we'll go with other retry which is
+        retryConfig.
+            .setBackoff(Duration.ofMillis(100), Duration.ofMillis(1000), 2, true) //.setBackoff(firstBackof value--> wait for 100milisec before initiate 1st retry, maxbackoff -> wait max 1000 milisec, factor to apply on previous backoff value, false --> apply factor on inital backoff  true--> apply factor on previous backoff value)
+
+    Now we'll go to loans controller in loans MS and add a Debuglogger statement in contact-info api end point
