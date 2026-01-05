@@ -26,8 +26,11 @@ public class ResponseTraceFilter {
             return chain.filter(exchange).then(Mono.fromRunnable(()->{ //will trigger only when the request is sent to responsbile MS and recived the response form id as we are using chain and then method
                 HttpHeaders requestHeaders = exchange.getRequest().getHeaders();
                 String correlationId = filterUtility.getCorrelationId(requestHeaders);
-                logger.debug("Updated the correlation id to the outbound headers: {}", correlationId);
-                exchange.getResponse().getHeaders().add(FilterUtility.CORRELATION_ID, correlationId);
+
+                if(!(exchange.getResponse().getHeaders().containsHeader(filterUtility.CORRELATION_ID))){
+                    logger.debug("Updated the correlation id to the outbound headers: {}", correlationId);
+                    exchange.getResponse().getHeaders().add(FilterUtility.CORRELATION_ID, correlationId);
+                }
             }));
         };
     }

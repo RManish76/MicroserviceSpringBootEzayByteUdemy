@@ -226,3 +226,42 @@ So to solve this either we can decrease the waitduration of retry logic in MS or
 circuitbreaker in gatewayserver.
 
 Now lets see the how we can change the default timeout which is 1sec in gatewayserver for circuitbreaker.
+
+
+*9* limit the retry attempt based upon the error.
+    For example in 1st request we got NullPointerException then if we retry again we'll get the NullPointerException
+    again as null value means there is no data present and in this case making retry does not make sense.
+
+    And also we can get requirements that based on this error you should not attempt retry.
+
+    To do that we added one more config where we added the retry config which is ignoreException.
+    Which tell to retry logic you should not attempt retry in case of these exceptions. and directly
+    go for fallback mechanism of retry.
+
+
+    And we can also get requirment to attempt retry only for a set of exceptions
+    and we can do that using retryExeption in config like we have ignoreException for above case
+        and in retryException we can pass the set of exception for which only we want our retry
+        to exceute else fallback should occur.
+
+    Note: for both cases ignoreException or retryExeption ultimately will give same result.
+            So we need to use only one of them no need to used both them.
+
+    if we want to achieve same in gatewayserver then we can go to GatewayserverApplication.java
+    and after .setRetries() we can add .setExceptions and we can add the list of exceptions for which
+    the retry attempt will happen at gatewayserver level. there is no ignoreException in case of gateweayserver
+
+
+*10* Bug in GatewayServer
+        If we see the response in postman, and goto response header.
+        then we can notice that the eazyback-correltaion-id appread multiple time in response header.
+        actrually it apperade same number of time as number of retry attempt happend.
+
+        It means when we are adding the correlation-id in response header at gatewayServer we are simply adding
+        it when we are getting the response does not matter its retry attempt or 1st run also neither we are
+        checking that is the correlation id already present before adding it.
+        Previously it was fine as we were doing only one request for each client request but now since internally
+        we are doing retries the correlation-id is being added again and again.
+
+        So we can implement some check before adding the correlation-id in response in ResponseTraceFilter.java
+        
