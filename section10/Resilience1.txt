@@ -360,3 +360,35 @@ Now lets see the how we can change the default timeout which is 1sec in gateways
         http://localhost:8072/eazybank/cards/api/contact-info --> endpoint which we want to envoke
 
     After running the command we'll get detailed report in command prompt itself.
+
+*13* Rate Limiter in accounts MS
+        Now we are going to implement the rate limiter in accounts MS at getJavaVersion method or /java-version
+        rest endpoint.
+            added annotation above that method     @RateLimiter(name = "getJavaVersion") without fallback
+            and will add the config of RateLimiter in application.yml oa accounts MS.
+
+                resilience4j.ratelimiter:
+                    configs:
+                        default: # for all reatelimiter in accounts MS. we can user ratelimiter name as well for explitcitly metion the limits
+                            timeoutDuration: 1000 #1000milisec --> timilimt to wait for new quota if current quota is exhausted. means for each max wait is 1 sec for new quota, if the current quota is exhausted
+                            limitRefreshPeriod: 5000 #5000milisec --> renew the quota in every 5 sec
+                            limitForPeriod: 1  #only 1 request is allowed in one quota. means as per our quota 1 request per 5 sec
+
+            if we see that in gatewayserver we implemented the rate as per the user or ip address also config was differen
+            but in case MS the config is different because the limit is for all request to that api not for a user.
+
+            This type of config we can use in scenarios where we might have a infrastructure that can only handle 10,000
+            requests for each second. so beyound 10,000 requests we don't want to accept, then in such scenarios, this
+            approach is going to be super helpful.
+            Or we may also have different requirements where we want a particular low priority API to process less
+            number of requests so that other high priority APIs they can process without any issues.
+            All suc kind of custom requirements you can achieve with this pattern.
+
+            Note: In this approach we don't need any redis container becuase if you notice we did not updated the pom
+                in case of accounts MS.
+
+            Now let's add fallbackMethod for ratelimiter.
+                And same thing like other fallback, fallback back method signature should be same as original method for which fallback method is being written
+                and also it should include the throwable paramerter along with the other paramerter of the original method
+
+            

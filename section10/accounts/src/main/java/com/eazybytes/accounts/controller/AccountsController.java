@@ -7,6 +7,7 @@ import com.eazybytes.accounts.dto.ErrorResponseDto;
 import com.eazybytes.accounts.dto.ResponseDto;
 import com.eazybytes.accounts.service.IAccountsService;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -252,6 +253,8 @@ public class AccountsController {
             )
     }
     )
+//     In this approach we don't need any redis container for rateLimiter becuase if you notice we did not updated the pom in case of accounts MS.
+    @RateLimiter(name = "getJavaVersion", fallbackMethod = "getJavaVersionFallback")
     @GetMapping("/java-version")
     public ResponseEntity<String> getJavaVersion(){
         String response = environment.getProperty("JAVA_HOME")+"\n"+environment.getProperty("MAVEN_HOME");
@@ -259,6 +262,13 @@ public class AccountsController {
                 .status(HttpStatus.OK)
                 .body(response);
     }
+
+    public ResponseEntity<String> getJavaVersionFallback(){
+        // String response = environment.getProperty("JAVA_HOME")+"\n"+environment.getProperty("MAVEN_HOME");
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("Java 21"); //return a hardcoded value
+    }    
 
 
 

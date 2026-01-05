@@ -111,3 +111,12 @@ resilience4j.retry:
         -java.lang.NullPointerException
       retryExceptions: #execute retry only for below exceptions else go for fallback no need of retry.
         -java.util.concurrent.TimeoutException
+
+
+# //     In this approach we don't need any redis container for rateLimiter becuase if you notice we did not updated the pom in case of accounts MS.
+resilience4j.ratelimiter:
+  configs:
+    default: # for all reatelimiter in accounts MS. we can user ratelimiter name as well for explitcitly metion the limits
+      timeoutDuration: 1000 #1000milisec --> timilimt to wait for new quota if current quota is exhausted. means for each max wait is 1 sec for new quota, if the current quota is exhausted
+      limitRefreshPeriod: 5000 #5000milisec --> renew the quota in every 5 sec
+      limitForPeriod: 1  #only 1 request is allowed in one quota. means as per our quota 1 request per 5 sec
