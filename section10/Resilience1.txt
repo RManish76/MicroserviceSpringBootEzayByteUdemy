@@ -385,10 +385,49 @@ Now lets see the how we can change the default timeout which is 1sec in gateways
             All suc kind of custom requirements you can achieve with this pattern.
 
             Note: In this approach we don't need any redis container becuase if you notice we did not updated the pom
-                in case of accounts MS.
+                in case of accounts MS. we have used resilience4j for the rate limiter.
 
             Now let's add fallbackMethod for ratelimiter.
                 And same thing like other fallback, fallback back method signature should be same as original method for which fallback method is being written
                 and also it should include the throwable paramerter along with the other paramerter of the original method
 
-            
+*14* BULKHEAD PATTERN
+        The Bulkhead pattern in software architecture is a design pattern that aims to improve the resilience and
+        isolation of components or services within a system. It draws imspiration from the concept of bulkheads in
+        ships, which are physical partitions that prevent the flooding of one compartment from affecting others,
+        enhancing the overall stability and safety of the vessel.
+
+        In the context of software systems, the Bulkhead pattern is used to isolate and limit the impact of failures or high
+        loads in one component from spreading to other components. It helps ensure that a failaure or heavy load in one
+        part of the system does not bring down the entire system, enabling other components to continue functioning
+        independently.
+
+        Bulkhead pattern helps us to allocate limit the resources which can be used for specific services.
+        So that resource exhaustion can be educed.
+
+        The Bhulkhead pattern is particularly useful in systems that require high availability, fault tolerance,
+        and isolation between components. By compartmentalizing components and enforcing resource boundaries,
+        the Bulkhead pattern enhances the reilience and stability of the system, ensuring that failures or heavey
+        loads in one area do not bring down the entire system.
+
+        For example:
+            we have two api endpoing /myAccount and /myCustomerDetails in accounts MS.
+            And the /myAccount is doing some limited work and not depended on any other service or MS.
+            where as the /myCustomerDetails endpoint is dependent on some ther MS and services.
+
+            Without bulkheads or in general case the /myCustomerDetails will consume more thread and resource compared to /myAccount
+            so if few more request come to /myCustomerDetails there is chance that there'll be no resource available
+            for /myAccount which also consume less resource.
+
+            With Bulkhead we 'll assign minimum resource to each endpoint like sepration we do with docker containers
+            and even if /myCustomerDetails is going to consume more resource at least assigned resource will be
+            available to /myAccount endpoint to process the request it have.
+
+        Note: Inside the spring cloud gateway we don't have bulkhead support as of now
+            we can only use resilience4j to use the bulkhead.
+             we can go to resilience4j doc link https://resilience4j.readme.io/docs/getting-started-3
+             and look for annotation realted to Bulkhead and we see the way we can implement the bulkhead in the MS.
+
+    We are not implement ing these inside our MS and insturctor also did not showed as to demo these pattern
+    we need some commerical tools or some performance tools like Loadrunner or Jmeter, here we can see the
+    thread usage and that is also complicated process.
