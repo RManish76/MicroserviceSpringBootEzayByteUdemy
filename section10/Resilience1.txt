@@ -431,3 +431,22 @@ Now lets see the how we can change the default timeout which is 1sec in gateways
     We are not implement ing these inside our MS and insturctor also did not showed as to demo these pattern
     we need some commerical tools or some performance tools like Loadrunner or Jmeter, here we can see the
     thread usage and that is also complicated process.
+
+*15* precedence order of all library inside resilience4j
+        if go to same link of resilience4j https://resilience4j.readme.io/docs/getting-started-3
+        and go to section Aspect Order then we'll able to see
+        the default precedence order of it's library which is as of now is that
+            Retry ( CircuitBreaker ( RateLimiter ( TimeLimiter ( Bulkhead ( Function ) ) ) ) )
+
+        if for some reason we want to change the order we follow doc to change the order as given in doc
+        the higher number means higher priority to that library.
+
+*16* Updating the docker compose file
+        Added redis service in dcoker-compose.yml
+        and then in gatewayserver service in docker-compose file under the depends_on
+        we added the redis dependency as well. as we want redis to active and healthy when we run the gatewayServer
+        then also in the enviroment varaible of gatewayserver we added the details of redis as well.
+        
+        
+        also updated the tag to s10 for all MS
+
