@@ -6,6 +6,8 @@ import com.eazybytes.accounts.dto.CustomerDto;
 import com.eazybytes.accounts.dto.ErrorResponseDto;
 import com.eazybytes.accounts.dto.ResponseDto;
 import com.eazybytes.accounts.service.IAccountsService;
+
+import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,6 +18,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -40,6 +44,8 @@ import org.springframework.web.bind.annotation.*;
 public class AccountsController {
 
     private final IAccountsService iAccountsService;
+
+    private static final Logger logger = LoggerFactory.getLogger(AccountsController.class);
 
     //due to AllArgsConstructor we were getting error as, its a constructor of all arguments
     //it was trying to find bean of String of build version as well for our buildVersion as well.
@@ -208,11 +214,21 @@ public class AccountsController {
             )
     }
     )
+    @Retry(name="getBuildInfo", fallbackMethod="getBuildInfoFallback")
     @GetMapping("/build-info")
     public ResponseEntity<String> getBuildInfo(){
+        logger.debug("getBuildInfo() method Invoked");
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(buildVersion);
+    }
+
+    //fallback mechanisim if all retry failed for above getBuildInfo method. //we also need to put configuration
+    public ResponseEntity<String> getBuildInfoFallbac(Throwable throwable){ //Throwable throwable parameter is mandatory along with the parameter present in original getBuildInfo method.
+        logger.debug("getBuildInfoFallback() method Invoked");
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("0.9"); //returning a hardcoded value when all retry failed.
     }
 
 

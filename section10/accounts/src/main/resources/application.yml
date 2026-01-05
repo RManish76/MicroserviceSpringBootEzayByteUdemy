@@ -98,3 +98,12 @@ resilience4j.circuitbreaker:
       permittedNumberOfCallsInHalfOpenState: 2 #max 2 calls allowed in HalfOpen State. Take decision to go back to open or close status based  on these 2 request beahivour
       failureRateThreshold: 50 # if alteast 50% of request failed the circuit breaker can move from open status to close status.
       waitDurationInOpenState: 10000 #10000milisec-->10s wait for 10s in open state then only move to Half_Open state
+
+    
+resilience4j.retry:
+  configs:
+    default: #default --> for all retyr. Else can expelicitry mention retry config with the name of retry which we have given to the retry.
+      maxAttempts: 3 # number of retry
+      waitDuration: 100 # in milisec
+      enableExponentialBackoff: true 
+      exponentialBackoffMultiplier: 2

@@ -182,7 +182,7 @@
                                 result regardless of how many times it is invoked. This prevents unintended
                                 side effects or duplicate operations.
 
-*7* Implementation of Retry logic
+*7* Implementation of Retry logic at gatewayserver level
     Since in gatewayserver for accounts request we already have circuitbreaker. lets implement
     the retry logic for other endpoint loans.
         So we are going add a retry filter in GatewayserverApplication.java like added the other filter.
@@ -192,3 +192,35 @@
             .setBackoff(Duration.ofMillis(100), Duration.ofMillis(1000), 2, true) //.setBackoff(firstBackof value--> wait for 100milisec before initiate 1st retry, maxbackoff -> wait max 1000 milisec, factor to apply on previous backoff value, false --> apply factor on inital backoff  true--> apply factor on previous backoff value)
 
     Now we'll go to loans controller in loans MS and add a Debuglogger statement in contact-info api end point
+
+*8* Implementation of Retry logic at MS endpoint level.
+    doc: https://resilience4j.readme.io/docs/getting-started-3
+    We'll implement the retry logic to /build-info at accounts MS.
+
+        So we need to add annotation @Retry above the method like below
+            @Retry(name = "name that we want to give for this particular retry configuration", fallbackMethod = "method name of the fallback need to defined the fallback logic")
+
+            now the fallbackMethod method-signature should be same as the method where we are implementing the retry annotation
+            also note in fallbackMethod there is a fixed paramerter Throwable throwable we need to keep along with the parameters
+            in original method if theres any.
+
+        Adding logger as well to check if method got executed.
+
+
+    
+So as we seen in MS that we implemented the fallback mechanism in case of configured number of retry failed.
+But we cannot implement the fallback mechanism in gateway for retry mechanism like we did in MS.
+
+Also in MS level all request counted in retry count.
+    Mean if retry = 3  means total call including the 1st call by count will be counted here in that 3
+                        means 1 client call and 2 retry total 3 calls
+where as in gateway server the number of retry call is extra with client call
+    menas if rerty=3  then 1 client call + 3 retry call = total 4 calls.
+
+Also if circuitbreaker timeout time configured less in gatewayserver compaired to watiduration of retry in MS
+then circuitbreaker will come in effect as it'll see that configured time as ended and it did not got any response
+from MS so it'll kill the request and fallback to fallback mechanism of circuitbreaker which we have configured
+in gatewayserver.
+
+So to solve this either we can decrease the waitduration of retry logic in MS or increase the timeout of
+circuitbreaker in gatewayserver.
