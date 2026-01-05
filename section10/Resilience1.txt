@@ -264,4 +264,99 @@ Now lets see the how we can change the default timeout which is 1sec in gateways
         we are doing retries the correlation-id is being added again and again.
 
         So we can implement some check before adding the correlation-id in response in ResponseTraceFilter.java
-        
+
+
+*11* Rate LIMITTER PATTERN
+
+    The Rate Limiter pattern in MS is a design pattern that helps control and limit the rate of incoming requests
+    to a service or API. It is used to prevent abuse, protect system resources, and ensure fair usage of the service.
+
+    In a microservices architecture, multiple services may depend on each other and make requests to communicate.
+    However, unrestricted and uncontrolled requests can lead to performance degradation, resource exhaustion and
+    potential denial-of-service(DoS) attacks. The Rate Limiter pattern provides a mechanism to enforce limits on
+    the rate of incoming requests.
+
+    Implementing the Rate Limiter Pattern helps protect miscroservices from being overwhelmed by excessive or
+    malicious requests.
+
+    When a user surpasses the permitted number of requests within a designated time frame, any additional
+    requests are declined with an HTTP 429 - Too Many Requests status. The specific limit is enforced based
+    on a chosen strategy, such as limiting requests per session, IP address, users, or tenant.
+    The primary objective is to maintain system availability for all users, especially during challenging
+    circumstances. This exemplifies the essence of resilience.
+    Additionally, the Rate Limiterpattern proves benefical for providing services to users based on their
+    subscription tiers.
+    For instance, distinct rate limits can be defined for basic, permium, and enterprise users.
+
+*12* Redis Rate Limiter in Gateway
+        	
+            //we need to start the redis database or redis container to use this
+
+        doc: https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestratelimiter-factory.html#page-title
+
+
+        redis-rate-limiter.replenishRate=int --> number token to be filled per second in the bucket.
+        redis-rate-limiter.burstCapacity --> number of max toker per second allowed in a bucket.(keep sum of all previous non used token)
+        redis-rate-limiter.requestedTokens --> number of token as cost of each request.
+
+        A steady rate is accomplished by setting the same value in replenishRate and burstCapacity.
+        Temporary bursts can be allowed by setting burstCapacity higher than replenishRate.
+        In this case, the rate limiter needs to be allowed some time between bursts (according to replenishRate),
+        as two consecutive bursts results in dropped requests (HTTP 429 - Too Many Requests).
+        The following listing configures a redis-rate-limiter:
+
+            Rate limits below 1 request/s are accomplished by setting replenishRate to the wanted number of requests,
+            requestedTokens to the timespan in seconds,
+            and burstCapacity to the product of replenishRate and requestedTokens.
+            For example, setting replenishRate=1, requestedTokens=60, and burstCapacity=60 results in
+            a limit of 1 request/min.
+
+        To implement this let's add the dependency in gatewayserver pom  file.
+                <!-- reactive redis requestReatLimiter -->
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+                </dependency>
+
+        KeyResolver --> the unique value to identify the user like username/ipaddress or anyother thing.
+
+                @Bean
+                public RedisRateLimiter redisRateLimiter(){
+                    return new RedisRateLimiter(1,1,1); //(ReplenishRate, BurstCapacity, RequestedTokens)
+                }
+
+                @Bean
+                KeyResolver userKeyResolver(){
+                    return exchange -> Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst("user"))
+                                            .defaultIfEmpty("anonymous"); //get header with name user from the request if header not present assign anonymous as user in KeyResolver.
+                }
+        Now we'll add a filter  like other filter (.addResponseHeader, .retyr). But this filter we'll apply for
+        cards . As for illustration we implemented circuitBreaker in accounts, retry in loans.
+
+    And since we are going to use the redis database/container we need add it's details as well
+     like url and port etc
+            spring:
+                data:
+                    redis:
+                        connect-timeout: 2s
+                        host: localhost
+                        port: 6379
+                        timeout: 1s
+
+    Below command we'll use to get and run the redis image and container
+        docker run -p 6379:6379 --name eazyredis -d redis
+
+    We can use the Apache benchmark server, to test the load or to send a lot requests within a single second and also to see
+    whats happening behind the scene
+    (not doing it as it'll used on for one time and installing this on windows is tideous task.)
+
+    to run the Apache benchmark server below command was used in mac
+        ab -n 10 -c 2 -v 3 http://localhost:8072/eazybank/cards/api/contact-info
+
+        ab --> Apache benchmark
+        -n 10 --> 10 requests
+        -c 2  --> concurrency as 2 --> means 2 concurrent request everytime
+        -v 3  --> verbose flag --> i want to see the detailed report in output
+        http://localhost:8072/eazybank/cards/api/contact-info --> endpoint which we want to envoke
+
+    After running the command we'll get detailed report in command prompt itself.
