@@ -1,0 +1,452 @@
+*1* Update in GatewayServer
+    First we'll work on GatewayServer.
+
+    Lets update the the pom for circuit breaker dependency.
+
+    copy the eureka client past it and update as below.
+
+    Note we are adding reactor-resilience4j as the GatewayServer is build on spring reactive model,
+    hence we need to make usre we are mentioning the artifact id as spring-cloud-starter-circuitbreaker-reactor-resilience4j
+
+    now like we added rewrite and addresponsefilter, similiarly we'll add one more filter which is for
+    circuitBreaker.
+            .circuitBreaker(config -> config.setName("accountsCircuitBreaker")) //the name accountsCircuitBreakfer is given by us and can be anything.
+                    It is to identify for which api this circuitBreaker is.
+
+    Now since we have circuitBreaker, we need to set some property related to it as well which we'll do in
+    application.yml of GatewayServer
+
+            resilience4j.circuitbreaker:
+                configs:
+                    default: #default means these properties for all circuit breaker inside the gatewayServer MS. If we want to set properties for any particular circuit breaker we can metion the name which we give in GatewayserverApplication.java in place of default.
+                        slidingWindowSize: 10 #Monitor atleast 10 request before moving to open from close
+                        permittedNumberOfCallsInHalfOpenState: 2 #max 2 calls allowed in HalfOpen State. Take decision to go back to open or close status based  on these 2 request beahivour
+                        failureRateThreshold: 50 # if alteast 50% of request failed the circuit breaker can move from open status to close status.
+                        waitDurationInOpenState: 10000 #10000milisec-->10s wait for 10s in open state then only move to Half_Open state
+
+*2* Testing GatewayServer circuitBreaker
+        After staring the MS and gatewayServer we can check eureka server if the MS and gatewayserver able
+        to register themselve or not. http://localhost:8070
+
+        Then we goto gatewayServer actuator to see all actuator end point.
+            http://localhost:8072/actuator/
+        in this page we'll able to find lot of circuitBreaker urls, we can go one of them, and see
+        like        http://localhost:8072/actuator/circuitbreakers
+            currently this page should not show any info as we have not triggred the accounts api endpoint.
+            and note we have configured the circuitBreaker for only accounts endpoint.
+
+        Now to test it we can trigger the accounts api endpoint. And then refresh the circuitBreaker page
+        it should show some info like circuitbreaker name which we have given and in what state the circuitbreaker is and other info.
+
+        similiarly if we goto http://localhost:8072/actuator/circuitbreakerevents?name=accountsCircuitBreaker
+        it will show all event happend till now. like request success or not time taken, when this event occured etc.
+
+*3* Adding Fallback
+
+    When issue is occuring we are througing runtime error response like service unavalaiable or gateway 
+    timeout exception.
+    In real business application throwing RuntimeExceptions to the client applications or to the UI
+    applications is not a valid approach.
+    So we'll add some fallback mechanism and inside this fallback mechanism we can write some logic
+    where we can send some message to the client applications, which is going to make sense for them
+    to create a fallback mechanism for circuit breaker pattern.
+
+    we'll create a controller in gatewayServer MS with name FallbackController.java
+    Inside this controller we created a rest endpoint /contactSupport which we want to trigger as fallback
+    
+    To call this against accountsCircuitBreaker we can add one more setup after .setName with .setFallbackUri()
+    and pass the api link to it.
+
+
+*4*  Now we'll implement the circuitBreaker in accounts MS using Feign Client.
+    official do link: https://docs.spring.io/spring-cloud-openfeign/reference/spring-cloud-openfeign.html#spring-cloud-feign-circuitbreaker
+
+    Now lets add the circuitbreaker dependency in accounts MS pom.
+    This time we'll add non-reactive or normal circuitbreaker dependency as our MS are built on
+    normal type/non-reactive.
+
+
+		<!-- circuit breaker normal type / non-reactive -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+		</dependency>
+
+    Now we'll add below config in application.yml as per the spring cloud doc as we already have openfeign
+        spring.cloud.openfeign.circuitbreaker.enabled=true
+
+    Now after adding above we need to mention other properties like timeout, number of requests in application.yml
+
+    After adding all of above the circuitbreaker is active in our accounts MS as metioned in spring doc.
+            If Spring Cloud CircuitBreaker is on the classpath and spring.cloud.openfeign.circuitbreaker.enabled=true,
+            Feign will wrap all methods with a circuit breaker.
+
+    Now we need to add fallback mechanism as well in the circuitbreaker of accounts MS
+        doc: https://docs.spring.io/spring-cloud-openfeign/reference/spring-cloud-openfeign.html#spring-cloud-feign-circuitbreaker-fallback
+
+        As per the docs, we need to implement the feignclient interface using a class.
+        that class will overwirte the methods present in the feignclient as fallback.
+        we would add annotation to the interface and let circuitbreaker know that this class is fallback
+        method if something goes wrong.
+
+        So in accounts MS, inside service/client we'll define a class with name LoanFallback And
+        CardsFallback and both class will implement the interface LoansFeignClient and CardsFeignClient
+        respectively as fallback.
+
+        We have written methods to return null in case of loans of cards MS is not working as feign
+        instead of returning runtime error if one of MS is not working.
+
+        now let's update the interfaces annotation for fallback like below
+            Before: @FeignClient("loans")
+            Now:  @FeignClient(name = "loans", fallback = LoansFallback.class)
+            similiarly we'll do for cards 
+
+        Now since we are returning null from cards and loans feignclient means we need handled the null as
+        well if we are reciving the object and trying to fetch the value from it.
+        And we are reciving these value in our CustomersServiceImpl.java to set to dto.
+        So we need to update there as well.
+
+    So till now what we have done is that if loans or cards MS is not working and client made
+    request to fetchCustomerDetails which is in accounts MS and also pull details form loans and cards MS
+    then instead of returning RuntimeExceptions we'll return null using circuitbreaker fallback mechanism.
+
+
+
+*5* limt the wait time
+    currently for all MS where circuitbreaker is not implemented(loans & cards), if we made any request to that MS then
+    client will wait for the response it does not matter how much time it takes.
+    Means if there is slow response from any MS for any reason we would have an open thread which will
+    be occupied just waiting for the response.
+    Idealy in MS if after sometime any request should timeout if response is taking a lot of time.
+    We have seen that in gatewayserver we have implemented the circuitbreaker, so in case of accounts MS
+    if the requests take more than 1sec the circuitbreaker in gatewayserver will kill the request and
+    will fallback to fallback mechanism which we configured. 
+    Because by default the circuitbreakers are configured to wait for 1sec on any request for response.
+
+    But we may not be using the circuitbreaker throughout our MSs. So to handle these problem in other
+    places like loans and cards MS, where we are not using the circuitbreaker pattern, we need to 
+    configure that timeout configuration so that the gateway server or any other MS, ther are not 
+    going to wait for the response for a long time.
+
+    doc for timeout: https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/http-timeouts-configuration.html
+
+        So we need to add the configs in application.yml as per the doc.
+            connect-timeout --> in miliSec this is the which takes to makes connection to a MS
+                        For example the gatewayserver made request to loan MS but to reach the loan MS
+                        or we can say that to establish the connection between gatewayserver and loan MS
+                        is time we are considering here.
+            response-timeout --> as name sussgest max wait time for response
+
+        so add below in application.yml
+                spring:
+                    cloud:
+                        gateway:
+                        httpclient:
+                            connect-timeout: 1000
+                            response-timeout: 5s
+
+    So this timout which we added is global means whatever request will flow thorugh the gatewayserver
+    this timout will be applicable except if we have circuitbreaker configured for any particular
+    request.
+    Means if there are both circuitbreaker and defaulttime like above then circuitbreaker config will have
+    have higher precedence.
+
+    In doc if we see we can define the timeout like above for each route/api request using yml or java
+    And also if we notice in same section of doc there metion about -1 timeout.
+    This timeout is for that if we want that for any particular api should not be bound by gloabl timeout
+    which we configured then we'll can mention timeout as -1 this will exempt that api from global
+    timeout means for that request gatewayserver will wait untill we kill the request manually or 
+    we have dedicatly configured a timeout for that api link.
+
+
+*6* Retry pattern
+    The retry pattern wil make configured multiple retry attempts when a service has temporarily failed.
+    This pattern is very helpful in the scenarios like network disruption where the client request may
+    successful after a retry attempt.
+
+    The key components and considerations of implementing the Retry pattern in microservices:
+
+        Retry Logic: Determine when and how many times to retry an operation. This can be based on factors
+                        such as error codes, exceptions or response status.
+
+        Backoff Strategy: Define a Strategy for delaying retries to avoid overwhelming the system or
+                            exacerbatling the underlying issue(like fixed interval is not good). This
+                            strategy can involve gradually increasing the delay between each retry, known
+                            as exponential backoff.
+
+        Circuit Breaker Integration: Consider combining the Retry pattern with the Circuit Breaker pattern.
+                            If a certain number of retries fail consecutively, the circuit can be opened to
+                            prevent further attempts and preserve system resources.
+
+        Idempotent Operations: Ensure that the retried operation is idempotent, meaning it produces the same
+                                result regardless of how many times it is invoked. This prevents unintended
+                                side effects or duplicate operations.
+
+*7* Implementation of Retry logic at gatewayserver level
+    Since in gatewayserver for accounts request we already have circuitbreaker. lets implement
+    the retry logic for other endpoint loans.
+        So we are going add a retry filter in GatewayserverApplication.java like added the other filter.
+        We have many retry filter, in one of them we can simply pass the integer value which is number of
+        retry but we want to implement other configuration as well so we'll go with other retry which is
+        retryConfig.
+            .setBackoff(Duration.ofMillis(100), Duration.ofMillis(1000), 2, true) //.setBackoff(firstBackof value--> wait for 100milisec before initiate 1st retry, maxbackoff -> wait max 1000 milisec, factor to apply on previous backoff value, false --> apply factor on inital backoff  true--> apply factor on previous backoff value)
+
+    Now we'll go to loans controller in loans MS and add a Debuglogger statement in contact-info api end point
+
+*8* Implementation of Retry logic at MS endpoint level.
+    doc: https://resilience4j.readme.io/docs/getting-started-3
+    We'll implement the retry logic to /build-info at accounts MS.
+
+        So we need to add annotation @Retry above the method like below
+            @Retry(name = "name that we want to give for this particular retry configuration", fallbackMethod = "method name of the fallback need to defined the fallback logic")
+
+            now the fallbackMethod method-signature should be same as the method where we are implementing the retry annotation
+            also note in fallbackMethod there is a fixed paramerter Throwable throwable we need to keep along with the parameters
+            in original method if theres any.
+
+        Adding logger as well to check if method got executed.
+
+
+    
+So as we seen in MS that we implemented the fallback mechanism in case of configured number of retry failed.
+But we cannot implement the fallback mechanism in gateway for retry mechanism like we did in MS.
+
+Also in MS level all request counted in retry count.
+    Mean if retry = 3  means total call including the 1st call by count will be counted here in that 3
+                        means 1 client call and 2 retry total 3 calls
+where as in gateway server the number of retry call is extra with client call
+    menas if rerty=3  then 1 client call + 3 retry call = total 4 calls.
+
+Also if circuitbreaker timeout time configured less in gatewayserver compaired to watiduration of retry in MS
+then circuitbreaker will come in effect as it'll see that configured time as ended and it did not got any response
+from MS so it'll kill the request and fallback to fallback mechanism of circuitbreaker which we have configured
+in gatewayserver.
+
+So to solve this either we can decrease the waitduration of retry logic in MS or increase the timeout of
+circuitbreaker in gatewayserver.
+
+Now lets see the how we can change the default timeout which is 1sec in gatewayserver for circuitbreaker.
+
+
+*9* limit the retry attempt based upon the error.
+    For example in 1st request we got NullPointerException then if we retry again we'll get the NullPointerException
+    again as null value means there is no data present and in this case making retry does not make sense.
+
+    And also we can get requirements that based on this error you should not attempt retry.
+
+    To do that we added one more config where we added the retry config which is ignoreException.
+    Which tell to retry logic you should not attempt retry in case of these exceptions. and directly
+    go for fallback mechanism of retry.
+
+
+    And we can also get requirment to attempt retry only for a set of exceptions
+    and we can do that using retryExeption in config like we have ignoreException for above case
+        and in retryException we can pass the set of exception for which only we want our retry
+        to exceute else fallback should occur.
+
+    Note: for both cases ignoreException or retryExeption ultimately will give same result.
+            So we need to use only one of them no need to used both them.
+
+    if we want to achieve same in gatewayserver then we can go to GatewayserverApplication.java
+    and after .setRetries() we can add .setExceptions and we can add the list of exceptions for which
+    the retry attempt will happen at gatewayserver level. there is no ignoreException in case of gateweayserver
+
+
+*10* Bug in GatewayServer
+        If we see the response in postman, and goto response header.
+        then we can notice that the eazyback-correltaion-id appread multiple time in response header.
+        actrually it apperade same number of time as number of retry attempt happend.
+
+        It means when we are adding the correlation-id in response header at gatewayServer we are simply adding
+        it when we are getting the response does not matter its retry attempt or 1st run also neither we are
+        checking that is the correlation id already present before adding it.
+        Previously it was fine as we were doing only one request for each client request but now since internally
+        we are doing retries the correlation-id is being added again and again.
+
+        So we can implement some check before adding the correlation-id in response in ResponseTraceFilter.java
+
+
+*11* Rate LIMITTER PATTERN
+
+    The Rate Limiter pattern in MS is a design pattern that helps control and limit the rate of incoming requests
+    to a service or API. It is used to prevent abuse, protect system resources, and ensure fair usage of the service.
+
+    In a microservices architecture, multiple services may depend on each other and make requests to communicate.
+    However, unrestricted and uncontrolled requests can lead to performance degradation, resource exhaustion and
+    potential denial-of-service(DoS) attacks. The Rate Limiter pattern provides a mechanism to enforce limits on
+    the rate of incoming requests.
+
+    Implementing the Rate Limiter Pattern helps protect miscroservices from being overwhelmed by excessive or
+    malicious requests.
+
+    When a user surpasses the permitted number of requests within a designated time frame, any additional
+    requests are declined with an HTTP 429 - Too Many Requests status. The specific limit is enforced based
+    on a chosen strategy, such as limiting requests per session, IP address, users, or tenant.
+    The primary objective is to maintain system availability for all users, especially during challenging
+    circumstances. This exemplifies the essence of resilience.
+    Additionally, the Rate Limiterpattern proves benefical for providing services to users based on their
+    subscription tiers.
+    For instance, distinct rate limits can be defined for basic, permium, and enterprise users.
+
+*12* Redis Rate Limiter in Gateway
+        	
+            //we need to start the redis database or redis container to use this
+
+        doc: https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestratelimiter-factory.html#page-title
+
+
+        redis-rate-limiter.replenishRate=int --> number token to be filled per second in the bucket.
+        redis-rate-limiter.burstCapacity --> number of max toker per second allowed in a bucket.(keep sum of all previous non used token)
+        redis-rate-limiter.requestedTokens --> number of token as cost of each request.
+
+        A steady rate is accomplished by setting the same value in replenishRate and burstCapacity.
+        Temporary bursts can be allowed by setting burstCapacity higher than replenishRate.
+        In this case, the rate limiter needs to be allowed some time between bursts (according to replenishRate),
+        as two consecutive bursts results in dropped requests (HTTP 429 - Too Many Requests).
+        The following listing configures a redis-rate-limiter:
+
+            Rate limits below 1 request/s are accomplished by setting replenishRate to the wanted number of requests,
+            requestedTokens to the timespan in seconds,
+            and burstCapacity to the product of replenishRate and requestedTokens.
+            For example, setting replenishRate=1, requestedTokens=60, and burstCapacity=60 results in
+            a limit of 1 request/min.
+
+        To implement this let's add the dependency in gatewayserver pom  file.
+                <!-- reactive redis requestReatLimiter -->
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+                </dependency>
+
+        KeyResolver --> the unique value to identify the user like username/ipaddress or anyother thing.
+
+                @Bean
+                public RedisRateLimiter redisRateLimiter(){
+                    return new RedisRateLimiter(1,1,1); //(ReplenishRate, BurstCapacity, RequestedTokens)
+                }
+
+                @Bean
+                KeyResolver userKeyResolver(){
+                    return exchange -> Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst("user"))
+                                            .defaultIfEmpty("anonymous"); //get header with name user from the request if header not present assign anonymous as user in KeyResolver.
+                }
+        Now we'll add a filter  like other filter (.addResponseHeader, .retyr). But this filter we'll apply for
+        cards . As for illustration we implemented circuitBreaker in accounts, retry in loans.
+
+    And since we are going to use the redis database/container we need add it's details as well
+     like url and port etc
+            spring:
+                data:
+                    redis:
+                        connect-timeout: 2s
+                        host: localhost
+                        port: 6379
+                        timeout: 1s
+
+    Below command we'll use to get and run the redis image and container
+        docker run -p 6379:6379 --name eazyredis -d redis
+
+    We can use the Apache benchmark server, to test the load or to send a lot requests within a single second and also to see
+    whats happening behind the scene
+    (not doing it as it'll used on for one time and installing this on windows is tideous task.)
+
+    to run the Apache benchmark server below command was used in mac
+        ab -n 10 -c 2 -v 3 http://localhost:8072/eazybank/cards/api/contact-info
+
+        ab --> Apache benchmark
+        -n 10 --> 10 requests
+        -c 2  --> concurrency as 2 --> means 2 concurrent request everytime
+        -v 3  --> verbose flag --> i want to see the detailed report in output
+        http://localhost:8072/eazybank/cards/api/contact-info --> endpoint which we want to envoke
+
+    After running the command we'll get detailed report in command prompt itself.
+
+*13* Rate Limiter in accounts MS
+        Now we are going to implement the rate limiter in accounts MS at getJavaVersion method or /java-version
+        rest endpoint.
+            added annotation above that method     @RateLimiter(name = "getJavaVersion") without fallback
+            and will add the config of RateLimiter in application.yml oa accounts MS.
+
+                resilience4j.ratelimiter:
+                    configs:
+                        default: # for all reatelimiter in accounts MS. we can user ratelimiter name as well for explitcitly metion the limits
+                            timeoutDuration: 1000 #1000milisec --> timilimt to wait for new quota if current quota is exhausted. means for each max wait is 1 sec for new quota, if the current quota is exhausted
+                            limitRefreshPeriod: 5000 #5000milisec --> renew the quota in every 5 sec
+                            limitForPeriod: 1  #only 1 request is allowed in one quota. means as per our quota 1 request per 5 sec
+
+            if we see that in gatewayserver we implemented the rate as per the user or ip address also config was differen
+            but in case MS the config is different because the limit is for all request to that api not for a user.
+
+            This type of config we can use in scenarios where we might have a infrastructure that can only handle 10,000
+            requests for each second. so beyound 10,000 requests we don't want to accept, then in such scenarios, this
+            approach is going to be super helpful.
+            Or we may also have different requirements where we want a particular low priority API to process less
+            number of requests so that other high priority APIs they can process without any issues.
+            All suc kind of custom requirements you can achieve with this pattern.
+
+            Note: In this approach we don't need any redis container becuase if you notice we did not updated the pom
+                in case of accounts MS. we have used resilience4j for the rate limiter.
+
+            Now let's add fallbackMethod for ratelimiter.
+                And same thing like other fallback, fallback back method signature should be same as original method for which fallback method is being written
+                and also it should include the throwable paramerter along with the other paramerter of the original method
+
+*14* BULKHEAD PATTERN
+        The Bulkhead pattern in software architecture is a design pattern that aims to improve the resilience and
+        isolation of components or services within a system. It draws imspiration from the concept of bulkheads in
+        ships, which are physical partitions that prevent the flooding of one compartment from affecting others,
+        enhancing the overall stability and safety of the vessel.
+
+        In the context of software systems, the Bulkhead pattern is used to isolate and limit the impact of failures or high
+        loads in one component from spreading to other components. It helps ensure that a failaure or heavy load in one
+        part of the system does not bring down the entire system, enabling other components to continue functioning
+        independently.
+
+        Bulkhead pattern helps us to allocate limit the resources which can be used for specific services.
+        So that resource exhaustion can be educed.
+
+        The Bhulkhead pattern is particularly useful in systems that require high availability, fault tolerance,
+        and isolation between components. By compartmentalizing components and enforcing resource boundaries,
+        the Bulkhead pattern enhances the reilience and stability of the system, ensuring that failures or heavey
+        loads in one area do not bring down the entire system.
+
+        For example:
+            we have two api endpoing /myAccount and /myCustomerDetails in accounts MS.
+            And the /myAccount is doing some limited work and not depended on any other service or MS.
+            where as the /myCustomerDetails endpoint is dependent on some ther MS and services.
+
+            Without bulkheads or in general case the /myCustomerDetails will consume more thread and resource compared to /myAccount
+            so if few more request come to /myCustomerDetails there is chance that there'll be no resource available
+            for /myAccount which also consume less resource.
+
+            With Bulkhead we 'll assign minimum resource to each endpoint like sepration we do with docker containers
+            and even if /myCustomerDetails is going to consume more resource at least assigned resource will be
+            available to /myAccount endpoint to process the request it have.
+
+        Note: Inside the spring cloud gateway we don't have bulkhead support as of now
+            we can only use resilience4j to use the bulkhead.
+             we can go to resilience4j doc link https://resilience4j.readme.io/docs/getting-started-3
+             and look for annotation realted to Bulkhead and we see the way we can implement the bulkhead in the MS.
+
+    We are not implement ing these inside our MS and insturctor also did not showed as to demo these pattern
+    we need some commerical tools or some performance tools like Loadrunner or Jmeter, here we can see the
+    thread usage and that is also complicated process.
+
+*15* precedence order of all library inside resilience4j
+        if go to same link of resilience4j https://resilience4j.readme.io/docs/getting-started-3
+        and go to section Aspect Order then we'll able to see
+        the default precedence order of it's library which is as of now is that
+            Retry ( CircuitBreaker ( RateLimiter ( TimeLimiter ( Bulkhead ( Function ) ) ) ) )
+
+        if for some reason we want to change the order we follow doc to change the order as given in doc
+        the higher number means higher priority to that library.
+
+*16* Updating the docker compose file
+        Added redis service in dcoker-compose.yml
+        and then in gatewayserver service in docker-compose file under the depends_on
+        we added the redis dependency as well. as we want redis to active and healthy when we run the gatewayServer
+        then also in the enviroment varaible of gatewayserver we added the details of redis as well.
+        
+        
+        also updated the tag to s10 for all MS
+
