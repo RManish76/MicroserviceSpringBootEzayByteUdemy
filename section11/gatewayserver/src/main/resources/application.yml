@@ -15,7 +15,7 @@ spring:
               lowerCaseServiceId: true
       httpclient:
         connect-timeout: 1000
-        response-timeout: 10s #wait time for response else timeout and fallback for fallback mechanisim
+        response-timeout: 10s #wait time for response else timeout and fallback for fallback mechanisim. Increased as we are going to deploy more containers in local
   data:
     redis:
       connect-timeout: 2s

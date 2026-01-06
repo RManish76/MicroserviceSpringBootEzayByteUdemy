@@ -1,0 +1,17 @@
+Now if we go to doc link https://grafana.com/docs/loki/latest/get-started/quick-start/quick-start/
+and see there are instruction related to docker compose. which we need to configure to used the
+grafana.
+
+Now we already have docker-compose, so we would not implement it as it is we are going to make some
+change and implement the grafana.
+
+*1* Grafana Docker compose
+    1st let's create a folder with name observability in folder docker-compose.
+    then inside the observability we'll create folder loki where we'll store loki confguration.
+    similary for Alloy also.
+
+    The the next step is to update our docker-compose file. we'll make changes in prod profile.
+    1st we commented the redis service to free up the resources for upcoming containers.
+    now from grafana docker compose we'll copy all except the network, service tag and flog.
+    as service tag we already have, network also we have eazybytes and we are not going 
+    to use flog as we have our own MS, and paste it in the our docker compose file.
