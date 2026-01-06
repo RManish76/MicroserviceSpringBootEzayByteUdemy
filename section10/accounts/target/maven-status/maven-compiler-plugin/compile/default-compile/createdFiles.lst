@@ -5,6 +5,7 @@ com\eazybytes\accounts\service\ICustomersService.class
 com\eazybytes\accounts\controller\AccountsController.class
 com\eazybytes\accounts\dto\ResponseDto.class
 com\eazybytes\accounts\controller\CustomerController.class
+com\eazybytes\accounts\service\client\CardsFallback.class
 com\eazybytes\accounts\service\client\CardsFeignClient.class
 com\eazybytes\accounts\service\impl\AccountsServiceImpl.class
 com\eazybytes\accounts\dto\AccountsContactInfoDto.class
@@ -12,6 +13,7 @@ com\eazybytes\accounts\entity\Customer.class
 com\eazybytes\accounts\service\impl\CustomersServiceImpl.class
 com\eazybytes\accounts\dto\ErrorResponseDto.class
 com\eazybytes\accounts\exception\GlobalExceptionHandler.class
+com\eazybytes\accounts\service\client\LoansFallback.class
 com\eazybytes\accounts\mapper\CustomerMapper.class
 com\eazybytes\accounts\dto\CustomerDto.class
 com\eazybytes\accounts\dto\LoansDto.class

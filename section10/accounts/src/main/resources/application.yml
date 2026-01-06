@@ -108,9 +108,9 @@ resilience4j.retry:
       enableExponentialBackoff: true 
       exponentialBackoffMultiplier: 2
       ignoreExceptions: #if below exception occurs then directly go for fallback no need of retry.
-        -java.lang.NullPointerException
+        - "java.lang.NullPointerException"
       retryExceptions: #execute retry only for below exceptions else go for fallback no need of retry.
-        -java.util.concurrent.TimeoutException
+        - "java.util.concurrent.TimeoutException"
 
 
 # //     In this approach we don't need any redis container for rateLimiter becuase if you notice we did not updated the pom in case of accounts MS.

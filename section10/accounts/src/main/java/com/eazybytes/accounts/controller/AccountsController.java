@@ -263,7 +263,7 @@ public class AccountsController {
                 .body(response);
     }
 
-    public ResponseEntity<String> getJavaVersionFallback(){
+    public ResponseEntity<String> getJavaVersionFallback(Throwable throwable){
         // String response = environment.getProperty("JAVA_HOME")+"\n"+environment.getProperty("MAVEN_HOME");
         return ResponseEntity
                 .status(HttpStatus.OK)
