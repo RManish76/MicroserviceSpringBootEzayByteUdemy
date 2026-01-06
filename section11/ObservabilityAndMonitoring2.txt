@@ -15,3 +15,21 @@ change and implement the grafana.
     now from grafana docker compose we'll copy all except the network, service tag and flog.
     as service tag we already have, network also we have eazybytes and we are not going 
     to use flog as we have our own MS, and paste it in the our docker compose file.
+
+    Updated docker-composer in prod profile for our system.
+
+    Building image for s11.
+
+    After that we ran all containers using docker-compose file from prod profile.
+
+    The we created an account & customer details, loan and card details as well using gatewayserver.
+    then we fetch all details related to that customer using mobile number via gatewayserver.
+
+    Now we can goto http://localhost:3000  --> this is the site for grafana dashboard.
+    Here we can see the logs releadted to all containers in one place, we just need to select the
+    container name from the dropdown. we even have serach and other filter which we can do in the logs.
+       In exlore section we need select the tag as container then all containers will show.
+       as you see the Alloy config at bottom we made target labale as container and source labale as container name
+
+    Till now everything worked
+    
