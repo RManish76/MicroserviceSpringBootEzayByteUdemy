@@ -102,3 +102,19 @@ change and implement the grafana.
 
       Then also adding the config in application.yml in all 6 MS related to metrics
          management.metrics.tags.application = ${spring.application.name}
+
+
+      now we can goto 
+         http://localhost:port/actuator/metrics   to see the list of services for the metrics, like cpu usage, up time etc.
+         http://localhost:port/actuator/metrics/service-name    to see the service details.
+
+         http://localhost:port/actuator/prometheus     to the metric infor given by actuator and converted in format which prometheus can understand.
+                                                         of course conversion done by the micrometer dependency.
+                                                      So the prometheus is going to invoke the same path in every 5sec or 10sec based on the confguration
+                                                      inside the prometheus for all instances
+
+   Like we added some docker config file for grafana loki. similary we have to do for the prometheus as well.
+      So again in docker-compose/observability/prometheus/prometheus.yml we'll creat the file.
+      Then copy pasted the file from github repo of instructor. if needed will edit it as per the lecture.
+
+   Now after that we need to update our docker-compose.yml for prometheus service as well. will do it in prod profile.
