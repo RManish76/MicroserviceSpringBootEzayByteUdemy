@@ -33,3 +33,57 @@ change and implement the grafana.
 
     Till now everything worked
     
+    We we ran all MS and grafana, the minio which stores the data of Loki, it'll create a .data folder
+    where docker-compose.yml to store the data.
+
+*2* Metrics
+   Using logs alone we can not monitor our applications. Because with the help of events, logs we can only
+   try to understand what happened under a specific scenario or under a specific method.
+   With the help of the logs, we can't understand what is the overall health of my accounts microservice
+   or any other microservice.
+
+   So to properly monitor the MS, we need to understand metrics details like what is the CPU usage, what
+   is the memory usage, what is the headp dump usage, what are the threads connections errors.
+   So that's why we need to make usre we are aslo collecting the metrics and using the sasme metrics.
+   We need to build the dashboards so that operation team, they can always monitor our MS.
+
+   Metrics are numerical measurements of an application's performance, collected and aggregated at regular
+   intervals. They can be used to montior the application's health and performance, and to set alerts or
+   notifications when thresholds are exceeded.
+      We will use springBoot Actuator, Micrometer, Prometheus & Grafana to acheive the metrics.
+
+      1. Actuator - Actuator is aminly used to expose operational information about running application
+                     health, metrics, info, dump, env, etc. It uses HTTP endpoints or JMX beans to enable
+                     us to interact with it.
+                     We can goto path /actuator/metrics and we will be see many metrics that can help you
+                     to monitor the MS instance.
+                     Mannually going to each path and checking the health status is not feasible.
+
+                     So we need something which can aggregate all the metric details for us.
+                     Now we component already inside the open-source. The component is Prometheus
+                     But it cannot understand the actuator responses because it's in JSON.
+
+                     So we would another component in middle which can convert the actuator JSON into
+                     which Prometheus can under. And that component is MicroMeter.
+
+      2. MICROMETER - Micrometer automatically exposes /actuator/metrics data into something our monitoring
+                     system can understand. All we need to do is include that vendor-specific micrometer
+                     dependency in our application. Think SLF4J, but for metrics.
+                        SLF4J --> helps to implement multiple logging framework with very less effort.
+                           it is a facade.
+
+                     weblink: https://micrometer.io/
+
+      3. Prometheus - The most common format for exporting metrics is the one used by Prometheus, which is
+                        "an open source systems monitoring and alerting toolkit". Just as Loki aggregates
+                        and stores event logs, Prometheus does the same with metrics.
+
+                        weblink: https://prometheus.io/
+
+      4. Grafana -   Grafana is a visualization tool that can be used to create dashboards and charts from
+                     Prometheus data.
+                     Why we need Grafana again, because Prometheus has certain limitations.
+                     We cannot build very complex dashboards and we cannot create alerts and notifications
+                     with the Prometheus alone.
+                     When we integrate Prometheus with Grafana, we can build a lot of dashboards and apart from
+                     dashboards we can also create alerts and notifications.
