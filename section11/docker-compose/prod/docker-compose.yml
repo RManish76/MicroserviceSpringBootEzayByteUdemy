@@ -22,7 +22,7 @@ services:
       - 7946
       - 9095
     volumes:
-      - E:\01_SpringBootEzaybytesUdemy\section11\docker-compose\observability\loki\loki-config.yaml:/etc/loki/config.yaml
+      - ../observability/loki/loki-config.yaml:/etc/loki/config.yaml
     depends_on:
       - minio
     healthcheck:
@@ -43,7 +43,7 @@ services:
       - 7946
       - 9095
     volumes:
-      - E:\01_SpringBootEzaybytesUdemy\section11\docker-compose\observability\loki\loki-config.yaml:/etc/loki/config.yaml  #updated the lokiconfig file location in local after: it where docker need to put the file in container
+      - ../observability/loki/loki-config.yaml:/etc/loki/config.yaml  #updated the lokiconfig file location in local after: it where docker need to put the file in container
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
       interval: 10s
@@ -57,7 +57,7 @@ services:
   alloy:
     image: grafana/alloy:latest
     volumes:
-      - E:\01_SpringBootEzaybytesUdemy\section11\docker-compose\observability\alloy\alloy-local-config.yaml:/etc/alloy/config.alloy:ro #updated the alloyConfig location after: is loaction where it need to copy and paste the file in container and :ro --> means read only, so no updated shoule happen at the file at anytime
+      - ../observability/alloy/alloy-local-config.yaml:/etc/alloy/config.alloy:ro #updated the alloyConfig location after: is loaction where it need to copy and paste the file in container and :ro --> means read only, so no updated shoule happen at the file at anytime
       - /var/run/docker.sock:/var/run/docker.sock
     command:  run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     ports:
@@ -135,7 +135,7 @@ services:
   backend:
     image: grafana/loki:latest
     volumes:
-      - E:\01_SpringBootEzaybytesUdemy\section11\docker-compose\observability\loki\loki-config.yaml:/etc/loki/config.yaml
+      - ../observability/loki/loki-config.yaml:/etc/loki/config.yaml
     ports:
       - "3100"
       - "7946"

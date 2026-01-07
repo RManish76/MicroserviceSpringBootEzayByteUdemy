@@ -118,3 +118,9 @@ change and implement the grafana.
       Then copy pasted the file from github repo of instructor. if needed will edit it as per the lecture.
 
    Now after that we need to update our docker-compose.yml for prometheus service as well. will do it in prod profile.
+
+   After doing this we need link the prometheus with grafana. we have already for like there
+   if we see the entrypoint in grafana we can the location details of datasource/ds.yml also details of loki.
+   Similarly we have to do it for grafana.
+   Now adding it directly to docker-compose will make file lenthey.
+   So will create a folder docker-compose/observability/grafana/datasource.yml
