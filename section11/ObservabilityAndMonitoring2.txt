@@ -87,3 +87,18 @@ change and implement the grafana.
                      with the Prometheus alone.
                      When we integrate Prometheus with Grafana, we can build a lot of dashboards and apart from
                      dashboards we can also create alerts and notifications.
+
+
+      To implement all of these we need to add dependency realted to micrometer and prometheus in our project.
+
+         <!-- Micrometer dependency, which converts actuator-metric-json
+         to something which prometheus can consueme and expose the converted data for prometheus. -->
+         <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+         </dependency>
+
+      Updating this dependency in all 6 MS
+
+      Then also adding the config in application.yml in all 6 MS related to metrics
+         management.metrics.tags.application = ${spring.application.name}

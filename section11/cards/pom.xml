@@ -107,6 +107,20 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
+
+		<!-- Micrometer dependency, which converts actuator-metric-json
+		 to something which prometheus can consueme and expose the converted data for prometheus. -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+
+		<!-- Micrometer dependency, which converts actuator-metric-json
+		 to something which prometheus can consueme and expose the converted data for prometheus. -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
     </dependencies>
 
 <!-- Since we added config client/statret below depencyManagement is needed -->

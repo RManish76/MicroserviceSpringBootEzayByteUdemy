@@ -20,3 +20,7 @@ management:
     health:
       probes:
         enabled: true #enabled to check readiness and liveness through rest endpoints
+
+  metrics:  #for metics monitoring for micrometer, grafana, prometheus. we are telling to group all the metrics related to this application under the application name. for example group all metrics related to accoutns MS under the application name accounts.
+    tags:
+      application: ${spring.application.name}

@@ -43,6 +43,10 @@ management:
     env:
       enabled: true
 
+  metrics:  #for metics monitoring for micrometer, grafana, prometheus. we are telling to group all the metrics related to this application under the application name. for example group all metrics related to accoutns MS under the application name accounts.
+    tags:
+      application: ${spring.application.name}
+
 endpoints:
   shutdown:
     enabled: true # to expose actuator shutdown rest api endpoint
