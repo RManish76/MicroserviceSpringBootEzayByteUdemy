@@ -124,3 +124,18 @@ change and implement the grafana.
    Similarly we have to do it for grafana.
    Now adding it directly to docker-compose will make file lenthey.
    So will create a folder docker-compose/observability/grafana/datasource.yml
+
+   Since details about loki we are porviding in datasource.yml file in grafana folder.
+      we can remove the redunded config of loki from docker-compose and just add the loki refrence to
+      datasource.yml
+      and done via adding the volume detial below the line ports = "3000:3000"
+
+
+   Now generate the new image as we have updated the pom and config in application.yml 
+   then run the all docker images.
+      then goto http://localhost:9090/targets
+
+      we'll able to see all running instance or containers whic are being monitored by prometheus.
+      We can go in graph tab and search for cpu and choose(system cpu usage) the field for which we want to see the details.
+      it'll so the info in text(table), if want to see in graph the click on graph tabe and adjust the time
+      to see.
