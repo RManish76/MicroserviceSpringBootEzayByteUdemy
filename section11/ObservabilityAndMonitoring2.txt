@@ -168,3 +168,85 @@ change and implement the grafana.
       to recive the notifications as setting email require a lot of things.
 
       Also we set the alerts in a dahsboard as well in email.
+
+      
+      4>> Distributed Tracing In Microservice
+
+         Event logs, health probes and metrics offer a wealth of valuable information for deducing the
+         internal condition of an application.
+         Nevertheless, these sources fail to account for the distributed nature of cloud-native applications.
+         Given that a user request often traverses multiple applications, we currently lack the means to
+         effectively correlate data across application boundaries.
+
+         Distributed tracing --- is a technique used in microservices or cloud-native applications to understand
+         and analyze the flow of requests as they propagate across multiple services and components. It helps is
+         gaining insights into how requests are processed, identifying performance botttlenecks, and
+         diagnosing issues in complex, distributed system.
+         
+         >> One possible solution to address this issue is to implement a straightforward approach where a
+            unique identifier, known as a correlation ID, is generated for each request at the entry point of
+            the systems. This correlation ID can then be utilized in event logs and passed along to other relevant
+            services involved in processing the request. By leveraging this correlation ID, we can retrieve all log
+            messages associated with a specific transaction from multiple applications.
+
+         >> Distributed tracing encompasses three primary concepts:
+
+            Tags: Tags serve as metadata that offer supplementary details about the span context, including the
+                  request URI, the username of the authenticated user, or the identifier for a specific tanant.
+                  (like application name will tell the current log is from which application)
+
+            Trace ID: A trace denotes the collection of actions tied to a request or transaction,
+                        distinguished by a Trace ID. It consists of multiple spans that span across various
+                        services.
+                        (like we have correlation id, using this we can trace to all places where the request traveled)
+
+            Span ID:  A span represents each individual stage of request processing, encompassing start and end
+                        timestamps, and is uniquely identified by the combination of trace ID amd span ID.
+
+                        (span id uniques to each application which will tell that this request where travling
+                        inside a MS ).
+            So all three we will have in every request we recive along with the request from the MS.
+
+
+
+            For example: id can be like below and so below will look like for all MS as example
+                     [Tag,Trace ID, Span ID]
+
+                     gatewayserver MS - [gatewayserver, 29cdbe2e21bc, 259d5208]
+                     accounts MS      - [accounts, 29cdbe2e21bc, 61fd3a92]
+                     loans MS         - [loans, 29cdbe2e21bc, 9e5b7f81] - logger statement 1
+                                      - [loans, 29cdbe2e21bc, 9e5b7f81] - logger statement 2
+                     cards MS         - [cards, 29cdbe2e21bc, 8f4b7a76] - logger statement 1
+                                      - [cards, 29cdbe2e21bc, 8f4b7a76] - logger statement 2
+
+                           
+      5>> OpenTelemetry Intro.
+            (Deprecated/will not use)
+               Spring cloud sleuth -       https://spring.io/projects/spring-cloud-sleuth
+                  This is the project which is avaialable inside the spring cloud is going to help us to
+                  implement that distributed traceing.
+                  When we try to implement distributed tracing with the help of spring cloud sleuth.
+                  All logs that are going to generated inside the MS, they'll automatically have all the
+                  three components like metadata information, trace ID and the span ID.
+                  The developer don't have to make any changes inside the log statements.
+                  We just need to add the dependencies around the spring cloud sleuth.
+                  Once the logs are generated with the help of this sleuth, we can integrate spring with
+                  Zipkin. Both these components by working together they are going to help the developers
+                  to identify the tracing details of a request along with the performance bottlenecks.
+
+                  But we are not going to follow this approach inside this course.
+                  The reason we can see there is a note from the spring cloud sleuth team that this spring
+                  cloud sleuth last minor version is going to be 3.1 and post that they are not going make
+                  any changes inside this project because they're trying to move all the tracing related
+                  changes into a common project called micrometer tracing.
+
+                  But going through micrometer also https://micrometer.io/docs/tracing#_installing
+                  require a lot of setup so we'll not go thorugh this process as well.
+
+                  So we'll go with another approach which is OpenTelemetry.
+                     doc -  https://opentelemetry.io/docs/getting-started/dev/
+                     the micrometer is specily developed for the java where as OpenTelemetry support
+                     a lot of language.
+
+
+               
