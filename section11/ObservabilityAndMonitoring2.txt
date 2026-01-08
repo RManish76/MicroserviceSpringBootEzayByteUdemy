@@ -139,3 +139,32 @@ change and implement the grafana.
       We can go in graph tab and search for cpu and choose(system cpu usage) the field for which we want to see the details.
       it'll so the info in text(table), if want to see in graph the click on graph tabe and adjust the time
       to see.
+
+
+   now we can goto https://prometheus.io/docs/visualization/grafana/ where instruction to use grafana with
+   prometheus is writtern. At bottom of instruction we can find a link of prebuilt dashboards
+   we can go there https://grafana.com/grafana/dashboards/  or we can directly go to grafana dashboard as well.
+
+   Now scroll little down and search dashboard related to JVM there are others avaialable as well
+   but since we are working on java project we'll go with JVM dashboards. select a dashboard from the list.
+   We'll go with JVM (MicroMeter) dashboard https://grafana.com/grafana/dashboards/4701-jvm-micrometer/
+   now copy the url from the weblink and goto your local grafana page.
+   Since we are creating dashboard and want to use it again and again so Login in the local grafana using
+   username: admin, pass: admin  . it'll ask to change the password we'll skip it as of now.
+   Now from local grafana menu click on dashboards --> new --> import --> paste the dashboard url which copied --> load.
+      then select the datasource as prometheus --> import.
+   Now we should be able to see the new dashboard which is providing a lot of info.
+   We can change the time frame as per required to see the info.
+
+   So these dashboards are built by grafana team and opensource community.
+   
+   we can add another dasboard related to springBoot.
+
+   We can created our own dasboard as well. in local grafana go to new -> created dahsboard
+      i have gone with dashboard https://grafana.com/grafana/dashboards/23634-bu-mtvlab-springboot-observability/
+
+   We set alerts as well in grafana by going in alerts setting.
+      We have multiple option for alerts like email, slack etc. we'll use webhook and hoodeck platfrom
+      to recive the notifications as setting email require a lot of things.
+
+      Also we set the alerts in a dahsboard as well in email.

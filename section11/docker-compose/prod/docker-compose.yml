@@ -240,7 +240,7 @@ services:
   #     service: network-deploy-service
   
   configserver: #service name
-    image: "pdcourse/configserver:s11" 
+    image: "pdcourse/configserver:s11MicrometerPrometheus" 
     container_name: configserver-ms  
     ports:
       - "8071:8071"
@@ -255,7 +255,7 @@ services:
       service: microservice-base-config
 
   eurekaserver: #service name
-    image: "pdcourse/eurekaserver:s11" 
+    image: "pdcourse/eurekaserver:s11MicrometerPrometheus" 
     container_name: eurekaserver-ms  
     ports:
       - "8070:8070"
@@ -274,7 +274,7 @@ services:
   
 
   accounts:  #service name
-    image: "pdcourse/accounts:s11" 
+    image: "pdcourse/accounts:s11MicrometerPrometheus" 
     container_name: accounts-ms  
     ports:
       - "8080:8080"
@@ -294,7 +294,7 @@ services:
       service: microservice-eureka-config
   
   loans: #service name
-    image: "pdcourse/loans:s11"
+    image: "pdcourse/loans:s11MicrometerPrometheus"
     container_name: loans-ms
     ports:
       - "8090:8090"
@@ -311,7 +311,7 @@ services:
       service: microservice-eureka-config
   
   cards: #service name
-    image: "pdcourse/cards:s11"
+    image: "pdcourse/cards:s11MicrometerPrometheus"
     container_name: cards-ms
     ports:
       - "9000:9000"
@@ -346,7 +346,7 @@ services:
 
 
   gatewayserver: #service name
-    image: "pdcourse/gatewayserver:s11"
+    image: "pdcourse/gatewayserver:s11MicrometerPrometheus"
     container_name: gatewayserver-ms
     ports:
       - "8072:8072"

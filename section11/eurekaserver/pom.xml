@@ -82,7 +82,7 @@
 			<version>3.5.1</version>
 			<configuration>
 			<to>
-				<image>pdcourse/${project.artifactId}:s11</image>
+				<image>pdcourse/${project.artifactId}:s11MicrometerPrometheus</image>
 			</to>
 			</configuration>
 		</plugin>
