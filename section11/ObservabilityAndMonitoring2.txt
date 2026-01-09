@@ -301,4 +301,30 @@ change and implement the grafana.
                         action with the help of visuals. We can integrate Loki and Tempo as well, so that we can
                         jump to tracing details directly from logs inside Loki.
 
+      7>> docker container and docker-compose update
+            we'll add some environment variables under microservice-base-config in common-config.yml
+                  #related to opentelemetry and tempo
+                  environment:
+                     JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.22.0.jar"
+                     OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+                     OTEL_METRICS_EXPORTER: none
+                     OTEL_LOGS_EXPORTER: none
+
+            now adding a environment variable for all MS services 
+               OTEL_SERVICE_NAME: "configserver" #for opentelemetry      where name is same as spring_application_name
+
+            now we'll add one more dependency file in observability folder with name tempo which will
+            store the configuration related to tempo.
+
+            now inside the docker-compose file we'll create new service related to tempo.
+
+            next we need to provide the integration between temp and grafana
+               we can do that in observability/grafana/datasource.yml
+               first mention the name in deleteDatasource so that it'll delete if any old data exist in folder
+               when application starts.
+
+               then add the details related to tempo like prometheus.
+               
+            After all these the grafana should be able to connect with Tempo
+
                
