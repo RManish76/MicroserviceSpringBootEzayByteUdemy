@@ -253,7 +253,7 @@ services:
   #     service: network-deploy-service
   
   configserver: #service name
-    image: "pdcourse/configserver:s11MicrometerPrometheus" 
+    image: "pdcourse/configserver:s11TempoOpentelemetry" 
     container_name: configserver-ms  
     ports:
       - "8071:8071"
@@ -270,7 +270,7 @@ services:
       OTEL_SERVICE_NAME: "configserver" #for opentelemetry
 
   eurekaserver: #service name
-    image: "pdcourse/eurekaserver:s11MicrometerPrometheus" 
+    image: "pdcourse/eurekaserver:s11TempoOpentelemetry" 
     container_name: eurekaserver-ms  
     ports:
       - "8070:8070"
@@ -289,7 +289,7 @@ services:
       OTEL_SERVICE_NAME: "eurekaserver"  #for opentelemetry
 
   accounts:  #service name
-    image: "pdcourse/accounts:s11MicrometerPrometheus" 
+    image: "pdcourse/accounts:s11TempoOpentelemetry" 
     container_name: accounts-ms  
     ports:
       - "8080:8080"
@@ -310,7 +310,7 @@ services:
       service: microservice-eureka-config
   
   loans: #service name
-    image: "pdcourse/loans:s11MicrometerPrometheus"
+    image: "pdcourse/loans:s11TempoOpentelemetry"
     container_name: loans-ms
     ports:
       - "8090:8090"
@@ -328,7 +328,7 @@ services:
       service: microservice-eureka-config
   
   cards: #service name
-    image: "pdcourse/cards:s11MicrometerPrometheus"
+    image: "pdcourse/cards:s11TempoOpentelemetry"
     container_name: cards-ms
     ports:
       - "9000:9000"
@@ -364,7 +364,7 @@ services:
 
 
   gatewayserver: #service name
-    image: "pdcourse/gatewayserver:s11MicrometerPrometheus"
+    image: "pdcourse/gatewayserver:s11TempoOpentelemetry"
     container_name: gatewayserver-ms
     ports:
       - "8072:8072"
