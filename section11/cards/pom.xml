@@ -32,6 +32,8 @@
         <java.version>21</java.version>
 <!-- Since we added config client/statret below spring-cloud version is needed -->
     	<spring-cloud.version>2025.1.0</spring-cloud.version>
+		<!-- OpenTelemetry version properties -->
+		<otelVersion>2.22.0</otelVersion> 
     </properties>
     <dependencies>
         <dependency>
@@ -120,6 +122,14 @@
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+
+        <!-- OpenTelemetry dependency -->
+		<dependency>
+			<groupId>io.opentelemetry.javaagent</groupId>
+			<artifactId>opentelemetry-javaagent</artifactId>
+			<version>${otelVersion}</version>
+			<scope>runtime</scope>
 		</dependency>
     </dependencies>
 

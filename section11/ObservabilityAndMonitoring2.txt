@@ -248,5 +248,57 @@ change and implement the grafana.
                      the micrometer is specily developed for the java where as OpenTelemetry support
                      a lot of language.
 
+      6>> OpenTelemetry implementation.
+            first add opentelemetry version in properties category then opentelemetry dependency for all MS.
+               <!-- OpenTelemetry version properties -->
+               <otelVersion>2.22.0</otelVersion> 
+
+               <!-- OpenTelemetry dependency -->
+               <dependency>
+                  <groupId>io.opentelemetry.javaagent</groupId>
+                  <artifactId>opentelemetry-javaagent</artifactId>
+                  <version>${otelVersion}</version>
+                  <scope>runtime</scope> <!--means need only at runtime, during compilation don't need the opentelemetry-->
+               </dependency>
+
+            Now we need to update the application.yml for the config as well.
+                  logging.pattern.level="%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+
+                  # %5p --> assign some char of lenght of 5 for log severiy like debug, warning or error
+                  # ${spring.application.name} --> tag, the metadata info related to application, which is app name
+                  # %X{trace_id} --> convey to springboot framework at runtime Open Telemetry library is going to generate the
+                                    # trace ID with the context information trace_id. The same we want to inject here. After the trace Id.
+                  # %X{span_id} --> to inject span ID at the runtime into all the logs.
+
+            Now we have to update the CustomerController.java to add the opentelemetry track id.
+            As we have previously add the correlation id which we were generating in the gatewayserver.
+            Now instead of correlation id we'll insert the opentelemetry id in the log.
+            So goto CustomerController.java at /fetchCustomerDetails 
+               and we'll remove the logger.debug("eazyBank-correlation-id found: {}", correlationId); //print the log
+               and add logger.debug("fetchCustomerDetails method start"); //print the log
+            here don't need to add anything Mannually.
+            The open Telemetry at runtime, it is going to inject application name trace ID and the span ID.
+
+            similary will updated the /fetch endpoints log of loans MS and Cards Ms.
+
+         Below will be the flow.
+            opentelemetry will generate the trackingid with logs
+            then tempo (Grafana Tempo) will collect the log and index the tracing information
+            then from tempo we'll show the logs in grafana. As is like loki which store the info.
+
+            Detail of Each component
+            OpenTelemetry -- Using OpenTelemetry generate traces and spans automatically. OpenTelemetry
+                     also known as OTel for short, is a vendor-neutral opern-source Observability framework
+                     for instrumenting, generating, collecting and exporting telemetry data such as trace,
+                     metrics, logs.
+
+            Tempo -- Index the tracing information using Grafana Tempo. Tempo is an open-source, highly scalable
+                     and cost-effective distributed traceing backend designed for observability in cloud-native
+                     environments. It is a part of the Grafana observability stack and provides a dedicated
+                     solution for efficient storage, retrieval and analysis of trace data.
+
+            Grafana -- Using Grafana, we can connect to Tempo as a datasource and see the distributed tracking in
+                        action with the help of visuals. We can integrate Loki and Tempo as well, so that we can
+                        jump to tracing details directly from logs inside Loki.
 
                

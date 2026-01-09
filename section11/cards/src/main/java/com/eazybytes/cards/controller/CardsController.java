@@ -108,8 +108,9 @@ public class CardsController {
                                 String correlationId,  @RequestParam
                                                        @Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
                                                        String mobileNumber) {
-        logger.debug("eazyBank-correlation-id found at Cards MS: {}", correlationId); //print the log
+        logger.debug("fetchCardsDetails method start"); //print the log with opentelemetry track id
         CardsDto cardsDto = iCardsService.fetchCard(mobileNumber);
+        logger.debug("fetchCardsDetails method END"); //print the log with opentelemetry track id
         return ResponseEntity.status(HttpStatus.OK).body(cardsDto);
     }
 

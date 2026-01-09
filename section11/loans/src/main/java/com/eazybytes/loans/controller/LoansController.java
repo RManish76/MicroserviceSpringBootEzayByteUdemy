@@ -109,8 +109,9 @@ public class LoansController {
                                                         @RequestParam
                                                         @Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
                                                         String mobileNumber) {
-        logger.debug("eazyBank-correlation-id found at Loans Ms: {}", correlationId); //print the log
+        logger.debug("fetchLoansDetails method start"); //print the log with opentelemetry track id
         LoansDto loansDto = iLoansService.fetchLoan(mobileNumber);
+        logger.debug("fetchLoansDetails method end"); //print the log with opentelemetry track id
         return ResponseEntity.status(HttpStatus.OK).body(loansDto);
     }
 

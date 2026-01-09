@@ -75,8 +75,9 @@ public class CustomerController {
                                                                @Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
                                                                String mobileNumber) {
         
-        logger.debug("eazyBank-correlation-id found: {}", correlationId); //print the log
+        logger.debug("fetchCustomerDetails method start"); //print the log with opentelemetry track id
         CustomerDetailsDto customerDetailsDto = iCustomersService.fetchCustomerDetailsDto(mobileNumber, correlationId);
+        logger.debug("fetchCustomerDetails method end"); //print the log with opentelemetry track id
         return ResponseEntity.status(HttpStatus.OK).body(customerDetailsDto);
     }
 }
