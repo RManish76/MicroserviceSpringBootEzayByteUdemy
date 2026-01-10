@@ -41,7 +41,7 @@ datasources:
     url: http://gateway:3100 #url where loki going to start. In docker-compose we have add port as 3100 so here we need to mention that.
     jsonData:
       httpHeaderName1: "X-Scope-OrgID"
-      derivedFields:
+      derivedFields: #for derived feild option in tempo
         - datasourceUid: tempo
           matcherRegex: "\\[.+,(.+),.+\\]"
           name: TraceID

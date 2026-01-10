@@ -33,7 +33,7 @@
 <!-- Since we added config client/statret below spring-cloud version is needed -->
     	<spring-cloud.version>2025.1.0</spring-cloud.version>
 		<!-- OpenTelemetry version properties -->
-		<otelVersion>2.22.0</otelVersion> 
+		<otelVersion>2.22.0</otelVersion>
 	</properties>
 	<dependencies>
 		<dependency>

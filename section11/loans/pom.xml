@@ -115,7 +115,6 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
-    </dependencies>
 
 		<!-- OpenTelemetry dependency -->
 		<dependency>
@@ -124,6 +123,9 @@
 			<version>${otelVersion}</version>
 			<scope>runtime</scope> <!--means need only at runtime, during compilation don't need the opentelemetry-->
 		</dependency>
+    </dependencies>
+
+
 
     <!-- Since we added config client/statret below depencyManagement is needed -->
     <dependencyManagement>

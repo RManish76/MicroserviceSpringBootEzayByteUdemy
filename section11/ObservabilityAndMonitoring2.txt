@@ -325,6 +325,9 @@ change and implement the grafana.
 
                then add the details related to tempo like prometheus.
                
-            After all these the grafana should be able to connect with Tempo
+            After all these the grafana should be able to connect with Tempo.
+
+         updated the common-compose environment variables identitation and updated other MS for the logging
+         pattern.
 
                
