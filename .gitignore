@@ -13,6 +13,14 @@ target/
 .springBeans
 .sts4-cache
 
+# Ignore Loki/Minio data directory
+.data/
+
+# Ignore other common generated directories (optional suggestions)
+target/
+*.log
+.idea/
+
 ### IntelliJ IDEA ###
 .idea
 *.iws

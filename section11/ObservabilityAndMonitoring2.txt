@@ -330,4 +330,8 @@ change and implement the grafana.
          updated the common-compose environment variables identitation and updated other MS for the logging
          pattern.
 
-               
+   Now we can look in to the logs from grafana loki and see in debug tag we should be able to see The
+   trace_id.
+   the same trace id should also appear in other MS if the request traveled there.
+   Also in grafana if we switch to temp the with that trace id we can see that where does this
+   trace id traveled in all MS with details also how much time it took.
