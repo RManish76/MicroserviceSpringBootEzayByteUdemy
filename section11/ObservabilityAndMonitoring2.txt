@@ -1,0 +1,337 @@
+Now if we go to doc link https://grafana.com/docs/loki/latest/get-started/quick-start/quick-start/
+and see there are instruction related to docker compose. which we need to configure to used the
+grafana.
+
+Now we already have docker-compose, so we would not implement it as it is we are going to make some
+change and implement the grafana.
+
+*1* Grafana Docker compose
+    1st let's create a folder with name observability in folder docker-compose.
+    then inside the observability we'll create folder loki where we'll store loki confguration.
+    similary for Alloy also.
+
+    The the next step is to update our docker-compose file. we'll make changes in prod profile.
+    1st we commented the redis service to free up the resources for upcoming containers.
+    now from grafana docker compose we'll copy all except the network, service tag and flog.
+    as service tag we already have, network also we have eazybytes and we are not going 
+    to use flog as we have our own MS, and paste it in the our docker compose file.
+
+    Updated docker-composer in prod profile for our system.
+
+    Building image for s11.
+
+    After that we ran all containers using docker-compose file from prod profile.
+
+    The we created an account & customer details, loan and card details as well using gatewayserver.
+    then we fetch all details related to that customer using mobile number via gatewayserver.
+
+    Now we can goto http://localhost:3000  --> this is the site for grafana dashboard.
+    Here we can see the logs releadted to all containers in one place, we just need to select the
+    container name from the dropdown. we even have serach and other filter which we can do in the logs.
+       In exlore section we need select the tag as container then all containers will show.
+       as you see the Alloy config at bottom we made target labale as container and source labale as container name
+
+    Till now everything worked
+    
+    We we ran all MS and grafana, the minio which stores the data of Loki, it'll create a .data folder
+    where docker-compose.yml to store the data.
+
+*2* Metrics
+   Using logs alone we can not monitor our applications. Because with the help of events, logs we can only
+   try to understand what happened under a specific scenario or under a specific method.
+   With the help of the logs, we can't understand what is the overall health of my accounts microservice
+   or any other microservice.
+
+   So to properly monitor the MS, we need to understand metrics details like what is the CPU usage, what
+   is the memory usage, what is the headp dump usage, what are the threads connections errors.
+   So that's why we need to make usre we are aslo collecting the metrics and using the sasme metrics.
+   We need to build the dashboards so that operation team, they can always monitor our MS.
+
+   Metrics are numerical measurements of an application's performance, collected and aggregated at regular
+   intervals. They can be used to montior the application's health and performance, and to set alerts or
+   notifications when thresholds are exceeded.
+      We will use springBoot Actuator, Micrometer, Prometheus & Grafana to acheive the metrics.
+
+      1. Actuator - Actuator is aminly used to expose operational information about running application
+                     health, metrics, info, dump, env, etc. It uses HTTP endpoints or JMX beans to enable
+                     us to interact with it.
+                     We can goto path /actuator/metrics and we will be see many metrics that can help you
+                     to monitor the MS instance.
+                     Mannually going to each path and checking the health status is not feasible.
+
+                     So we need something which can aggregate all the metric details for us.
+                     Now we component already inside the open-source. The component is Prometheus
+                     But it cannot understand the actuator responses because it's in JSON.
+
+                     So we would another component in middle which can convert the actuator JSON into
+                     which Prometheus can under. And that component is MicroMeter.
+
+      2. MICROMETER - Micrometer automatically exposes /actuator/metrics data into something our monitoring
+                     system can understand. All we need to do is include that vendor-specific micrometer
+                     dependency in our application. Think SLF4J, but for metrics.
+                        SLF4J --> helps to implement multiple logging framework with very less effort.
+                           it is a facade.
+
+                     weblink: https://micrometer.io/
+
+      3. Prometheus - The most common format for exporting metrics is the one used by Prometheus, which is
+                        "an open source systems monitoring and alerting toolkit". Just as Loki aggregates
+                        and stores event logs, Prometheus does the same with metrics.
+
+                        weblink: https://prometheus.io/
+
+      4. Grafana -   Grafana is a visualization tool that can be used to create dashboards and charts from
+                     Prometheus data.
+                     Why we need Grafana again, because Prometheus has certain limitations.
+                     We cannot build very complex dashboards and we cannot create alerts and notifications
+                     with the Prometheus alone.
+                     When we integrate Prometheus with Grafana, we can build a lot of dashboards and apart from
+                     dashboards we can also create alerts and notifications.
+
+
+      To implement all of these we need to add dependency realted to micrometer and prometheus in our project.
+
+         <!-- Micrometer dependency, which converts actuator-metric-json
+         to something which prometheus can consueme and expose the converted data for prometheus. -->
+         <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+         </dependency>
+
+      Updating this dependency in all 6 MS
+
+      Then also adding the config in application.yml in all 6 MS related to metrics
+         management.metrics.tags.application = ${spring.application.name}
+
+
+      now we can goto 
+         http://localhost:port/actuator/metrics   to see the list of services for the metrics, like cpu usage, up time etc.
+         http://localhost:port/actuator/metrics/service-name    to see the service details.
+
+         http://localhost:port/actuator/prometheus     to the metric infor given by actuator and converted in format which prometheus can understand.
+                                                         of course conversion done by the micrometer dependency.
+                                                      So the prometheus is going to invoke the same path in every 5sec or 10sec based on the confguration
+                                                      inside the prometheus for all instances
+
+   Like we added some docker config file for grafana loki. similary we have to do for the prometheus as well.
+      So again in docker-compose/observability/prometheus/prometheus.yml we'll creat the file.
+      Then copy pasted the file from github repo of instructor. if needed will edit it as per the lecture.
+
+   Now after that we need to update our docker-compose.yml for prometheus service as well. will do it in prod profile.
+
+   After doing this we need link the prometheus with grafana. we have already for like there
+   if we see the entrypoint in grafana we can the location details of datasource/ds.yml also details of loki.
+   Similarly we have to do it for grafana.
+   Now adding it directly to docker-compose will make file lenthey.
+   So will create a folder docker-compose/observability/grafana/datasource.yml
+
+   Since details about loki we are porviding in datasource.yml file in grafana folder.
+      we can remove the redunded config of loki from docker-compose and just add the loki refrence to
+      datasource.yml
+      and done via adding the volume detial below the line ports = "3000:3000"
+
+
+   Now generate the new image as we have updated the pom and config in application.yml 
+   then run the all docker images.
+      then goto http://localhost:9090/targets
+
+      we'll able to see all running instance or containers whic are being monitored by prometheus.
+      We can go in graph tab and search for cpu and choose(system cpu usage) the field for which we want to see the details.
+      it'll so the info in text(table), if want to see in graph the click on graph tabe and adjust the time
+      to see.
+
+
+   now we can goto https://prometheus.io/docs/visualization/grafana/ where instruction to use grafana with
+   prometheus is writtern. At bottom of instruction we can find a link of prebuilt dashboards
+   we can go there https://grafana.com/grafana/dashboards/  or we can directly go to grafana dashboard as well.
+
+   Now scroll little down and search dashboard related to JVM there are others avaialable as well
+   but since we are working on java project we'll go with JVM dashboards. select a dashboard from the list.
+   We'll go with JVM (MicroMeter) dashboard https://grafana.com/grafana/dashboards/4701-jvm-micrometer/
+   now copy the url from the weblink and goto your local grafana page.
+   Since we are creating dashboard and want to use it again and again so Login in the local grafana using
+   username: admin, pass: admin  . it'll ask to change the password we'll skip it as of now.
+   Now from local grafana menu click on dashboards --> new --> import --> paste the dashboard url which copied --> load.
+      then select the datasource as prometheus --> import.
+   Now we should be able to see the new dashboard which is providing a lot of info.
+   We can change the time frame as per required to see the info.
+
+   So these dashboards are built by grafana team and opensource community.
+   
+   we can add another dasboard related to springBoot.
+
+   We can created our own dasboard as well. in local grafana go to new -> created dahsboard
+      i have gone with dashboard https://grafana.com/grafana/dashboards/23634-bu-mtvlab-springboot-observability/
+
+   We set alerts as well in grafana by going in alerts setting.
+      We have multiple option for alerts like email, slack etc. we'll use webhook and hoodeck platfrom
+      to recive the notifications as setting email require a lot of things.
+
+      Also we set the alerts in a dahsboard as well in email.
+
+      
+      4>> Distributed Tracing In Microservice
+
+         Event logs, health probes and metrics offer a wealth of valuable information for deducing the
+         internal condition of an application.
+         Nevertheless, these sources fail to account for the distributed nature of cloud-native applications.
+         Given that a user request often traverses multiple applications, we currently lack the means to
+         effectively correlate data across application boundaries.
+
+         Distributed tracing --- is a technique used in microservices or cloud-native applications to understand
+         and analyze the flow of requests as they propagate across multiple services and components. It helps is
+         gaining insights into how requests are processed, identifying performance botttlenecks, and
+         diagnosing issues in complex, distributed system.
+         
+         >> One possible solution to address this issue is to implement a straightforward approach where a
+            unique identifier, known as a correlation ID, is generated for each request at the entry point of
+            the systems. This correlation ID can then be utilized in event logs and passed along to other relevant
+            services involved in processing the request. By leveraging this correlation ID, we can retrieve all log
+            messages associated with a specific transaction from multiple applications.
+
+         >> Distributed tracing encompasses three primary concepts:
+
+            Tags: Tags serve as metadata that offer supplementary details about the span context, including the
+                  request URI, the username of the authenticated user, or the identifier for a specific tanant.
+                  (like application name will tell the current log is from which application)
+
+            Trace ID: A trace denotes the collection of actions tied to a request or transaction,
+                        distinguished by a Trace ID. It consists of multiple spans that span across various
+                        services.
+                        (like we have correlation id, using this we can trace to all places where the request traveled)
+
+            Span ID:  A span represents each individual stage of request processing, encompassing start and end
+                        timestamps, and is uniquely identified by the combination of trace ID amd span ID.
+
+                        (span id uniques to each application which will tell that this request where travling
+                        inside a MS ).
+            So all three we will have in every request we recive along with the request from the MS.
+
+
+
+            For example: id can be like below and so below will look like for all MS as example
+                     [Tag,Trace ID, Span ID]
+
+                     gatewayserver MS - [gatewayserver, 29cdbe2e21bc, 259d5208]
+                     accounts MS      - [accounts, 29cdbe2e21bc, 61fd3a92]
+                     loans MS         - [loans, 29cdbe2e21bc, 9e5b7f81] - logger statement 1
+                                      - [loans, 29cdbe2e21bc, 9e5b7f81] - logger statement 2
+                     cards MS         - [cards, 29cdbe2e21bc, 8f4b7a76] - logger statement 1
+                                      - [cards, 29cdbe2e21bc, 8f4b7a76] - logger statement 2
+
+                           
+      5>> OpenTelemetry Intro.
+            (Deprecated/will not use)
+               Spring cloud sleuth -       https://spring.io/projects/spring-cloud-sleuth
+                  This is the project which is avaialable inside the spring cloud is going to help us to
+                  implement that distributed traceing.
+                  When we try to implement distributed tracing with the help of spring cloud sleuth.
+                  All logs that are going to generated inside the MS, they'll automatically have all the
+                  three components like metadata information, trace ID and the span ID.
+                  The developer don't have to make any changes inside the log statements.
+                  We just need to add the dependencies around the spring cloud sleuth.
+                  Once the logs are generated with the help of this sleuth, we can integrate spring with
+                  Zipkin. Both these components by working together they are going to help the developers
+                  to identify the tracing details of a request along with the performance bottlenecks.
+
+                  But we are not going to follow this approach inside this course.
+                  The reason we can see there is a note from the spring cloud sleuth team that this spring
+                  cloud sleuth last minor version is going to be 3.1 and post that they are not going make
+                  any changes inside this project because they're trying to move all the tracing related
+                  changes into a common project called micrometer tracing.
+
+                  But going through micrometer also https://micrometer.io/docs/tracing#_installing
+                  require a lot of setup so we'll not go thorugh this process as well.
+
+                  So we'll go with another approach which is OpenTelemetry.
+                     doc -  https://opentelemetry.io/docs/getting-started/dev/
+                     the micrometer is specily developed for the java where as OpenTelemetry support
+                     a lot of language.
+
+      6>> OpenTelemetry implementation.
+            first add opentelemetry version in properties category then opentelemetry dependency for all MS.
+               <!-- OpenTelemetry version properties -->
+               <otelVersion>2.22.0</otelVersion> 
+
+               <!-- OpenTelemetry dependency -->
+               <dependency>
+                  <groupId>io.opentelemetry.javaagent</groupId>
+                  <artifactId>opentelemetry-javaagent</artifactId>
+                  <version>${otelVersion}</version>
+                  <scope>runtime</scope> <!--means need only at runtime, during compilation don't need the opentelemetry-->
+               </dependency>
+
+            Now we need to update the application.yml for the config as well.
+                  logging.pattern.level="%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+
+                  # %5p --> assign some char of lenght of 5 for log severiy like debug, warning or error
+                  # ${spring.application.name} --> tag, the metadata info related to application, which is app name
+                  # %X{trace_id} --> convey to springboot framework at runtime Open Telemetry library is going to generate the
+                                    # trace ID with the context information trace_id. The same we want to inject here. After the trace Id.
+                  # %X{span_id} --> to inject span ID at the runtime into all the logs.
+
+            Now we have to update the CustomerController.java to add the opentelemetry track id.
+            As we have previously add the correlation id which we were generating in the gatewayserver.
+            Now instead of correlation id we'll insert the opentelemetry id in the log.
+            So goto CustomerController.java at /fetchCustomerDetails 
+               and we'll remove the logger.debug("eazyBank-correlation-id found: {}", correlationId); //print the log
+               and add logger.debug("fetchCustomerDetails method start"); //print the log
+            here don't need to add anything Mannually.
+            The open Telemetry at runtime, it is going to inject application name trace ID and the span ID.
+
+            similary will updated the /fetch endpoints log of loans MS and Cards Ms.
+
+         Below will be the flow.
+            opentelemetry will generate the trackingid with logs
+            then tempo (Grafana Tempo) will collect the log and index the tracing information
+            then from tempo we'll show the logs in grafana. As is like loki which store the info.
+
+            Detail of Each component
+            OpenTelemetry -- Using OpenTelemetry generate traces and spans automatically. OpenTelemetry
+                     also known as OTel for short, is a vendor-neutral opern-source Observability framework
+                     for instrumenting, generating, collecting and exporting telemetry data such as trace,
+                     metrics, logs.
+
+            Tempo -- Index the tracing information using Grafana Tempo. Tempo is an open-source, highly scalable
+                     and cost-effective distributed traceing backend designed for observability in cloud-native
+                     environments. It is a part of the Grafana observability stack and provides a dedicated
+                     solution for efficient storage, retrieval and analysis of trace data.
+
+            Grafana -- Using Grafana, we can connect to Tempo as a datasource and see the distributed tracking in
+                        action with the help of visuals. We can integrate Loki and Tempo as well, so that we can
+                        jump to tracing details directly from logs inside Loki.
+
+      7>> docker container and docker-compose update
+            we'll add some environment variables under microservice-base-config in common-config.yml
+                  #related to opentelemetry and tempo
+                  environment:
+                     JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.22.0.jar"
+                     OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+                     OTEL_METRICS_EXPORTER: none
+                     OTEL_LOGS_EXPORTER: none
+
+            now adding a environment variable for all MS services 
+               OTEL_SERVICE_NAME: "configserver" #for opentelemetry      where name is same as spring_application_name
+
+            now we'll add one more dependency file in observability folder with name tempo which will
+            store the configuration related to tempo.
+
+            now inside the docker-compose file we'll create new service related to tempo.
+
+            next we need to provide the integration between temp and grafana
+               we can do that in observability/grafana/datasource.yml
+               first mention the name in deleteDatasource so that it'll delete if any old data exist in folder
+               when application starts.
+
+               then add the details related to tempo like prometheus.
+               
+            After all these the grafana should be able to connect with Tempo.
+
+         updated the common-compose environment variables identitation and updated other MS for the logging
+         pattern.
+
+   Now we can look in to the logs from grafana loki and see in debug tag we should be able to see The
+   trace_id.
+   the same trace id should also appear in other MS if the request traveled there.
+   Also in grafana if we switch to temp the with that trace id we can see that where does this
+   trace id traveled in all MS with details also how much time it took.

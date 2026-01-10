@@ -1,0 +1,92 @@
+server:
+  port: 9000
+spring:
+  application:
+    name: "cards"
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  config:
+    import: "optional:configserver:http://localhost:8071"
+
+  profiles:
+    active:
+    - "prod"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - "*"
+  health:
+    readiness-state:
+      enabled: true #enabled for actuator
+    liveness-state:
+      enabled: true #enbale to check for actuator
+  endpoint:
+    shutdown:
+      enabled: true # Enable graceful shutdown via REST API
+    health:
+      probes:
+        enabled: true #enabled to check readiness and liveness through rest endpoints
+        
+  info:   # to fetch enviorment/app info details using acutator end point.
+    env:
+      enabled: true
+
+  metrics:  #for metics monitoring for micrometer, grafana, prometheus. we are telling to group all the metrics related to this application under the application name. for example group all metrics related to accoutns MS under the application name accounts.
+    tags:
+      application: ${spring.application.name}
+
+endpoints:
+  shutdown:
+    enabled: true # to expose actuator shutdown rest api endpoint
+
+
+#eureka server details --> As accountsMS is eureka client, it need details of eureka server to connect to eureka server
+eureka:
+  instance:
+    # hostname: localhost #no need in client as it's not a server
+    preferIpAddress: true #by default cliet register themselv using hostname and it works when we have DNS mapping.
+                          #But in our local we don't have any DNS, so we should prefer IP address so that they can find each other
+                          #using IP address
+  client:
+    fetchRegistry: true #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
+    registerWithEureka: true #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
+
+
+
+info:
+  app:
+    name: "cards"
+    description: "Eazy Bank Cards Application"
+    version: "1.0.0"
+
+
+#we are telling that to spring boot if you see any log which is type of DEBUG
+#executing in package of com.eazaybytes.gateewayserver 
+logging:
+  level:
+    com:
+      eazybytes:
+        cards: DEBUG
+  pattern: #config related to opentelemetry
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+          # %5p --> assign some char of lenght of 5 for log severiy like debug, warning or error
+          # ${spring.application.name} --> tag, the metadata info related to application, which is app name
+          # %X{trace_id} --> convey to springboot framework at runtime Open Telemetry library is going to generate the
+                            # trace ID with the context information trace_id. The same we want to inject here. After the trace Id.
+          # %X{span_id} --> to inject span ID at the runtime into all the logs.
