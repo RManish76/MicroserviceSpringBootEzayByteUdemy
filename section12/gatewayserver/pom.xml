@@ -86,7 +86,22 @@
 			<artifactId>opentelemetry-javaagent</artifactId>
 			<version>${otelVersion}</version>
 			<scope>runtime</scope> <!--means need only at runtime, during compilation don't need the opentelemetry-->
-		</dependency>		
+		</dependency>
+
+		<!-- Spring security dependency and oauth2 dependency -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-resource-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-jose</artifactId>
+		</dependency>
+
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

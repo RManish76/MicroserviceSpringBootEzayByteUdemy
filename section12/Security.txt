@@ -47,3 +47,26 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
 
 
 
+*2* Updating GatewayServer
+
+    Updating the gatewayserver pom dependency for spring security and oauth.
+		<!-- Spring security dependency and oauth2 dependency -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-resource-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-jose</artifactId>
+
+    Then created a folder with name config in root package where controller and filter foler is located.
+    We'll create a file with name as SecurityConfig.java
+
+        In this file added the details of api endpoint pattern for which spring need to look for the authentication
+        and for which it does not look for authentication.
+        Also we disabled the csrf protection which only required for browser based communication. If not disiabled
+        then it'll cause failuer of POST(), PUT() and DELETe() request.
