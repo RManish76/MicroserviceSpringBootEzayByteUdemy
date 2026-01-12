@@ -23,6 +23,12 @@ spring:
       port: 6379
       timeout: 1s
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://localhost:7080/realms/master/protocol/openid-connect/certs" #url from which it need to download the certificates from KeyClock during the statup of the gatewayserver.
+                                                                                          #this certificate will be used by our server to validate the access token that is it really issued by the KeyCloak Server.
 
 management:
   endpoints:

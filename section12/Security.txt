@@ -44,6 +44,11 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
     token api endpoint of KeyCloak: http://localhost:7080/realms/master/protocol/openid-connect/token
         body:  x-www-form-urlencoded 
 
+                grant_type = client_credentials
+                client_id = eazybank-callcenter-cc
+                client_secret = -------get from the keycloak (it is the password)
+                scope = openid email profile
+
 
 
 
@@ -70,3 +75,22 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
         and for which it does not look for authentication.
         Also we disabled the csrf protection which only required for browser based communication. If not disiabled
         then it'll cause failuer of POST(), PUT() and DELETe() request.
+
+
+    Curretly the GatewayServer know which request it needs to authenticate and which not.
+        But it does not know how to authenticate or validate.
+        To do that we'll add a configuration in application.yml to tell spring to connect this for authentication.
+            spring.security.oauth2.resourceserver.jwt.jwk-set-uri = "http://localhost:7080/realms/master/protocol/openid-connect/certs"
+
+        The purpose of this path?
+            During the statup of the resource server, it is going to connect with the resource server and it is going to
+            download a public certificate from the KeyCloak server.
+            purpose of this certificate?
+                Using this public certificate, my resource server can validate if a given access token is really is used by
+                the KeyCloak server.
+                    If yes, is it a valid access token or an invalid access token?
+                    So all those checks on the access token, it can perform with the help of this public certificate.
+                The KeyCloak is going to have private certificates, Using the private certificates, the keycloak can only
+                issue the new tokens, whereas with the help of this public certificate, any server like resource server can
+                validate if a given access token is valid or not. They cannot really produce new tokens, but they should be able
+                to validate if the given access token is valid or not.
