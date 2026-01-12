@@ -1,0 +1,49 @@
+We are going to implement IAM.
+    IAM - OpenID Connect (OCID) + OAuth
+        OCID - for id_token --> stores details of Resource owner(user). which is responsible for who are you?
+        OAuth - for access_token --> stores the details of Authorization. what are you allowed to do?
+                                        (what to allow to access other
+                                        than profile detials like allow to access photos stored in google photos
+                                        or allow to access the repo present in github repo account.)
+
+
+Now to implement this we'll use KeyCloak to acheive the same. which will be responsible for generating the
+    tokens and verifying the tokens.
+
+    Gatewayserver will act as the service provider. Means any request which want to access any resource from
+    our application will have to go thorugh the gatewayserver. And each request will have the id_token and
+    access_token. Before provding the requested resource in the request the gatewayserver will reach to 
+    KeyCloak to veirfy the resource and will provide the resource only once if tokens are vaild.
+
+    Now the question is that its ok if request goes to gatewayserver but now in our case all MS endpoints
+    are open to any one means anyone can trigger any rest endpoints of any MS without authentication or
+    authorization.
+    Yes but in real project all MS will be behind a firewall. And now can access anything which is inisde the
+    firewall from outside of firewall. And the only entry point to firewall is available through the
+    gatewayserver server. Hence no one will able to access any MS except with the gatewayserver endpoint.
+    And also it means that we don't need to apply any authorization validation to any MS as all request will
+    come thorugh only gatewayserver that request will be verified by gatewayserver and KeyCloak.
+
+    You can also say that we apply the validation logic in all MS as well but it's bad practice also it'll
+    make our MS to extra thing which it suposed it should not do. Also it'll send too many request to
+    KeyCloak as one request can travel to multiple MS, and each MS will try to validate the request.
+
+
+*1*  Now to download and run th KeyCloak we'll use docker and below command
+    docker run -d -p 127.0.0.1:7080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:26.5.0 start-dev
+
+    the KeyCloak runs by at port 8080 but the accounts MS is also running at port 8080.
+    It fine if in docker internal it runs 8080 but for our local network we will redirect it to 7080 port
+    And we can see in the command that we'll get defaul admin logic with username & password both as admin.
+
+        In KeyCloak or any IAM service provider there is concept of realm.
+        Bydefault we get master realm in KeyCloak, but we can setup other realm like qa, UAT, prod etc.
+
+    We can goto http://localhost:7080/
+
+    token api endpoint of KeyCloak: http://localhost:7080/realms/master/protocol/openid-connect/token
+        body:  x-www-form-urlencoded 
+
+
+
+
