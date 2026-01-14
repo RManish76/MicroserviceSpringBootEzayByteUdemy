@@ -22,9 +22,13 @@ public class SecurityConfig {
         //We want some api which does not require authentication where as for some we what authentication.
 
         serverHttpSecurity.authorizeExchange(exchanges -> exchanges.pathMatchers(HttpMethod.GET).permitAll() //permit without authentication for all GET request.
-                                                    .pathMatchers("/eazybank/accounts/**").authenticated() //required authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
-                                                    .pathMatchers("/eazybank/cards/**").authenticated()  //required authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
-                                                    .pathMatchers("/eazybank/loans/**").authenticated())  //required authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
+                                                    // .pathMatchers("/eazybank/accounts/**").authenticated() //required authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
+                                                    // .pathMatchers("/eazybank/cards/**").authenticated()  //required authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
+                                                    // .pathMatchers("/eazybank/loans/**").authenticated())  //required authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
+
+                                                    .pathMatchers("/eazybank/accounts/**").hasRole("ACCOUNTS") //required authorication with role(ACCOUNTS) and authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
+                                                    .pathMatchers("/eazybank/cards/**").hasRole("CARDS")  //required authorication with role(ACCOUNTS) and authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
+                                                    .pathMatchers("/eazybank/loans/**").hasRole("LOANS"))  //required authorication with role(ACCOUNTS) and authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
                                                     .oauth2ResourceServer(oAuth2ResourceServerSpec->oAuth2ResourceServerSpec
                                                                             .jwt(Customizer.withDefaults())); //to use jwt and use default configuration
 

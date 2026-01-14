@@ -116,3 +116,46 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
                 issue the new tokens, whereas with the help of this public certificate, any server like resource server can
                 validate if a given access token is valid or not. They cannot really produce new tokens, but they should be able
                 to validate if the given access token is valid or not.
+
+
+    Now after doing all config out application knows how to authenticate a user using access token.
+    But it knows nothing about authorization. Means Curretly if any user successfully logged/authenticated
+    then he can trigger any api endpoint. where as we want to limit certain endpoint to only
+    some particular user.
+
+        This time instead of putting .authenticated in SecurityConfig.java we'll use .hasRole(roleName) as pass the
+        role name which required for that pattern to user have.
+        Now we have given required role to endpoint pattern like .hasRole("CARDS").
+        But we need to configer these roles to our client application which auth server / KeyCloak
+
+        Now we goto the KeyCloak and go to the user which we created, we'll see two tabs roles and 
+        service account roles. Since our user is non-human or application then we should configure the roles
+        in service account roles not in Roles tab.
+
+        But to assign the roles we have to create the role so goto Realm roles and click on create roles
+                Role Name: ACCOUNTS
+                Description: Accounts role
+            Do the same for cards and loans role.  //we leave for now for negative testing, latter will create it.
+        
+        No goto the client/user click on service account role the assign, then change fileter to filter by realm roles
+        and select the required role.
+
+        Now if we paste the new access_token to jwt decoder then we'll see new filed roles and list of assigned roles.
+
+
+    Now since we are getting the roles in jwt access_token, we need to write some logic inside our resource server
+    or inside the gatewayserver to extract the role information and convey the same to Spring Security framework
+    to use and validate my authorization rules that I have configured.
+
+    For the same, inside the same package of config we are creating new class with name KeycloakRoleConverter.java
+        in this clas we'll extract the roles that we are getting from the KeyCloak into the format that Spring 
+        Security framework can understand.
+
+        int this class we implemented a interface which has a method convert. 
+        We'll override this method. this method retur type is GrantedAuthority. When ever we want to talk
+        about roles with spring security we need to send the details in GrantedAuthority format.
+
+        Now we have fetched the role from the payload and converted it to GrantedAuthority and create the KeycloakRoleConverter.
+        But we need to communicate about this role converter to the configurations inside the SecurityConfig class.
+
+        for same
