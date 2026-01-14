@@ -158,4 +158,4 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
         Now we have fetched the role from the payload and converted it to GrantedAuthority and create the KeycloakRoleConverter.
         But we need to communicate about this role converter to the configurations inside the SecurityConfig class.
 
-        for same
+        for same we'll create grantedAuthoritiesExtractor private method which will communicate
