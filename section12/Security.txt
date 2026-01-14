@@ -41,6 +41,28 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
 
     We can goto http://localhost:7080/
 
+    Registering a client from admin server from master realm
+        Click Clients->Create client
+                Client type: OpenID Connect --> means OpenID+oauth
+                Client ID: eazybank-callcenter-cc  (custom, can be anything--> like username)
+                Name: EazyBank Call Center App   (custome, can be anything, not mandatory)
+                Description: EazyBank Call Center App   (custome, can be anything, not mandatory)
+
+                NEXT
+
+                Client authentication: Yes (authenticate the client with credentials then issue auth token.)
+
+                Disable -- Standard Flow, Direct Access Grants
+                Enable -- Service accounts roles   (flowq 'Client Credentials Grant' flow, don't know but feels like its for providding the token and validating the toke)
+
+                NEXT -> NEXT-> SAVE
+
+            Now to get the all endpoint related to KeyCloak, click on Realm settings at left side then scroll down
+            (in General tab) at bottom setting click on OpenID Endpoint configuration.
+            This will take you to a page (http://http://localhost:7080/admin/master/console/#/master/realm-settings)
+             which contains all endpoints of KeyCloak.
+
+
     token api endpoint of KeyCloak: http://localhost:7080/realms/master/protocol/openid-connect/token
         body:  x-www-form-urlencoded 
 

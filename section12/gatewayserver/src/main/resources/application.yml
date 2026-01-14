@@ -14,7 +14,7 @@ spring:
                               #made it false later as we decided to go with custom api(configured in GatewayserverApplication.java) link instead of default api link
               lowerCaseServiceId: true
       httpclient:
-        connect-timeout: 1000
+        connect-timeout: 10000 #in milisec --> setting high due to low resource
         response-timeout: 10s #wait time for response else timeout and fallback for fallback mechanisim. Increased as we are going to deploy more containers in local
   data:
     redis:

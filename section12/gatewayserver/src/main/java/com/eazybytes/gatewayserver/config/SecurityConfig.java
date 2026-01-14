@@ -7,6 +7,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+// import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder; //gemini suggestion of an error not needed
+// import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder; 
 
 @Configuration
 @EnableWebFluxSecurity
@@ -31,4 +33,10 @@ public class SecurityConfig {
         return serverHttpSecurity.build();
 
     }
+
+     //gemini suggestion of an error not needed
+    // @Bean
+    // public ReactiveJwtDecoder jwtDecoder() {
+    //     return NimbusReactiveJwtDecoder.withJwkSetUri("http://localhost:7080/realms/master/protocol/openid-connect/certs").build();
+    // }
 }
