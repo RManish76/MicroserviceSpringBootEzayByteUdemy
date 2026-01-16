@@ -128,7 +128,7 @@
 				<version>3.5.1</version>
 				<configuration>
 				<to>
-					<image>pdcourse/${project.artifactId}:s11TempoOpentelemetry</image>
+					<image>pdcourse/${project.artifactId}:s12</image>
 				</to>
 				</configuration>
 			</plugin>
