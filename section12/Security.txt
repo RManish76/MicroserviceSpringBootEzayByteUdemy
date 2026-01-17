@@ -331,3 +331,36 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
     then they have to be pesent in that network else they have to go thorugh the gatewayserver as that
     only point we left as port exposed to outside of docker network.
 
+*3* Changed config for h2 console
+    After disabling the port. we cannot access the h2-console like used to do.
+    Now we have to go thorough gatewayserver, to do that certail things we implemented
+
+        1st in application.yml of gatewayserver
+            server.forward-headers-strategy: framework # Configures Spring to use X-Forwarded-* headers from the Gateway to generate correct self-referencing URLs (fixes H2 Console redirects from gatewayserver)
+
+                    when using gatewayserver link like http://localhost:8072/eazybank/accountss/h2-console/ it was being converted to http://172.18.0.7:8080/h2-console/
+                    Gemini:
+                    The issue you are facing is that the Accounts microservice (running inside Docker at 172.18.0.7) 
+                    is generating a redirect (likely adding a trailing slash to /h2-console/) using its own internal 
+                    IP address because it doesn't realize it is being accessed via the Gateway (localhost:8072).
+                    To fix this, you need to do two things:
+                    Configure Downstream Microservices: Tell the Accounts, Loans, and Cards microservices
+                    to use the headers sent by the Gateway (like X-Forwarded-Host) to generate correct URLs.
+
+        2nd made changes in SecurityConfig.java to allow the h2 console link whitout authentication
+
+            .pathMatchers("/eazybank/accounts/h2-console/**").permitAll() //so that without authentication we can login at h2-consol
+            .pathMatchers("/eazybank/loans/h2-console/**").permitAll() //so that without authentication we can login at h2-consol
+            .pathMatchers("/eazybank/cards/h2-console/**").permitAll() //so that without authentication we can login at h2-consol
+
+
+        3rd in SecurityConfig.java
+            added one more diable csrf 
+            serverHttpSecurity.headers(headerSpec -> headerSpec.frameOptions(frameOptionsSpec -> frameOptionsSpec.disable())); //by gemini to access the h2 console database through gatewayserver
+
+        All 3 changes suggested by gemini.
+
+        accounts db    http://localhost:8072/eazybank/accountss/h2-console/
+            db url: jdbc:h2:mem:testdb
+        loans db: http://localhost:8072/eazybank/loanss/h2-console/
+        cards db: http://localhost:8072/eazybank/cards/h2-console/

@@ -33,6 +33,10 @@ public class SecurityConfig {
                                                     // .pathMatchers("/eazybank/cards/**").authenticated()  //required authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
                                                     // .pathMatchers("/eazybank/loans/**").authenticated())  //required authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
 
+                                                        .pathMatchers("/eazybank/accounts/h2-console/**").permitAll() //so that without authentication we can login at h2-consol
+                                                        .pathMatchers("/eazybank/loans/h2-console/**").permitAll() //so that without authentication we can login at h2-consol
+                                                        .pathMatchers("/eazybank/cards/h2-console/**").permitAll() //so that without authentication we can login at h2-consol
+
                                                     .pathMatchers("/eazybank/accounts/**").hasRole("ACCOUNTS") //required authorication with role(ACCOUNTS) and authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
                                                     .pathMatchers("/eazybank/cards/**").hasRole("CARDS")  //required authorication with role(ACCOUNTS) and authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
                                                     .pathMatchers("/eazybank/loans/**").hasRole("LOANS"))  //required authorication with role(ACCOUNTS) and authentication if pattern matched. //As the GET is 1st, then GET'll have high priority means even if current pattern matced with GET one.
@@ -42,6 +46,8 @@ public class SecurityConfig {
                                                                             .jwt(jwtSpec -> jwtSpec.jwtAuthenticationConverter(grantedAuthoritiesExtractor()))); //establised the link between KeycloakRoleConverer and SecurityConfig.java
 
         serverHttpSecurity.csrf(csrfSpec -> csrfSpec.disable()); //disabling csrf protection which is enabled by default in spring security. Useful if browser/UI based application is there. //if not disabled all request of post(), put(), delete() will fail.
+        
+        serverHttpSecurity.headers(headerSpec -> headerSpec.frameOptions(frameOptionsSpec -> frameOptionsSpec.disable())); //by gemini to access the h2 console database through gatewayserver
         
         return serverHttpSecurity.build();
 

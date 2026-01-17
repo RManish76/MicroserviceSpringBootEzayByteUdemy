@@ -1,5 +1,6 @@
 server:
   port: 8080
+  forward-headers-strategy: framework # Configures Spring to use X-Forwarded-* headers from the Gateway to generate correct self-referencing URLs (fixes H2 Console redirects from gatewayserver)
 spring:
   application:
     name: accounts
