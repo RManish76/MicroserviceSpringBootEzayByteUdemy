@@ -1,0 +1,366 @@
+We are going to implement IAM.
+    IAM - OpenID Connect (OCID) + OAuth
+        OCID - for id_token --> stores details of Resource owner(user). which is responsible for who are you?
+        OAuth - for access_token --> stores the details of Authorization. what are you allowed to do?
+                                        (what to allow to access other
+                                        than profile detials like allow to access photos stored in google photos
+                                        or allow to access the repo present in github repo account.)
+
+
+Now to implement this we'll use KeyCloak to acheive the same. which will be responsible for generating the
+    tokens and verifying the tokens.
+
+    Gatewayserver will act as the service provider. Means any request which want to access any resource from
+    our application will have to go thorugh the gatewayserver. And each request will have the id_token and
+    access_token. Before provding the requested resource in the request the gatewayserver will reach to 
+    KeyCloak to veirfy the resource and will provide the resource only once if tokens are vaild.
+
+    Now the question is that its ok if request goes to gatewayserver but now in our case all MS endpoints
+    are open to any one means anyone can trigger any rest endpoints of any MS without authentication or
+    authorization.
+    Yes but in real project all MS will be behind a firewall. And now can access anything which is inisde the
+    firewall from outside of firewall. And the only entry point to firewall is available through the
+    gatewayserver server. Hence no one will able to access any MS except with the gatewayserver endpoint.
+    And also it means that we don't need to apply any authorization validation to any MS as all request will
+    come thorugh only gatewayserver that request will be verified by gatewayserver and KeyCloak.
+
+    You can also say that we apply the validation logic in all MS as well but it's bad practice also it'll
+    make our MS to extra thing which it suposed it should not do. Also it'll send too many request to
+    KeyCloak as one request can travel to multiple MS, and each MS will try to validate the request.
+
+
+*1*  Now to download and run th KeyCloak we'll use docker and below command
+    docker run -d -p 127.0.0.1:7080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:26.5.0 start-dev
+
+    the KeyCloak runs by at port 8080 but the accounts MS is also running at port 8080.
+    It fine if in docker internal it runs 8080 but for our local network we will redirect it to 7080 port
+    And we can see in the command that we'll get defaul admin logic with username & password both as admin.
+
+        In KeyCloak or any IAM service provider there is concept of realm.
+        Bydefault we get master realm in KeyCloak, but we can setup other realm like qa, UAT, prod etc.
+
+    We can goto http://localhost:7080/
+
+    Registering a client from admin server from master realm
+        Click Clients->Create client
+                Client type: OpenID Connect --> means OpenID+oauth
+                Client ID: eazybank-callcenter-cc  (custom, can be anything--> like username)
+                Name: EazyBank Call Center App   (custome, can be anything, not mandatory)
+                Description: EazyBank Call Center App   (custome, can be anything, not mandatory)
+
+                NEXT
+
+                Client authentication: Yes (authenticate the client with credentials then issue auth token.)
+
+                Disable -- Standard Flow, Direct Access Grants
+                Enable -- Service accounts roles   (flowq 'Client Credentials Grant' flow, don't know but feels like its for providding the token and validating the toke)
+
+                NEXT -> NEXT-> SAVE
+
+            Now to get the all endpoint related to KeyCloak, click on Realm settings at left side then scroll down
+            (in General tab) at bottom setting click on OpenID Endpoint configuration.
+            This will take you to a page (http://http://localhost:7080/admin/master/console/#/master/realm-settings)
+             which contains all endpoints of KeyCloak.
+
+
+    token api endpoint of KeyCloak: http://localhost:7080/realms/master/protocol/openid-connect/token
+        body:  x-www-form-urlencoded 
+
+                grant_type = client_credentials
+                client_id = eazybank-callcenter-cc
+                client_secret = -------get from the keycloak (it is the password)
+                scope = openid email profile
+
+
+
+
+*2* Updating GatewayServer
+
+    Updating the gatewayserver pom dependency for spring security and oauth.
+		<!-- Spring security dependency and oauth2 dependency -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-resource-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-jose</artifactId>
+
+    Then created a folder with name config in root package where controller and filter foler is located.
+    We'll create a file with name as SecurityConfig.java
+
+        In this file added the details of api endpoint pattern for which spring need to look for the authentication
+        and for which it does not look for authentication.
+        Also we disabled the csrf protection which only required for browser based communication. If not disiabled
+        then it'll cause failuer of POST(), PUT() and DELETe() request.
+
+
+    Curretly the GatewayServer know which request it needs to authenticate and which not.
+        But it does not know how to authenticate or validate.
+        To do that we'll add a configuration in application.yml to tell spring to connect this for authentication.
+            spring.security.oauth2.resourceserver.jwt.jwk-set-uri = "http://localhost:7080/realms/master/protocol/openid-connect/certs"
+
+        The purpose of this path?
+            During the statup of the resource server, it is going to connect with the resource server and it is going to
+            download a public certificate from the KeyCloak server.
+            purpose of this certificate?
+                Using this public certificate, my resource server can validate if a given access token is really is used by
+                the KeyCloak server.
+                    If yes, is it a valid access token or an invalid access token?
+                    So all those checks on the access token, it can perform with the help of this public certificate.
+                The KeyCloak is going to have private certificates, Using the private certificates, the keycloak can only
+                issue the new tokens, whereas with the help of this public certificate, any server like resource server can
+                validate if a given access token is valid or not. They cannot really produce new tokens, but they should be able
+                to validate if the given access token is valid or not.
+
+
+    Now after doing all config out application knows how to authenticate a user using access token.
+    But it knows nothing about authorization. Means Curretly if any user successfully logged/authenticated
+    then he can trigger any api endpoint. where as we want to limit certain endpoint to only
+    some particular user.
+
+        This time instead of putting .authenticated in SecurityConfig.java we'll use .hasRole(roleName) as pass the
+        role name which required for that pattern to user have.
+        Now we have given required role to endpoint pattern like .hasRole("CARDS").
+        But we need to configer these roles to our client application which auth server / KeyCloak
+
+        Now we goto the KeyCloak and go to the user which we created, we'll see two tabs roles and 
+        service account roles. Since our user is non-human or application then we should configure the roles
+        in service account roles not in Roles tab.
+
+        But to assign the roles we have to create the role so goto Realm roles and click on create roles
+                Role Name: ACCOUNTS
+                Description: Accounts role
+            Do the same for cards and loans role.  //we leave for now for negative testing, latter will create it.
+        
+        No goto the client/user click on service account role the assign, then change fileter to filter by realm roles
+        and select the required role.
+
+        Now if we paste the new access_token to jwt decoder then we'll see new filed roles and list of assigned roles.
+
+
+    Now since we are getting the roles in jwt access_token, we need to write some logic inside our resource server
+    or inside the gatewayserver to extract the role information and convey the same to Spring Security framework
+    to use and validate my authorization rules that I have configured.
+
+    For the same, inside the same package of config we are creating new class with name KeycloakRoleConverter.java
+        in this clas we'll extract the roles that we are getting from the KeyCloak into the format that Spring 
+        Security framework can understand.
+
+        int this class we implemented a interface which has a method convert. 
+        We'll override this method. this method retur type is GrantedAuthority. When ever we want to talk
+        about roles with spring security we need to send the details in GrantedAuthority format.
+
+        Now we have fetched the role from the payload and converted it to GrantedAuthority and create the KeycloakRoleConverter.
+        But we need to communicate about this role converter to the configurations inside the SecurityConfig class.
+
+        for same we'll create grantedAuthoritiesExtractor private method in 
+        SecurityConfig.java which will communicate about the role converter
+
+    
+    Now everything is done. Now running the docker image along of KeyCloak container.
+    First lets create a client in KeyCloak as service account, without any role for testing.
+
+    then we can try GET method it'll trigger without any autherization.
+    But post request will ask for authorization.
+        either we can trigger the POST http://localhost:7080/realms/master/protocol/openid-connect/token
+        keycloak endpoint with required form
+
+                body:  x-www-form-urlencoded 
+
+                        grant_type = client_credentials
+                        client_id = eazybank-callcenter-cc
+                        client_secret = -------get from the keycloak (it is the password)
+                        scope = openid email profile
+        
+        then get the access token and put it in authentication as bearear in post request.
+
+    OR in postman in accounts post request we can select the authorization as OAuth 2.0
+        Then scroll down and fill the form like below in auth tab
+            Token Name: clientcredentails_accesstoken
+            Grant Type: Client Credentials
+            Access Token URL: http://localhost:7080/realms/master/protocol/openid-connect/token
+            Client id: eazybank-callcenter-cc
+            Client Secret:  -------get from the keycloak (it is the password)
+            scope = openid email profile
+            Client authentication: Send client credentials in body
+
+        Now after filling the details like above scroll down and click Get New Access Token
+        then proceesd->use token.
+        Now if you scroll up in auth tab you'll see that the new token populated in use Token type.
+        Now we can send the POST request to accounts MS and it'll use the new token.
+
+            At left tab in auth page
+                Add authorization data to: Request Headers
+
+        This way we avoided the copy paste of token else every time we would need to paste token once it
+        expired.
+
+    Now after all these tried to trigger the api now getting 403 error instead of 401,.
+        means authentication was successfull but authorization failed as client do not have proper role.
+        so let's add the role in role realm account, cards, loans and add that role to the client
+        eazybank-callcenter-cc which we created in service account role.
+
+    Added below to get login in h2 console outsited of running MS network.
+        settings: #to allow to connect the console outside of network. i.e. from local network to docker network.
+            web-allow-others: true
+
+    Now trying to do 
+        Authorization code grant flow  --> User will goto a website and try to login with our site and our
+                                        will share the resources requested with the other website where
+                                        client is trying to login.
+                                        
+                                        User will have account with our application.
+                                        The website(Client) where user wants to login will also have a account
+                                            with us.
+                                        Let's user->you, client->stakoverflow(where you want to login/creat account)
+                                                authorization server -> github/KeyCloak(our case) (where your and client account and details exist)
+                                                resource server -> github/gatewayserver(ourcase) (where the details are stored of user)
+                                                
+                                        User tries to login to the client by using option of github/KeyCloak.
+                                            Client -> redirect the login page to github/KeyCloak.
+                                            github/KeyCloak -> ask you user, id and pass then logsin, then authserver/github/KeyCloak share
+                                                                a authorization code with cleint.
+                                            client-> with recived auth code reach to authserver/github/KeyCloak for access token, and
+                                                                authserver/github/KeyCloak shares access token upon validation.
+                                            Cleint-> with the access token reach to gatewayserver/github to ask for the resource,
+                                                                gatewayserver/github validate the token with help of auth server and share
+                                                                the resource.
+                                                
+                                                Till now client is authserver login page
+                                            Authserver --> once everything successfull authserver redirect the user to client as per weblink
+                                                                    configured with client.
+
+        Previously we did Client Credentials grant type flow --> were only two different application talk to that
+                                        each other like GCP to oracle.
+
+                                    Client --> request tokent with Authserver
+                                    Cleint--> request resource from resource server using token
+                                    Resource server --> validates token and share the resource with client.
+
+        Cleint credentials already done.
+        Lets do the Authorization code grant type flow.
+
+            Login to keycloak as admin.
+                We can't use the client which we Previously created eazybank-callcenter-cc. because
+                we have maked it as service account and it means that this client will follow the
+                Cleint Credentials Grant type flow (backend to backend talk).
+            
+            Create a client for Authorization code grant flow.
+                Click on Clients->Create Client
+                        Client type: OpenID Connect
+                        Client ID: eazybank-callcenter-ac               ac-->authorization code
+                        Name: EazyBank Call Center UI App
+                        Description: EazyBank Call Center UI App
+                    
+                    NEXT
+
+                    Enable: client authentication, Standard flow
+
+                    NEXT
+
+                        Valid redirect URI: *         in ideal case here should be link at where we want to
+                        Valid redirect URI: https://oauth.pstmn.io/v1/callback         (Required for Postman "Authorize using browser")
+                                                        redirect the user after successful authentication. like dashboard/home page
+                                                        here always should be some link else hacker might redirect your user
+                                                        to some other sites.
+                                                        * --> mean anywhere is fine as we don't have any UI.
+
+                        Web Origins: *                Its the CORS, AS we may have multiple IP as our MS may be deployed
+                                                        at different places. so we need to put those domain/port here.
+                                                            * --> means recive requerst from anywhere.
+            Create a user in keycloak
+                Click on Users -> Add user
+                        email verified: Yes
+                        username: madan
+                        email: tutor@eazybytes.com
+                        email verified: Yes
+                        First Name: Madan
+                        Last Name: Reddy
+
+                    SAVE
+
+                Clieck on Credentails and add credentials also disable temproray else it'll ask To
+                        reset the password once user login 1st time.
+
+            In realworld Admin does not have to create the user everytime. KeyCloak have REST APIs To
+            create users which can be utitlized for user creation.
+
+            Now let's trigger the restapi of our MS using postman
+                we can get the keycloak rest url at http://localhost:7080/realms/master/.well-known/openid-configuration
+                We have do the configuration like below
+
+                    Auth Type: OAuth2.0
+                    Token Name: authcode_accesstoekn  (custome can be anything)
+                    Grant Type: Authorization Code
+                    Callback URL:  Check Authorize using browser       (this option is redirect url To
+                                                                        resoruce/github/KeyCloak server
+                                                                        to login by user) by checking the
+                                                                        postman will open the browser for
+                                                                        authentication of the user
+                    Auth URL: http://localhost:7080/realms/master/protocol/openid-connect/auth
+                                                                        (URL where user will login with authserver/github/KeyCloak)
+
+                    Access Token URL: http://localhost:7080/realms/master/protocol/openid-connect/token
+                                                                        (once user loges in we'll get authorization code,
+                                                                        using that code we to trigger the url to get the access token)
+                    Client ID: eazybank-callcenter-ac
+                    Client Secret:        get from the keycloak admin page at client page
+                    scope: openid email profile
+                    State:      randome alpha numeric value        it used to handle csrf attack.
+                    Cleint Authentication: Send client credentials in body
+
+                Before clicking on Get New Access Token, please close all browser, if browser is open and admin is logged In
+                then it'll consider that admin as user which we don't want.
+                After cliking the button it'll open a new browser for user login.
+
+                Get New Access Token
+
+                if we tirgger the api now we'll get 403 error which mean autherication of success but authrorization failed
+                because the user don't have roles ACCOUNTS, CARDS, LOANS which requeried for the rest api as we have configered
+                in SecurityConfig.java in gatewayserver MS.
+                So add these roles and try again.
+
+    Commented the port expose to outside network of accounts, loans, cards MS. To similuate firewall.
+    Now after commenting port we can't trigger the rest endpoint of accounts, loans, cards directly and
+    also its kind similuation of firewall, means if any want to trigger the rest endpoint of these MS
+    then they have to be pesent in that network else they have to go thorugh the gatewayserver as that
+    only point we left as port exposed to outside of docker network.
+
+*3* Changed config for h2 console
+    After disabling the port. we cannot access the h2-console like used to do.
+    Now we have to go thorough gatewayserver, to do that certail things we implemented
+
+        1st in application.yml of gatewayserver
+            server.forward-headers-strategy: framework # Configures Spring to use X-Forwarded-* headers from the Gateway to generate correct self-referencing URLs (fixes H2 Console redirects from gatewayserver)
+
+                    when using gatewayserver link like http://localhost:8072/eazybank/accountss/h2-console/ it was being converted to http://172.18.0.7:8080/h2-console/
+                    Gemini:
+                    The issue you are facing is that the Accounts microservice (running inside Docker at 172.18.0.7) 
+                    is generating a redirect (likely adding a trailing slash to /h2-console/) using its own internal 
+                    IP address because it doesn't realize it is being accessed via the Gateway (localhost:8072).
+                    To fix this, you need to do two things:
+                    Configure Downstream Microservices: Tell the Accounts, Loans, and Cards microservices
+                    to use the headers sent by the Gateway (like X-Forwarded-Host) to generate correct URLs.
+
+        2nd made changes in SecurityConfig.java to allow the h2 console link whitout authentication
+
+            .pathMatchers("/eazybank/accounts/h2-console/**").permitAll() //so that without authentication we can login at h2-consol
+            .pathMatchers("/eazybank/loans/h2-console/**").permitAll() //so that without authentication we can login at h2-consol
+            .pathMatchers("/eazybank/cards/h2-console/**").permitAll() //so that without authentication we can login at h2-consol
+
+
+        3rd in SecurityConfig.java
+            added one more diable csrf 
+            serverHttpSecurity.headers(headerSpec -> headerSpec.frameOptions(frameOptionsSpec -> frameOptionsSpec.disable())); //by gemini to access the h2 console database through gatewayserver
+
+        All 3 changes suggested by gemini.
+
+        accounts db    http://localhost:8072/eazybank/accountss/h2-console/
+            db url: jdbc:h2:mem:testdb
+        loans db: http://localhost:8072/eazybank/loanss/h2-console/
+        cards db: http://localhost:8072/eazybank/cards/h2-console/
