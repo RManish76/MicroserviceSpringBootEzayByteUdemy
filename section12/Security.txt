@@ -209,8 +209,125 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
         settings: #to allow to connect the console outside of network. i.e. from local network to docker network.
             web-allow-others: true
 
+    Now trying to do 
+        Authorization code grant flow  --> User will goto a website and try to login with our site and our
+                                        will share the resources requested with the other website where
+                                        client is trying to login.
+                                        
+                                        User will have account with our application.
+                                        The website(Client) where user wants to login will also have a account
+                                            with us.
+                                        Let's user->you, client->stakoverflow(where you want to login/creat account)
+                                                authorization server -> github/KeyCloak(our case) (where your and client account and details exist)
+                                                resource server -> github/gatewayserver(ourcase) (where the details are stored of user)
+                                                
+                                        User tries to login to the client by using option of github/KeyCloak.
+                                            Client -> redirect the login page to github/KeyCloak.
+                                            github/KeyCloak -> ask you user, id and pass then logsin, then authserver/github/KeyCloak share
+                                                                a authorization code with cleint.
+                                            client-> with recived auth code reach to authserver/github/KeyCloak for access token, and
+                                                                authserver/github/KeyCloak shares access token upon validation.
+                                            Cleint-> with the access token reach to gatewayserver/github to ask for the resource,
+                                                                gatewayserver/github validate the token with help of auth server and share
+                                                                the resource.
+                                                
+                                                Till now client is authserver login page
+                                            Authserver --> once everything successfull authserver redirect the user to client as per weblink
+                                                                    configured with client.
+
+        Previously we did Client Credentials grant type flow --> were only two different application talk to that
+                                        each other like GCP to oracle.
+
+                                    Client --> request tokent with Authserver
+                                    Cleint--> request resource from resource server using token
+                                    Resource server --> validates token and share the resource with client.
+
+        Cleint credentials already done.
+        Lets do the Authorization code grant type flow.
+
+            Login to keycloak as admin.
+                We can't use the client which we Previously created eazybank-callcenter-cc. because
+                we have maked it as service account and it means that this client will follow the
+                Cleint Credentials Grant type flow (backend to backend talk).
+            
+            Create a client for Authorization code grant flow.
+                Click on Clients->Create Client
+                        Client type: OpenID Connect
+                        Client ID: eazybank-callcenter-ac               ac-->authorization code
+                        Name: EazyBank Call Center UI App
+                        Description: EazyBank Call Center UI App
+                    
+                    NEXT
+
+                    Enable: client authentication, Standard flow
+
+                    NEXT
+
+                        Valid redirect URI: *         in ideal case here should be link at where we want to
+                        Valid redirect URI: https://oauth.pstmn.io/v1/callback         (Required for Postman "Authorize using browser")
+                                                        redirect the user after successful authentication. like dashboard/home page
+                                                        here always should be some link else hacker might redirect your user
+                                                        to some other sites.
+                                                        * --> mean anywhere is fine as we don't have any UI.
+
+                        Web Origins: *                Its the CORS, AS we may have multiple IP as our MS may be deployed
+                                                        at different places. so we need to put those domain/port here.
+                                                            * --> means recive requerst from anywhere.
+            Create a user in keycloak
+                Click on Users -> Add user
+                        email verified: Yes
+                        username: madan
+                        email: tutor@eazybytes.com
+                        email verified: Yes
+                        First Name: Madan
+                        Last Name: Reddy
+
+                    SAVE
+
+                Clieck on Credentails and add credentials also disable temproray else it'll ask To
+                        reset the password once user login 1st time.
+
+            In realworld Admin does not have to create the user everytime. KeyCloak have REST APIs To
+            create users which can be utitlized for user creation.
+
+            Now let's trigger the restapi of our MS using postman
+                we can get the keycloak rest url at http://localhost:7080/realms/master/.well-known/openid-configuration
+                We have do the configuration like below
+
+                    Auth Type: OAuth2.0
+                    Token Name: authcode_accesstoekn  (custome can be anything)
+                    Grant Type: Authorization Code
+                    Callback URL:  Check Authorize using browser       (this option is redirect url To
+                                                                        resoruce/github/KeyCloak server
+                                                                        to login by user) by checking the
+                                                                        postman will open the browser for
+                                                                        authentication of the user
+                    Auth URL: http://localhost:7080/realms/master/protocol/openid-connect/auth
+                                                                        (URL where user will login with authserver/github/KeyCloak)
+
+                    Access Token URL: http://localhost:7080/realms/master/protocol/openid-connect/token
+                                                                        (once user loges in we'll get authorization code,
+                                                                        using that code we to trigger the url to get the access token)
+                    Client ID: eazybank-callcenter-ac
+                    Client Secret:        get from the keycloak admin page at client page
+                    scope: openid email profile
+                    State:      randome alpha numeric value        it used to handle csrf attack.
+                    Cleint Authentication: Send client credentials in body
+
+                Before clicking on Get New Access Token, please close all browser, if browser is open and admin is logged In
+                then it'll consider that admin as user which we don't want.
+                After cliking the button it'll open a new browser for user login.
+
+                Get New Access Token
+
+                if we tirgger the api now we'll get 403 error which mean autherication of success but authrorization failed
+                because the user don't have roles ACCOUNTS, CARDS, LOANS which requeried for the rest api as we have configered
+                in SecurityConfig.java in gatewayserver MS.
+                So add these roles and try again.
+
     Commented the port expose to outside network of accounts, loans, cards MS. To similuate firewall.
     Now after commenting port we can't trigger the rest endpoint of accounts, loans, cards directly and
     also its kind similuation of firewall, means if any want to trigger the rest endpoint of these MS
     then they have to be pesent in that network else they have to go thorugh the gatewayserver as that
-    only point we left as port exposed to outside of docker network
+    only point we left as port exposed to outside of docker network.
+
