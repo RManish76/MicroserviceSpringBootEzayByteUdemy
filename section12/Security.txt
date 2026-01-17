@@ -204,3 +204,13 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
         means authentication was successfull but authorization failed as client do not have proper role.
         so let's add the role in role realm account, cards, loans and add that role to the client
         eazybank-callcenter-cc which we created in service account role.
+
+    Added below to get login in h2 console outsited of running MS network.
+        settings: #to allow to connect the console outside of network. i.e. from local network to docker network.
+            web-allow-others: true
+
+    Commented the port expose to outside network of accounts, loans, cards MS. To similuate firewall.
+    Now after commenting port we can't trigger the rest endpoint of accounts, loans, cards directly and
+    also its kind similuation of firewall, means if any want to trigger the rest endpoint of these MS
+    then they have to be pesent in that network else they have to go thorugh the gatewayserver as that
+    only point we left as port exposed to outside of docker network

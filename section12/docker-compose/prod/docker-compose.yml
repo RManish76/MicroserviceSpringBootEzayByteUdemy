@@ -306,8 +306,8 @@ services:
   accounts:  #service name
     image: "pdcourse/accounts:s12" 
     container_name: accounts-ms  
-    ports:
-      - "8080:8080"
+    # ports:
+    #   - "8080:8080"
     healthcheck:
       test: "curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1"
       interval: 100s
@@ -327,8 +327,8 @@ services:
   loans: #service name
     image: "pdcourse/loans:s12"
     container_name: loans-ms
-    ports:
-      - "8090:8090"
+    # ports:
+    #   - "8090:8090"
     healthcheck:
       test: "curl --fail --silent localhost:8090/actuator/health/readiness | grep UP || exit 1"
       interval: 100s
@@ -345,8 +345,8 @@ services:
   cards: #service name
     image: "pdcourse/cards:s12"
     container_name: cards-ms
-    ports:
-      - "9000:9000"
+    # ports:
+    #   - "9000:9000"
     healthcheck:
       test: "curl --fail --silent localhost:9000/actuator/health/readiness | grep UP || exit 1"
       interval: 100s
