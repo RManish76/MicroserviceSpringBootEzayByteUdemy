@@ -11,6 +11,8 @@ spring:
   h2:
     console:
       enabled: true
+      settings: #to allow to connect the console outside of network. i.e. from local network to docker network.
+        web-allow-others: true
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:

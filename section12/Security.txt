@@ -160,3 +160,47 @@ Now to implement this we'll use KeyCloak to acheive the same. which will be resp
 
         for same we'll create grantedAuthoritiesExtractor private method in 
         SecurityConfig.java which will communicate about the role converter
+
+    
+    Now everything is done. Now running the docker image along of KeyCloak container.
+    First lets create a client in KeyCloak as service account, without any role for testing.
+
+    then we can try GET method it'll trigger without any autherization.
+    But post request will ask for authorization.
+        either we can trigger the POST http://localhost:7080/realms/master/protocol/openid-connect/token
+        keycloak endpoint with required form
+
+                body:  x-www-form-urlencoded 
+
+                        grant_type = client_credentials
+                        client_id = eazybank-callcenter-cc
+                        client_secret = -------get from the keycloak (it is the password)
+                        scope = openid email profile
+        
+        then get the access token and put it in authentication as bearear in post request.
+
+    OR in postman in accounts post request we can select the authorization as OAuth 2.0
+        Then scroll down and fill the form like below in auth tab
+            Token Name: clientcredentails_accesstoken
+            Grant Type: Client Credentials
+            Access Token URL: http://localhost:7080/realms/master/protocol/openid-connect/token
+            Client id: eazybank-callcenter-cc
+            Client Secret:  -------get from the keycloak (it is the password)
+            scope = openid email profile
+            Client authentication: Send client credentials in body
+
+        Now after filling the details like above scroll down and click Get New Access Token
+        then proceesd->use token.
+        Now if you scroll up in auth tab you'll see that the new token populated in use Token type.
+        Now we can send the POST request to accounts MS and it'll use the new token.
+
+            At left tab in auth page
+                Add authorization data to: Request Headers
+
+        This way we avoided the copy paste of token else every time we would need to paste token once it
+        expired.
+
+    Now after all these tried to trigger the api now getting 403 error instead of 401,.
+        means authentication was successfull but authorization failed as client do not have proper role.
+        so let's add the role in role realm account, cards, loans and add that role to the client
+        eazybank-callcenter-cc which we created in service account role.
