@@ -1,0 +1,23 @@
+Create a new project with name message with only single dependency "Function"
+
+*1* Creation of dto
+        Created a folder/package name dto.
+        Inside this folder we'll create class related to dto, using which we will always accept the message
+        that we are going to receive from the message broker.
+            So the accounts microservice, is going to send a message to the message broker in the format of
+            the DTO and the same we are going to receive inside this message service and process the same.
+
+        But this time instead of class we'll use the record modifier, as we know the record modifier
+        automatically going to generate the getter for the feilds and it's going to make the fields also
+        final, which means once the object of this record is created, all the data inside it going to be final.
+
+        Record name: AccountsMsgDto() and fields are accountNumber, name, email, mobileNumer   like below
+
+        public record AccountsMsgDto(Long accountNumber, String name, String email, String mobileNumber){
+
+        }
+
+*2* Creation of functions package
+        Created a function package/folder that are needed for the business logic.
+        So inside that folder create class  with name MessageFunction.java  this class will be used to
+        handle the messageing to the end user.
