@@ -1,0 +1,93 @@
+Event-Driven architectures can be built using two primary models.
+    *1* Publisher/Subscriber (Pub/Sub) Model - (RabbitMQ)
+            This model revolves around subscriptions. Producers generate events that are distributed to all
+            subscribers for consumption. Once an event is received, it cannot be replayed, which means new
+            subscribers joining later will not have access to past events.
+
+    *2* Event Streaming Model - (Apache Kafka)
+            In this model, events are written to a log in a sequential manner. Producers publish events are
+            stored in a well-ordered fashoin. Instead of subscribing to events, consumers have the ability
+            to read from any part of the event stream. One advantage of this model is that events can be
+            replayed, allowing clients to join at any time and receive all past events.
+
+        The pub/sub model is frequently paired with RabbitMQ as a popular option. On the other hand,
+            Apache Kafka is a robust plarform widely utilized for event stream processing.
+
+In this project we'll use RabbitMQ and in next project the Apache Kafka.
+    Goal in this project is that account MS when creates account i'll pubslish a event to event broker(RabbitMQ).
+    This published event will be consumed by a message/notification service which will notify the customer about creating
+    of account vai email and sms.
+    Then again message/notification service will also publish an event to about communication to customer with metadata.
+    Then this event will be consumed by another servcie which will save all these details to a DB.
+        1.(User): Some one try to create a new account
+        2.(AccountMS):  New account get created and a request to send communication will be published into event
+                        broker & response to end user will be intiated.
+        3.(Event Broker): End user receives response that account created successfully.
+                            Also the event broker receives the event details and push the same into a queue which the
+                            message service subscribed.
+        4.(Message Service): Receives the notification from event broker and read the details from the queue.
+                            The data will be processed and an email, sms will be send to the customer.
+        5.(Message Service): Once the message service process the communication, it publish an event async to
+                                confirm the same.
+        6.(Event Broker): The event broker receive the event details and push the same into a queue which the accounts
+                            service subscribed.
+        7.(Accounts Microservice): Receives the notification from event broker and update the DB columns accordingly
+                                    about communication to customer.
+
+
+        RabbitMQ, an open-source message broker, is widely recognized for its utilization of
+        AMQP(Advanced Message Queuing Protocol) and its ability to offer flexible asynchronous messaging,
+        distributed deployment and comprehensive monitoring.
+        Furthermore, recent versions of RabbitMQ have incorporated event streaming functionalities into
+        their feature set.
+
+        When using an AMQP-based soution such as RabbitMQ, the participants engaged in the interaction can
+        be classified into the following categories:
+
+            Producer: The entity responsible for sending messages(also known as the publisher).
+            Consumer: The entity tasked with receiving messages(also known as the subscriber).
+            Message Broker: The middleware that receives messages from producers and directs them to the
+                            appropriate consumers.
+
+            Producer ---Send or produce message to---->Message Broker<----Receive or subscribe message from----Consumer
+
+        The messaging model of AMQP operates on the principles of exchanges and queues, as depicted int the
+        following illustration. Producers transmit messages to an exchanges. Based on a specified routing rule,
+        RabbitMQ determines the queues that should receive a copy of the message. Consumers, in turn, read
+        messages from a queue.
+                                                            |--> Queue1 ---Receive or Subscribe message from------> Consumer 1
+                                                            |
+                                                            |
+                                                            |
+        Producer---Send or Produce message to---->Exchange--
+                                                            |
+                                                            |
+                                                            |
+                                                            |--> Queue2 ---Receive or Subscribe message from------> Consumer 2
+
+RabbitMQ Doc: https://www.rabbitmq.com/tutorials
+
+In this project we'll use Spring Cloud Function
+    Spring Cloud Function facilitates the development of business logic by utilizing functions that adhere to
+    the standard interfaces introduced in Java 8, namely Supplier, Function and Consumer.
+
+    Supplier: A supplier is a function that produces an output without requiring any input. It can also
+                be referred to as a producer, publisher or source.
+
+    Function: A function accepts input and generates an output. It is commonly referred to as a processor.
+
+    Consumer: A consumer is a function that consumes input but does not produce any output. It can also
+                be called a subscriber or sink.
+
+    
+    Spring Cloud Function features:
+        * Choice of programming styles - reactive, imperative or hybrid.
+        * POJO functions (i.e., if something fits the @FunctionalInterface semantics we'll treat it as function)
+        * Function composition which includes composing imperative functions with reactive.
+        * REST support to expose functions as HTTP endpoints etc.
+        * Streaming data (via Apache Kafka, Solace, RabbitMQ and more) to/from functions via Spring Cloud Stream
+                        framework.
+        * Packaging functions for deployments, specific to the target platfrom (e.g., AWS Lambda and possibly
+                            other "serverless" service providers)
+
+        Doc link: https://docs.spring.io/spring-cloud-function/reference/
