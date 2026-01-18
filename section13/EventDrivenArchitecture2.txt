@@ -91,4 +91,7 @@ Create a new project with name message with only single dependency "Function"
             now if we send post request with this newendpoint emailsms we'll see that both method got
             executed.
                 endpoint url: http://localhost:9010/emailsms
-                
+
+*5*
+        Commented the dependency <artifactId>spring-cloud-starter-function-web</artifactId> as in futuer
+        we don't want to expose the methods as rest endpoints as we are going to connect with RabbitMQ.

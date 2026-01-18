@@ -40,10 +40,11 @@
 			<artifactId>spring-cloud-function-context</artifactId>
 		</dependency>
 
-		<dependency>
+		<!-- exposes function interface as rest endpoint -->
+		<!-- <dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-function-web</artifactId>
-		</dependency>
+		</dependency> -->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
