@@ -112,4 +112,61 @@ Create a new project with name message with only single dependency "Function"
     After this adding google jib plugin so that it can be used to generate docker image.
 
     Now we'll add some properties/config to application.yml
-        for binding name, desitnation etc for the events. and also added properties related to RabbitMQ
+        for binding name, desitnation etc for the events. and also added properties related to RabbitMQ.
+
+*7* updating the accounts MS
+        We need to update the accounts microservice to send the message and push them into the rabbitmq.
+        To do the same 1st we need add some dependencies in accounts MS.
+            Added the below dependency
+                <!-- spring cloud stream, for event deriven, to communicate to event broker -->
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream</artifactId>
+                </dependency>
+
+                <!-- dependency for rabbitmq to use as event/message broker -->
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+
+        Now we are going to create a dto and in format of this dto we'll do the communication with event broker.
+        Also we'll create this dto of Record modifier in accounts MS with name AccountsMsgDto.java.
+        This dto will same as created in message MS.
+
+        Now we need to let accounts MS as well that whenever an account is created it need to publish the
+        event with details of account creation.
+        So to do that we need to add some properties in application.yml of accounts MS.
+            added spring.cloud.stream.bindings.sendCommunication-out-o.destination=send-communcation
+
+        also we need to add RabbitMQ details in accounts MS
+
+
+        Now we are done with dependencies and configuration.
+
+        But we also need to update the method of create which will pubslish the event once it get request and
+        process it.
+            To do that 1st in service/impl/AccountsServiceImpl.java there is a method name createAccount.
+            From this method only we need to trigger the msg/event whenever we create an account successfully.
+                1st we'll create a logger object in class to pring some log.
+                
+                Then we'll do autowire a bean of type stream bridge. So we just need define a refrence of
+                streamBridge and since we have @AllArgsConsructor autowire will be done automatically for
+                all refrence.
+
+                Now we'll update the create method.
+                    In create method we are saving customer and account.
+                    This time we'll store the saved account in a refrence and same we'll use to
+                    for the event.
+                    We have created a method sendCommunication which will publish the event once triggerd.
+                    This same method we'll trigger in createAccount method passting savedAccount and
+                    savedCustomer as parameter to sendCommunication method.
+
+                In sendCommunication method
+                    1st we created an object of AccountsMsgDto using the constructor by passing all required fields
+                    then printing some log before sending the msg/event
+                    then with the help of streamBridge we are sending the event/msg.
+                        to this send method we are passong the binding method which will be defined in application.yml
+                        and second parameter is the actual message which the AccountsMsgDto.
+                        This streamBridge will return a boolean value that msg sent successfully to event broker or not.
+                    And then same boolean value we are printing in the log.

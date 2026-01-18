@@ -133,6 +133,18 @@
 			<version>${otelVersion}</version>
 			<scope>runtime</scope> <!--means need only at runtime, during compilation don't need the opentelemetry-->
 		</dependency>
+
+		<!-- spring cloud stream, for event deriven, to communicate to event broker -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-stream</artifactId>
+		</dependency>
+
+		<!-- dependency for rabbitmq to use as event/message broker -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+		</dependency>
 </dependencies>
 
 
@@ -190,7 +202,7 @@
         <version>3.5.1</version>
         <configuration>
           <to>
-            <image>pdcourse/${project.artifactId}:s12</image>
+            <image>pdcourse/${project.artifactId}:s13</image>
           </to>
         </configuration>
       </plugin>
