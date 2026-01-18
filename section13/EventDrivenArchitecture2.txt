@@ -170,3 +170,34 @@ Create a new project with name message with only single dependency "Function"
                         and second parameter is the actual message which the AccountsMsgDto.
                         This streamBridge will return a boolean value that msg sent successfully to event broker or not.
                     And then same boolean value we are printing in the log.
+
+*8* running the application
+        1st we are going to run the RabbitMQ
+            rabbitMQ Link: https://www.rabbitmq.com/docs/download
+        we'll run the rabbitMQ in docker, we can find the command at the rabbitMQ website.
+        cmd: docker run -d -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:4-management
+
+        added -d to the command to run it in detached mode.
+
+        after running the application like configserver, eurekaserver, accounts, message,keyclock, gatewayserver.
+
+        we'll goto http://localhost:15672
+            username: guest    password: guest
+
+            Click on Exchanges->send-communcation(due to defined in accounts MS as desitnation in application.yml)->Bindings
+
+                We should see a queue name send-communication.message    --(destination.group) as per application.yml of message MS
+
+            we can also Click on Queues and Streams tab there it'll also show the queue name
+            
+            In exchange we'll able to see the eamil-out-0 binding as well.
+                Its because by default whenever we add the spring cloud stream to our MS where we
+                have defined functions with the help of spring cloud function, the spring cloud stream is
+                automatically going to create the input and output binding based upon the depfiniation.
+                And since for input we defined a binding with name send-communcation it create the input binding
+                with that name where as for output we did not defined anything so as per default behaivour it
+                picked the composed method name defined in application.ym of message which email|sms
+                and as per that it created the exchange for that with name emailsms-out-0.
+                But if we open emailsms-out-0 we'll not see any queue binded to it as we have defined any queue
+                for ouput where we have defined a queue for input as destination.group as per application.yml
+

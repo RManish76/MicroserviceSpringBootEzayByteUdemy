@@ -54,7 +54,7 @@ public class AccountsServiceImpl  implements IAccountsService {
                                 customer.getEmail(), customer.getMobileNumber());
         log.info("Sending Communication request for the details: {}", accountsMsgDto);
         var result = streamBridge.send("sendCommunication-out-0", accountsMsgDto); //will send the event to event broker and return a boolean value of success or not.
-        log.info("Is the Communication request successfully processed > : {}", result);
+        log.info("Is the Communication request successfully triggered? : {}", result);
     }
 
     /**
