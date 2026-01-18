@@ -48,3 +48,29 @@ Create a new project with name message with only single dependency "Function"
             public interface Consumer<T>{
                 void accept(T t);
             }
+
+*3* Adding dependency to enable rest endpoint
+
+        Now we are going add below dependency in pom of message MS which will enable rest endpoint for
+        the methods(two functional interface method in MessageFunction.java )which we created without creating any restendpoint.
+    
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-function-web</artifactId>
+            </dependency>
+
+        After adding the dependency and run the spring application. default port 8080 as not configured yet.
+        Then trigger POST http://localhost:8080/email
+                     Body
+                            {
+                                "accountNumber": 1234567890,
+                                "name": "Madan Reddy",
+                                "email": "tutor@eazybytes",
+                                "mobileNumber": "1234567890"
+                            }
+                     
+                     Response: same as post body
+            We'll see that the email method triggered with this endpoint. similar we can trigger the sms method.
+
+        Why POST, as the method accept input, hence POST, PUT, DELETE
+                if method does not accept input GET like wise i think.
