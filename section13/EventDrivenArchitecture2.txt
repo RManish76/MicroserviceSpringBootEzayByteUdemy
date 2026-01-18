@@ -98,3 +98,18 @@ Create a new project with name message with only single dependency "Function"
 
         Reverted back the version of spring boot to 4.0.1 and spring cloud to 2025.1.0 if issue presist
         again will modify the version with boot 3.4.1 and cloud 2024.0.0
+
+
+*6* Adding Spring cloud Stream, RabbitMQ dependency
+
+    First we'll remove all existing dependency and then will add few new dependency for the project.
+
+    There will be question might that why we removed the spring cloud function, its because when we add
+    spring cloud stream dependency then inside out project internally, it is also going to add spring
+    cloud function related dependencies.
+    So just to avoid that redundancy, I have deleted the dependency of spring cloud function.
+
+    After this adding google jib plugin so that it can be used to generate docker image.
+
+    Now we'll add some properties/config to application.yml
+        for binding name, desitnation etc for the events. and also added properties related to RabbitMQ

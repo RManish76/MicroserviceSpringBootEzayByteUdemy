@@ -31,14 +31,14 @@
 		<spring-cloud.version>2025.1.0</spring-cloud.version> <!--Modifed the version with compataible spring cloud as per gemini, as with boot 4.0.1 and cloud 2025.1.0 project was not running.-->
 	</properties>
 	<dependencies>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
-		</dependency>
-		<dependency>
+		</dependency> -->
+		<!-- <dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-function-context</artifactId>
-		</dependency>
+		</dependency> -->
 
 		<!-- exposes function interface as rest endpoint -->
 		<!-- <dependency>
@@ -46,11 +46,36 @@
 			<artifactId>spring-cloud-starter-function-web</artifactId>
 		</dependency> -->
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-		</dependency>
+		</dependency> -->
+
+
+
+		<!-- dependency of spring cloud stream -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream</artifactId>
+        </dependency>
+
+		<!-- dependency for rabbitmq to use as event/message broker -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-test-binder</artifactId>
+            <scope>test</scope>
+        </dependency>
+
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -65,11 +90,21 @@
 	</dependencyManagement>
 
 	<build>
-		<finalName>messageMicroservice</finalName>
+		<finalName>${project.artifactId}Microservice</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<to>
+						<image>pdcourse/${project.artifactId}:s13</image>
+					</to>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
