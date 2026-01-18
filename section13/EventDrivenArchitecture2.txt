@@ -95,3 +95,6 @@ Create a new project with name message with only single dependency "Function"
 *5*
         Commented the dependency <artifactId>spring-cloud-starter-function-web</artifactId> as in futuer
         we don't want to expose the methods as rest endpoints as we are going to connect with RabbitMQ.
+
+        Reverted back the version of spring boot to 4.0.1 and spring cloud to 2025.1.0 if issue presist
+        again will modify the version with boot 3.4.1 and cloud 2024.0.0
