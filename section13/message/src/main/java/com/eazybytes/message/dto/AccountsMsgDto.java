@@ -1,4 +1,4 @@
-package main.java.com.eazybytes.message.dto;
+package com.eazybytes.message.dto;
 
 /**
  * @param accountNumber

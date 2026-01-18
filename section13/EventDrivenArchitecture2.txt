@@ -21,3 +21,30 @@ Create a new project with name message with only single dependency "Function"
         Created a function package/folder that are needed for the business logic.
         So inside that folder create class  with name MessageFunction.java  this class will be used to
         handle the messageing to the end user.
+
+        added a Logger object for logging.
+        
+        the syntax of a function interface is like below. where T denotes input and R denotes output.
+            @FunctionalInterface
+            public interface Function<T,R>{
+                R apply(T t);
+            }
+        
+        so using the Function interface we created two methods for email and sms to the user.
+
+        Now similar to the Function interface we have Supplier interface as shown below, where
+            T indicates the type of results supplied by this supplier, hence this interface will not accept
+            any input it'll just send an output.
+
+            @FunctionalInterface
+            public interface Supplier<T>{
+                T.get();
+            }
+        
+        And similar we also have one more interface which  is Consumer interface as shown below, where
+            T indicates the generic data type which is input for theis interface.
+            But this interface is not going to return any output.
+            @FunctionalInterface
+            public interface Consumer<T>{
+                void accept(T t);
+            }
