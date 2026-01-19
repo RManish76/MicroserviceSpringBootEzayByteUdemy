@@ -20,9 +20,14 @@ spring:
         emailsms-out-0: #binding name for event out from message MS. as per the compose function definition
           destination: communication-sent #exhange where the event will be publised.
 
-  rabbitmq: #details of rabbitMq
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-    connection-timeout: 10s
+      kafka: #config related to kafka
+        binder:
+          brokers:
+            - localhost:9092
+
+  # rabbitmq: #details of rabbitMq
+  #   host: localhost
+  #   port: 5672
+  #   username: guest
+  #   password: guest
+  #   connection-timeout: 10s

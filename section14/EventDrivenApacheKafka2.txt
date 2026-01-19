@@ -1,1 +1,13 @@
 1st will updated the accounts MS pom file from rabbitMQ to kafka.
+smilarly will update the message MS pom file from rabbitMQ to kafka.
+
+Now will update the config in aplication.yml in message MS.
+    commented the config related to rabbitMQ and add config related kafka.
+        spring.stream.kafka.binder.brokers=localhost:9092  #the url at which kafka will run
+
+similary the config in accounts MS needs to be updated to kafka from rabbitMQ.
+
+That's we need to do.
+We just updated the dependency and config nothing else. No other code change needed.
+That's beacause spring cloud stream is in middle so changing from one product to another
+is seamless.

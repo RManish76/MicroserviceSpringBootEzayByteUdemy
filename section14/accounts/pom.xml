@@ -141,9 +141,15 @@
 		</dependency>
 
 		<!-- dependency for rabbitmq to use as event/message broker -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+		</dependency> -->
+
+		<!-- dependency for kafka to use as event/message broker -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-stream-binder-kafka</artifactId>
 		</dependency>
 </dependencies>
 
@@ -202,7 +208,7 @@
         <version>3.5.1</version>
         <configuration>
           <to>
-            <image>pdcourse/${project.artifactId}:s13</image>
+            <image>pdcourse/${project.artifactId}:s14</image>
           </to>
         </configuration>
       </plugin>
