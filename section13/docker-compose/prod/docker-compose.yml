@@ -1,5 +1,22 @@
 services:
 
+  #RabbitMQ Service as an eventBroker
+  rabbit:
+    image: rabbitmq:4.0-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   #keycloak service
   keycloak:
     image: quay.io/keycloak/keycloak:26.5.0
@@ -268,7 +285,7 @@ services:
   #     service: network-deploy-service
   
   configserver: #service name
-    image: "pdcourse/configserver:s12" 
+    image: "pdcourse/configserver:s13" 
     container_name: configserver-ms  
     ports:
       - "8071:8071"
@@ -285,7 +302,7 @@ services:
       OTEL_SERVICE_NAME: "configserver" #for opentelemetry
 
   eurekaserver: #service name
-    image: "pdcourse/eurekaserver:s12" 
+    image: "pdcourse/eurekaserver:s13" 
     container_name: eurekaserver-ms  
     ports:
       - "8070:8070"
@@ -304,7 +321,7 @@ services:
       OTEL_SERVICE_NAME: "eurekaserver"  #for opentelemetry
 
   accounts:  #service name
-    image: "pdcourse/accounts:s12" 
+    image: "pdcourse/accounts:s13" 
     container_name: accounts-ms  
     # ports:
     #   - "8080:8080"
@@ -317,15 +334,18 @@ services:
     depends_on:
       configserver:
         condition: service_healthy
+      rabbit:
+        condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "accounts"
       OTEL_SERVICE_NAME: "accounts" #for opentelemetry
+      SPRING_RABBITMQ_HOST: "rabbit" #for rabbiMQ as in local it was localhost but in docker it should look for service wiht name rabbit.
     extends:
       file: common-config.yml
       service: microservice-eureka-config
   
   loans: #service name
-    image: "pdcourse/loans:s12"
+    image: "pdcourse/loans:s13"
     container_name: loans-ms
     # ports:
     #   - "8090:8090"
@@ -343,7 +363,7 @@ services:
       service: microservice-eureka-config
   
   cards: #service name
-    image: "pdcourse/cards:s12"
+    image: "pdcourse/cards:s13"
     container_name: cards-ms
     # ports:
     #   - "9000:9000"
@@ -377,9 +397,21 @@ services:
   #     file: common-config.yml
   #     service: microservice-eureka-config
 
+  message:
+    image: "eazybytes/message:s13"
+    container_name: message-ms
+    depends_on:
+      rabbit:
+        condition: service_healthy
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbit"
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
 
+      
   gatewayserver: #service name
-    image: "pdcourse/gatewayserver:s12"
+    image: "pdcourse/gatewayserver:s13"
     container_name: gatewayserver-ms
     ports:
       - "8072:8072"

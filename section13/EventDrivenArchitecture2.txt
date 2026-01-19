@@ -250,3 +250,8 @@ Create a new project with name message with only single dependency "Function"
 
             Now we need add some properties in application.yml of accounts MS to receive the event from the
             event broker.
+
+*10* Generating docker image and updating docker-copose file
+
+        updated pom of all MS for s13.
+        Now let's update the docker compose.
