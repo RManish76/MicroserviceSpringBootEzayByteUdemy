@@ -9,10 +9,10 @@ services:
       - "15672:15672"
     healthcheck:
       test: rabbitmq-diagnostics check_port_connectivity
-      interval: 10s
-      timeout: 5s
+      interval: 100s
+      timeout: 10s
       retries: 10
-      start_period: 5s
+      start_period: 100s
     extends:
       file: common-config.yml
       service: network-deploy-service
@@ -398,7 +398,7 @@ services:
   #     service: microservice-eureka-config
 
   message:
-    image: "eazybytes/message:s13"
+    image: "pdcourse/message:s13"
     container_name: message-ms
     depends_on:
       rabbit:
@@ -408,7 +408,6 @@ services:
     extends:
       file: common-config.yml
       service: network-deploy-service
-
       
   gatewayserver: #service name
     image: "pdcourse/gatewayserver:s13"

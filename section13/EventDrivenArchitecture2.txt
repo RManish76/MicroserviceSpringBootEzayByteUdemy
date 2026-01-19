@@ -255,3 +255,11 @@ Create a new project with name message with only single dependency "Function"
 
         updated pom of all MS for s13.
         Now let's update the docker compose.
+
+*11*
+    h2 consile linke for accounts ms: http://localhost:8072/eazybank/accounts/h2-console/
+        note / at the end of he-console is mandaroty.
+    rabbitMQ link: http://localhost:15672        username & password: guest
+
+    even 10 second is less, circuitbreaker killed the request. now going to provide the 60sec time for each
+    request from gatewayserver to accounts MS
