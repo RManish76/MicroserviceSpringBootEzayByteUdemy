@@ -1,0 +1,152 @@
+server:
+  port: 8080
+  forward-headers-strategy: framework # Configures Spring to use X-Forwarded-* headers from the Gateway to generate correct self-referencing URLs (fixes H2 Console redirects from gatewayserver)
+spring:
+  application:
+    name: accounts
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+      settings: #to allow to connect the console outside of network. i.e. from local network to docker network.
+        web-allow-others: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  config:
+    import:
+    - "optional:configserver:http://localhost:8071"
+  #Circuit breaker config with opeinFien
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+    
+    function:
+      definition: updateCommunication #function name which we creted using Consumer function for event borker to receive event
+
+    stream:
+      bindings:
+        updateCommunication-in-0: # name of exchange which will created in event-broker
+          destination: communication-sent # queue name where accounts MS need to look for event to recive in event broker.
+          group: ${spring.application.name}
+        sendCommunication-out-0: #binding name #we don't have function defined in accounts MS like email|sms in message MS. hece given some random binding name.
+          destination: send-communication #exchange name or some point defined in rabbitMQ at which needs to be communicated.
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    connection-timeout: 10s
+
+  profiles:
+    active:
+      - "prod"  #by default our acounts project will start with prod profile. we have application name and using same application name it'll look for profile in spring cloud config server
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - "*"   #include all rest endpoint. we can mention refresh api alone but going for all.
+                    #for only refresh endpoint, we can mention "refresh". it'll expose only refres endpoint
+                    # of actuator
+  health:
+    readiness-state:
+      enabled: true #enabled for actuator
+    liveness-state:
+      enabled: true #enbale to check for actuator
+  endpoint:
+    shutdown:
+      enabled: true # Enable graceful shutdown via REST API
+    health:
+      probes:
+        enabled: true #enabled to check readiness and liveness through rest endpoints
+        
+  info:   # to fetch enviorment/app info details using acutator end point.
+    env:
+      enabled: true
+
+  metrics:  #for metics monitoring for micrometer, grafana, prometheus. we are telling to group all the metrics related to this application under the application name. for example group all metrics related to accoutns MS under the application name accounts.
+    tags:
+      application: ${spring.application.name}
+
+endpoints:
+  shutdown:
+    enabled: true # to expose actuator shutdown rest api endpoint
+    
+#eureka server details --> As accountsMS is eureka client, it need details of eureka server to connect to eureka server
+eureka:
+  instance:
+    # hostname: localhost #no need in client as it's not a server
+    preferIpAddress: true #by default cliet register themselv using hostname and it works when we have DNS mapping.
+                          #But in our local we don't have any DNS, so we should prefer IP address so that they can find each other
+                          #using IP address
+  client:
+    fetchRegistry: true #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
+    registerWithEureka: true #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
+
+#details which we want to show at eureka server for this app.
+#these infor information will be exposed as part of an actuator endpoint URL
+#Since by default the infor related actuator URL is not enabled, we need to enable the same by adding
+#a property under management followed by info.
+info:
+  app:
+    name: "accounts"
+    description: "Eazy Bank Accounts Application"
+    version: "1.0.0"
+
+
+#we are telling that to spring boot if you see any log which is type of DEBUG
+#executing in package of com.eazaybytes.gateewayserver 
+logging:
+  level:
+    com:
+      eazybytes:
+        accounts: DEBUG
+  pattern: #config related to opentelemetry
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+          # %5p --> assign some char of lenght of 5 for log severiy like debug, warning or error
+          # ${spring.application.name} --> tag, the metadata info related to application, which is app name
+          # %X{trace_id} --> convey to springboot framework at runtime Open Telemetry library is going to generate the
+                            # trace ID with the context information trace_id. The same we want to inject here. After the trace Id.
+          # %X{span_id} --> to inject span ID at the runtime into all the logs.
+
+resilience4j.circuitbreaker:
+  configs:
+    default: #default means these properties for all circuit breaker inside the gatewayServer MS. If we want to set properties for any particular circuit breaker we can metion the name which we give in GatewayserverApplication.java in place of default.
+      slidingWindowSize: 10 #Monitor atleast 10 request before moving to open from close
+      permittedNumberOfCallsInHalfOpenState: 2 #max 2 calls allowed in HalfOpen State. Take decision to go back to open or close status based  on these 2 request beahivour
+      failureRateThreshold: 50 # if alteast 50% of request failed the circuit breaker can move from open status to close status.
+      waitDurationInOpenState: 10000 #10000milisec-->10s wait for 10s in open state then only move to Half_Open state
+
+    
+resilience4j.retry:
+  configs:
+    default: #default --> for all retyr. Else can expelicitry mention retry config with the name of retry which we have given to the retry.
+      maxAttempts: 3 # number of retry
+      waitDuration: 100 # in milisec
+      enableExponentialBackoff: true 
+      exponentialBackoffMultiplier: 2
+      ignoreExceptions: #if below exception occurs then directly go for fallback no need of retry.
+        - "java.lang.NullPointerException"
+      retryExceptions: #execute retry only for below exceptions else go for fallback no need of retry.
+        - "java.util.concurrent.TimeoutException"
+
+
+# //     In this approach we don't need any redis container for rateLimiter becuase if you notice we did not updated the pom in case of accounts MS.
+resilience4j.ratelimiter:
+  configs:
+    default: # for all reatelimiter in accounts MS. we can user ratelimiter name as well for explitcitly metion the limits
+      timeoutDuration: 1000 #1000milisec --> timilimt to wait for new quota if current quota is exhausted. means for each max wait is 1 sec for new quota, if the current quota is exhausted
+      limitRefreshPeriod: 5000 #5000milisec --> renew the quota in every 5 sec
+      limitForPeriod: 1  #only 1 request is allowed in one quota. means as per our quota 1 request per 5 sec

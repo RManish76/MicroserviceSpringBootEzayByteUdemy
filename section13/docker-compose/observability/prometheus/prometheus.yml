@@ -1,0 +1,30 @@
+global:
+  scrape_interval:     5s # Set the scrape interval to every 5 seconds. #fetch metrics every 5sec
+  evaluation_interval: 5s # Evaluate rules every 5 seconds.  #reevaluate the data or graphs inside the prometheus every 5sec.
+
+scrape_configs:
+  - job_name: 'accounts' #kept same as application name, can be anything.
+    metrics_path: '/actuator/prometheus' #actuator path
+    static_configs:
+      - targets: [ 'accounts:8080' ] #list of instances [serive_name_in_docker-compose.yml:port at which service is running in docker network] as all in same network.
+  - job_name: 'loans'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'loans:8090' ]
+  - job_name: 'cards'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'cards:9000' ]
+  - job_name: 'gatewayserver'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'gatewayserver:8072' ]
+  - job_name: 'eurekaserver'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'eurekaserver:8070' ]
+  - job_name: 'configserver'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'configserver:8071' ]
+  

@@ -1,0 +1,53 @@
+Previously we developed few functions using spring clould functions,
+we can build our business logic inside functions and these function if needed we can expose them as
+REST APIs by just adding a dependency inside our pom.xml.
+
+Bue we want to integrate our functions with the event brokers like RabbitMQ and Apache Kafka.
+So in all such scenarios, we need to use the Sring Cloud Stream project.
+
+
+
+Spring Cloud Stream
+
+    Spring Cloud Stream is a framework designed for creating scalable, event-driven and streaming applications.
+    Its core principle is to allow developers to focus on the business logic  while the framework takes care of
+    infrastructure-related tasks, such as integrating with a message broker.
+
+    Spring Cloud Stream leverages the native capabilities of each message broker, while also providing an
+    abstraction layer to ensure a consistent experience regardless of the underlying middleware. By just
+    adding a dependency to your project, you can have functions automatically connected to an external
+    message broker. The beauty of this approach is that you don't need to modify any application code,
+    you simply adjust the configuration in the application.yml file.
+
+    The framework supports integration with RabbitMQ, Apache Kafaka, Kafaka Streams, and Amazon Kinesis.
+    There are also integrations maintained by partners for Google PubSub, Solace PubSub+, Azure Event Hubs,
+    and Apache RocketMQ.
+
+    The core building blocks of Spring Cloud Stream are:
+        Destination Binders: Components responsible to provide integration with the external messaging systems.
+        Destingtion Bindings: Bridge between the external messaging systems and application code
+                                (Producer/Consumer) provided by the end user.
+        Message: The canonical data structure used by producers and consumers to communicate with Destination Binders
+                        (and thus other applications via external messaging systems).
+
+
+            first I will create a spring boot application and inside the spring boot application
+            the developer will define his own functions whenever he add the dependency of spring cloud stream between
+            your application and functions, there will be a layer will be created with the name destination bindings.
+            So with the help of this destination binders only, the actual integration with the message systems
+            and event brokers will happen.
+            So once the integration happens behind the scenes, it is also going to create the destination binding.
+            So with the help of destination binding only the actual integration between your application code
+            and the messaging systems will happen.
+            So the destination binding can be of two types input destination binding and output destination binding.
+            Output destination binding,
+            we need to use whenever we are trying to trigger an event from our microservice.
+            Like you can see with the help of output destination binding, we are going to send our message to the
+            exchange and exchange based upon the routing rules that we have defined,
+            it is going to send the message to one of the queue, whereas input destination binding is responsible
+            to read the messages from the queue.
+            So someone is going to send the message to the exchange and from exchange it will come to the queue
+            and from the queue with the help of input destination binding, your functions are going to read the
+            message and process the same.
+
+    Spring cloud stream doc: https://docs.spring.io/spring-cloud-stream/reference/

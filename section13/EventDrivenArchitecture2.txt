@@ -1,0 +1,265 @@
+Create a new project with name message with only single dependency "Function"
+
+*1* Creation of dto
+        Created a folder/package name dto.
+        Inside this folder we'll create class related to dto, using which we will always accept the message
+        that we are going to receive from the message broker.
+            So the accounts microservice, is going to send a message to the message broker in the format of
+            the DTO and the same we are going to receive inside this message service and process the same.
+
+        But this time instead of class we'll use the record modifier, as we know the record modifier
+        automatically going to generate the getter for the feilds and it's going to make the fields also
+        final, which means once the object of this record is created, all the data inside it going to be final.
+
+        Record name: AccountsMsgDto() and fields are accountNumber, name, email, mobileNumer   like below
+
+        public record AccountsMsgDto(Long accountNumber, String name, String email, String mobileNumber){
+
+        }
+
+*2* Creation of functions package
+        Created a function package/folder that are needed for the business logic.
+        So inside that folder create class  with name MessageFunction.java  this class will be used to
+        handle the messageing to the end user.
+
+        added a Logger object for logging.
+        
+        the syntax of a function interface is like below. where T denotes input and R denotes output.
+            @FunctionalInterface
+            public interface Function<T,R>{
+                R apply(T t);
+            }
+        
+        so using the Function interface we created two methods for email and sms to the user.
+
+        Now similar to the Function interface we have Supplier interface as shown below, where
+            T indicates the type of results supplied by this supplier, hence this interface will not accept
+            any input it'll just send an output.
+
+            @FunctionalInterface
+            public interface Supplier<T>{
+                T.get();
+            }
+        
+        And similar we also have one more interface which  is Consumer interface as shown below, where
+            T indicates the generic data type which is input for theis interface.
+            But this interface is not going to return any output.
+            @FunctionalInterface
+            public interface Consumer<T>{
+                void accept(T t);
+            }
+
+*3* Adding dependency to enable rest endpoint
+
+        Now we are going add below dependency in pom of message MS which will enable rest endpoint for
+        the methods(two functional interface method in MessageFunction.java )which we created without creating any restendpoint.
+    
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-function-web</artifactId>
+            </dependency>
+
+        After adding the dependency and run the spring application. default port 8080 as not configured yet.
+        Then trigger POST http://localhost:8080/email
+                     Body
+                            {
+                                "accountNumber": 1234567890,
+                                "name": "Madan Reddy",
+                                "email": "tutor@eazybytes",
+                                "mobileNumber": "1234567890"
+                            }
+                     
+                     Response: same as post body
+            We'll see that the email method triggered with this endpoint. similar we can trigger the sms method.
+
+        Why POST, as the method accept input, hence POST, PUT, DELETE
+                if method does not accept input GET like wise i think.
+
+        updated the springboot version from 4.0.1 to 3.4.1 and spring cloud from 2025.1.0 to 2024.0.0
+        as with new version project was not running after changes suggested by gemini project ran successfully.
+
+*4* Trigger both email method and sms method with one call.
+        We want to give flexibility to the clients to invoke a REST API, and these REST API is going to invoke
+        both of these two functions(email,sms) as single logical unit.
+
+        To achieve that, we need to compose out functions.
+            And to compose the functiions as a single logical unit, we need to update the application.yml of
+            message MS with below.
+                    spring.cloud.function.definition = email|sms
+                
+            this will expose another restendpoint as emailsms along with the 2 existing one.
+            now if we send post request with this newendpoint emailsms we'll see that both method got
+            executed.
+                endpoint url: http://localhost:9010/emailsms
+
+*5*
+        Commented the dependency <artifactId>spring-cloud-starter-function-web</artifactId> as in futuer
+        we don't want to expose the methods as rest endpoints as we are going to connect with RabbitMQ.
+
+        Reverted back the version of spring boot to 4.0.1 and spring cloud to 2025.1.0 if issue presist
+        again will modify the version with boot 3.4.1 and cloud 2024.0.0
+
+
+*6* Adding Spring cloud Stream, RabbitMQ dependency
+
+    First we'll remove all existing dependency and then will add few new dependency for the project.
+
+    There will be question might that why we removed the spring cloud function, its because when we add
+    spring cloud stream dependency then inside out project internally, it is also going to add spring
+    cloud function related dependencies.
+    So just to avoid that redundancy, I have deleted the dependency of spring cloud function.
+
+    After this adding google jib plugin so that it can be used to generate docker image.
+
+    Now we'll add some properties/config to application.yml
+        for binding name, desitnation etc for the events. and also added properties related to RabbitMQ.
+
+*7* updating the accounts MS
+        We need to update the accounts microservice to send the message and push them into the rabbitmq.
+        To do the same 1st we need add some dependencies in accounts MS.
+            Added the below dependency
+                <!-- spring cloud stream, for event deriven, to communicate to event broker -->
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream</artifactId>
+                </dependency>
+
+                <!-- dependency for rabbitmq to use as event/message broker -->
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                </dependency>
+
+        Now we are going to create a dto and in format of this dto we'll do the communication with event broker.
+        Also we'll create this dto of Record modifier in accounts MS with name AccountsMsgDto.java.
+        This dto will same as created in message MS.
+
+        Now we need to let accounts MS as well that whenever an account is created it need to publish the
+        event with details of account creation.
+        So to do that we need to add some properties in application.yml of accounts MS.
+            added spring.cloud.stream.bindings.sendCommunication-out-o.destination=send-communcation
+
+        also we need to add RabbitMQ details in accounts MS
+
+
+        Now we are done with dependencies and configuration.
+
+        But we also need to update the method of create which will pubslish the event once it get request and
+        process it.
+            To do that 1st in service/impl/AccountsServiceImpl.java there is a method name createAccount.
+            From this method only we need to trigger the msg/event whenever we create an account successfully.
+                1st we'll create a logger object in class to pring some log.
+                
+                Then we'll do autowire a bean of type stream bridge. So we just need define a refrence of
+                streamBridge and since we have @AllArgsConsructor autowire will be done automatically for
+                all refrence.
+
+                Now we'll update the create method.
+                    In create method we are saving customer and account.
+                    This time we'll store the saved account in a refrence and same we'll use to
+                    for the event.
+                    We have created a method sendCommunication which will publish the event once triggerd.
+                    This same method we'll trigger in createAccount method passting savedAccount and
+                    savedCustomer as parameter to sendCommunication method.
+
+                In sendCommunication method
+                    1st we created an object of AccountsMsgDto using the constructor by passing all required fields
+                    then printing some log before sending the msg/event
+                    then with the help of streamBridge we are sending the event/msg.
+                        to this send method we are passong the binding method which will be defined in application.yml
+                        and second parameter is the actual message which the AccountsMsgDto.
+                        This streamBridge will return a boolean value that msg sent successfully to event broker or not.
+                    And then same boolean value we are printing in the log.
+
+*8* running the application
+        1st we are going to run the RabbitMQ
+            rabbitMQ Link: https://www.rabbitmq.com/docs/download
+        we'll run the rabbitMQ in docker, we can find the command at the rabbitMQ website.
+        cmd: docker run -d -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:4-management
+
+        added -d to the command to run it in detached mode.
+
+        after running the application like configserver, eurekaserver, accounts, message,keyclock, gatewayserver.
+
+        we'll goto http://localhost:15672
+            username: guest    password: guest
+
+            Click on Exchanges->send-communcation(due to defined in accounts MS as desitnation in application.yml)->Bindings
+
+                We should see a queue name send-communication.message    --(destination.group) as per application.yml of message MS
+
+            we can also Click on Queues and Streams tab there it'll also show the queue name
+            
+            In exchange we'll able to see the eamil-out-0 binding as well.
+                Its because by default whenever we add the spring cloud stream to our MS where we
+                have defined functions with the help of spring cloud function, the spring cloud stream is
+                automatically going to create the input and output binding based upon the depfiniation.
+                And since for input we defined a binding with name send-communcation it create the input binding
+                with that name where as for output we did not defined anything so as per default behaivour it
+                picked the composed method name defined in application.ym of message which email|sms
+                and as per that it created the exchange for that with name emailsms-out-0.
+                But if we open emailsms-out-0 we'll not see any queue binded to it as we have defined any queue
+                for ouput where we have defined a queue for input as destination.group as per application.yml
+
+*9* From message service -> event broker -> accounts microservice
+        Till now we have implemented accounts MS -> event borker -> message service (sends notification to user)
+        Now we are going to implement message service -> event broker -> accounts microservice
+            where message service will push a event with message successfully notification sent to user to the event broker.
+            And from the event broker the accounts MS will consume that event and save the details of notification to DB.
+
+        Previously we created a binding with name eamilsms-in-0 in application.ym in message MS,
+        this was for that message service will keep looking for events in event broker which will be input for the message service.        
+        But now we want to public an event to event broker, which will be output for the message service. If we notice
+        in accounts MS we created an exchange(registed on rabbitMQ) with name sendCommunication-out-0 which was output
+        form the accounts MS.
+
+        So lets create an output binding in message MS. at same positon as input binding.
+                emailsms-out-0: #binding name for event out from message MS. as per the compose function definition
+                    destination: communication-sent #exhange where the event will be publised.
+            
+            we added above 2 and thats it, no other change. like we did in accountsMS we edited the create method
+            to publish an event to eventbroker but here nothing like that.
+            Behind the scenes, the spring cloud stream know that an output from thsese function combination, which
+            is email|sms can be sent as a message to the exchange with the name communication-send.
+                And what is the output from these email|sms, whatever retry type that we are goint to return from
+                the second function, which is sms. And from the sms function we are returning  long data type which is
+                accountNumber.
+
+        Now that message MS update is completed we'll update the accounts MS which need to fetch the event from
+        the event broker.
+            We'll create a new folder/package with name functions at com.eazybytes.accounts and inside the functions
+            folder we'll create a new class with name AccountsFunctions.
+                our task is to fetch the event and same the details related to it in DB.
+                which means we just need to choose a function type out of Consumer, Supplier and Function. which accept the input but does
+                not return anything. Out of those 3 the only function for that type is Consumer.
+
+                Hence in AccountsFunctions.java we'll create function/method of type Consumer for our purpose.
+                    and that method is public Consumer<Long> updateCommunication(){}
+
+            Now since we need to save details to DB, it means we need new column or db.
+            We'll update schema.sql in accounts table and just add one more column of type boolean with name
+            communication_sw   sw-switch, it store true if communcation is success to the user else null as default when account row created.
+
+            Now since we have updated a column in accounts table, we need to update Accounts.java the entity
+            class for this.
+            similarly we need to update IAccountsService and related implementation class to update this column for the acccount number.
+            Added a column detail iAccountsService then also update the AccountsServiceImpl class to set communication_sw
+            column as true once method called.
+            This method of AccountsServiceImpl, we'll call in the Consumer function once we receive event from the
+            eventbroker if received message in event is true.
+
+            Now we need add some properties in application.yml of accounts MS to receive the event from the
+            event broker.
+
+*10* Generating docker image and updating docker-copose file
+
+        updated pom of all MS for s13.
+        Now let's update the docker compose.
+
+*11*
+    h2 consile linke for accounts ms: http://localhost:8072/eazybank/accounts/h2-console/
+        note / at the end of he-console is mandaroty.
+    rabbitMQ link: http://localhost:15672        username & password: guest
+
+    even 10 second is less, circuitbreaker killed the request. now going to provide the 60sec time for each
+    request from gatewayserver to accounts MS
