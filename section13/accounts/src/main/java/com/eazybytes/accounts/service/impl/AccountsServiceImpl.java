@@ -129,5 +129,22 @@ public class AccountsServiceImpl  implements IAccountsService {
         return true;
     }
 
+    //column to store if account creation notification sent to user or not for this account, update as per event broker.
+    @Override
+    public boolean updateCommunicationStatus(Long accountNumber) {
+        boolean isUpdated = false;
+        if(accountNumber != null){
+            Accounts accounts = accountsRepository.findById(accountNumber).orElseThrow(
+                ()->new ResourceNotFoundException("Account", "AccountNumber", accountNumber.toString())
+            );
+            accounts.setCommunicationSw(true);
+            accountsRepository.save(accounts);
+            isUpdated = true;
+        }
+
+        return isUpdated;
+    }
+
+    
 
 }

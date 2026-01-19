@@ -224,3 +224,29 @@ Create a new project with name message with only single dependency "Function"
                 And what is the output from these email|sms, whatever retry type that we are goint to return from
                 the second function, which is sms. And from the sms function we are returning  long data type which is
                 accountNumber.
+
+        Now that message MS update is completed we'll update the accounts MS which need to fetch the event from
+        the event broker.
+            We'll create a new folder/package with name functions at com.eazybytes.accounts and inside the functions
+            folder we'll create a new class with name AccountsFunctions.
+                our task is to fetch the event and same the details related to it in DB.
+                which means we just need to choose a function type out of Consumer, Supplier and Function. which accept the input but does
+                not return anything. Out of those 3 the only function for that type is Consumer.
+
+                Hence in AccountsFunctions.java we'll create function/method of type Consumer for our purpose.
+                    and that method is public Consumer<Long> updateCommunication(){}
+
+            Now since we need to save details to DB, it means we need new column or db.
+            We'll update schema.sql in accounts table and just add one more column of type boolean with name
+            communication_sw   sw-switch, it store true if communcation is success to the user else null as default when account row created.
+
+            Now since we have updated a column in accounts table, we need to update Accounts.java the entity
+            class for this.
+            similarly we need to update IAccountsService and related implementation class to update this column for the acccount number.
+            Added a column detail iAccountsService then also update the AccountsServiceImpl class to set communication_sw
+            column as true once method called.
+            This method of AccountsServiceImpl, we'll call in the Consumer function once we receive event from the
+            eventbroker if received message in event is true.
+
+            Now we need add some properties in application.yml of accounts MS to receive the event from the
+            event broker.

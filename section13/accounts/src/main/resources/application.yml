@@ -27,8 +27,15 @@ spring:
     openfeign:
       circuitbreaker:
         enabled: true
+    
+    function:
+      definition: updateCommunication #function name which we creted using Consumer function for event borker to receive event
+
     stream:
       bindings:
+        updateCommunication-in-0: # name of exchange which will created in event-broker
+          destination: communication-sent # queue name where accounts MS need to look for event to recive in event broker.
+          group: ${spring.application.name}
         sendCommunication-out-0: #binding name #we don't have function defined in accounts MS like email|sms in message MS. hece given some random binding name.
           destination: send-communication #exchange name or some point defined in rabbitMQ at which needs to be communicated.
 
