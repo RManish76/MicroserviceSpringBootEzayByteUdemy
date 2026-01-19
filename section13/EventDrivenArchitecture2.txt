@@ -201,3 +201,26 @@ Create a new project with name message with only single dependency "Function"
                 But if we open emailsms-out-0 we'll not see any queue binded to it as we have defined any queue
                 for ouput where we have defined a queue for input as destination.group as per application.yml
 
+*9* From message service -> event broker -> accounts microservice
+        Till now we have implemented accounts MS -> event borker -> message service (sends notification to user)
+        Now we are going to implement message service -> event broker -> accounts microservice
+            where message service will push a event with message successfully notification sent to user to the event broker.
+            And from the event broker the accounts MS will consume that event and save the details of notification to DB.
+
+        Previously we created a binding with name eamilsms-in-0 in application.ym in message MS,
+        this was for that message service will keep looking for events in event broker which will be input for the message service.        
+        But now we want to public an event to event broker, which will be output for the message service. If we notice
+        in accounts MS we created an exchange(registed on rabbitMQ) with name sendCommunication-out-0 which was output
+        form the accounts MS.
+
+        So lets create an output binding in message MS. at same positon as input binding.
+                emailsms-out-0: #binding name for event out from message MS. as per the compose function definition
+                    destination: communication-sent #exhange where the event will be publised.
+            
+            we added above 2 and thats it, no other change. like we did in accountsMS we edited the create method
+            to publish an event to eventbroker but here nothing like that.
+            Behind the scenes, the spring cloud stream know that an output from thsese function combination, which
+            is email|sms can be sent as a message to the exchange with the name communication-send.
+                And what is the output from these email|sms, whatever retry type that we are goint to return from
+                the second function, which is sms. And from the sms function we are returning  long data type which is
+                accountNumber.

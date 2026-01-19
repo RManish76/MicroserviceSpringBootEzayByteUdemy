@@ -17,6 +17,9 @@ spring:
           destination: send-communication #queue name defined in rabbitMq which needs to be monitior and pick the msg and send it to the function email|sms
           group: ${spring.application.name} #it the application which will travel with the event msg can be used for tracking, else random name will be inserted with every msg
 
+        emailsms-out-0: #binding name for event out from message MS. as per the compose function definition
+          destination: communication-sent #exhange where the event will be publised.
+
   rabbitmq: #details of rabbitMq
     host: localhost
     port: 5672
