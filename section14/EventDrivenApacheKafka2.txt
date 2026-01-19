@@ -11,3 +11,28 @@ That's we need to do.
 We just updated the dependency and config nothing else. No other code change needed.
 That's beacause spring cloud stream is in middle so changing from one product to another
 is seamless.
+
+normal docker command to run kafka: docker run -p 9092:9092 apache/kafka4.1.0
+this command we can find in quick strat(kafka.apache.org/quickstart) of kafka under JVM based section.
+
+Now is the time to update dokcer related things.
+    1st updated image tag from s13 to s14.
+    At kafka website we don't have information related to, how to levrage kafka using docker compose.
+
+    Hence insturctor found a web whic will help us https://developer.confluent.io/confluent-tutorials/kafka-on-docker/
+    confluent is famous website/company who primarly focus on helping the enterprise organization in setting
+    up Kafka. These guys are Kafka experts.
+    Hence we use the instruction form this doc link.
+    we have followed same instruction with little bit change as per our need.
+        replaced the word broker to kafka as it was custom name. Only few place broker was remained as
+        it was field of kafka which mandatory.
+        for example KAFKA_PROCESS_ROLES: broker.controller     this is mandatory that it should be same.
+
+    We also added health check command.
+        nc - netcat     in health command
+
+Insturctor did not some dashboard like rabbitMQ, i think it does not exist.
+But he used some extension/plugin in ide to some details of kafka within ide.
+
+Insturctor only checked the logs of accounts and message MS to confirm that kafka is being used.
+also by checking that communication_sw column is showing true after account creation.
