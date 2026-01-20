@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: eurekaserver
+  config:
+    import: "optional:configserver:http://localhost:8071"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true #enabled for actuator
+    liveness-state:
+      enabled: true #enbale to check for actuator
+  endpoint:
+    shutdown:
+      enabled: true # Enable graceful shutdown via REST API
+    health:
+      probes:
+        enabled: true #enabled to check readiness and liveness through rest endpoints
+
+  metrics:  #for metics monitoring for micrometer, grafana, prometheus. we are telling to group all the metrics related to this application under the application name. for example group all metrics related to accoutns MS under the application name accounts.
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  pattern: #config related to opentelemetry
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+          # %5p --> assign some char of lenght of 5 for log severiy like debug, warning or error
+          # ${spring.application.name} --> tag, the metadata info related to application, which is app name
+          # %X{trace_id} --> convey to springboot framework at runtime Open Telemetry library is going to generate the
+                            # trace ID with the context information trace_id. The same we want to inject here. After the trace Id.
+          # %X{span_id} --> to inject span ID at the runtime into all the logs.

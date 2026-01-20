@@ -1,0 +1,33 @@
+server:
+  port: 9010
+
+spring:
+  application:
+    name: message
+
+  cloud:
+    function:
+      definition: email|sms
+
+    stream:
+      bindings:
+        emailsms-in-0: #binding name, can be anything tried keep it same as (compose)function definition
+                       # in - dentoes as input binding,
+                       # if we don't give the binding name explicitly the default binding name will same
+          destination: send-communication #queue name defined in rabbitMq which needs to be monitior and pick the msg and send it to the function email|sms
+          group: ${spring.application.name} #it the application which will travel with the event msg can be used for tracking, else random name will be inserted with every msg
+
+        emailsms-out-0: #binding name for event out from message MS. as per the compose function definition
+          destination: communication-sent #exhange where the event will be publised.
+
+      kafka: #config related to kafka
+        binder:
+          brokers:
+            - localhost:9092
+
+  # rabbitmq: #details of rabbitMq
+  #   host: localhost
+  #   port: 5672
+  #   username: guest
+  #   password: guest
+  #   connection-timeout: 10s
