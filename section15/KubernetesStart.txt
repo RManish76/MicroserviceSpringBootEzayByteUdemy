@@ -203,3 +203,35 @@ Kubernetes:
             After running the command we can goto kubernetes dashboard and goto configmaps from left side index bar.
             and we'll a option with name ezaybank-configmap which we provided in yaml file.
             and inside that we'll able to see all the environment variables.
+
+*6* Deploy Remaining MS by creating manifest file.
+
+    Here we don't have thing like docker-compose which we can run single time and all MS will start
+    we have to run the command for each file seprately.
+    Also we'll create seprate file for each MS.
+    And also adding serial number prefix, and with same order we need to run the apply command.
+    Also only run the next file when previous is successfully started as here we don't have health check
+    and depends on option.
+        either we can check from kubernetes dashboard or the get command of kubectl to check the status
+        of the instance/pod/service etc.
+
+    I have added comments in 1_keyclock.yaml
+    Also we are going to use s12 image instead of s13 or s14 as, as per instructor there is easier approach
+    than kafka which he'll introduce latter.
+
+    Below commands we'll run
+        kubectl apply -f 1_keyclock.yaml
+
+        kubectl apply -f 2_configmaps.yaml
+
+        kubectl apply -f 3_configserver.yaml
+
+        kubectl apply -f 4_eurekaserver.yaml
+
+        kubectl apply -f 5_accounts.yaml
+
+        kubectl apply -f 6_loans.yaml
+
+        kubectl apply -f 7_cards.yaml
+
+        kubectl apply -f 8_gateway.yaml
