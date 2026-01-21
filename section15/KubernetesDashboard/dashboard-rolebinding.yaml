@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding #Again same what is kind/type of the following yaml
+metadata: #details related to user
+  name: admin-user #name of the ClusterRoleBinding, like name this process. keepeing same as username/serviceaccount.
+roleRef: #details related to role
+  apiGroup: rbac.authorization.k8s.io #the api of role
+  kind: ClusterRole #what kind/type/group of role it is.
+  name: cluster-admin # the role name which we want to assign to the user
+subjects: #details to who the role is to be assigned
+- kind: ServiceAccount #type of the user
+  name: admin-user #the username of the user/serviceaccount
+  namespace: kubernetes-dashboard #the namespace/group (like qa,prod etc) where the user is.

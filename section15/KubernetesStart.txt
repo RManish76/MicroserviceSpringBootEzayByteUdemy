@@ -1,0 +1,129 @@
+Kubernetes:
+        When we have to run too many container to manage them we use Kubernetes, it was developed by google
+        then later they made it open-source.
+
+    We have option to enable Kubernetes in doker desktop itself. There are other services as well, we'll
+    go with docker desktop.     https://docs.docker.com/desktop/use-desktop/kubernetes/
+    
+    After enabling it we can follow the doc.
+    Note that there is not any desktop dashboard for kubernetes, hence for dashboard we need to use
+            helm as per document https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+            We can install helm directly or via package manager. I have scoop installed previosly, hence used that.
+                https://helm.sh/docs/intro/install/
+
+    After installing helm, follow the doc https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+    to setup the dashboard for kubernetes.
+        executed following cmd:
+                helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+                helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+            
+            After running above two cmd as per the doc, we should get sucess msg.
+            Setting dashboard takes few min. After that there is cmd with success msg which need to run to
+            access the dashboard. Follow the instruction in success msg.
+
+            To access Dashboard run:
+                kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+
+            Once we ran above commands and goto https://localhost:8443/ it'll ask token to login.
+            To get login we need to create the user, for user creation there is a hyper link which has
+            doc for user creation we can follow that.
+            User creation of brear doc:
+            https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+
+*2* User Creation for kubernetes dashboard using helm
+
+        Doc: https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+
+        As per do we need create a file with name dashboard-adminuser-yaml and past the following.
+                    apiVersion: v1
+                    kind: ServiceAccount  #ServiceAccount is a predefined object inside the Kubernetes, which tells what kind/type of user we want.
+                    metadata:
+                        name: admin-user #name/username of the ServiceAccount
+                        namespace: kubernetes-dashboard #I don't know what namespace signify here, but not mentioned the user will be created under defual namespace. hence we are giving the custome to easy the identification.
+
+            then we need to run the cmd ~ kubectl apply -f dashboard-adminuser.yaml
+                kubectl -- is for kubernetes  like for docker we use docker in cmd and git for git in cmd.
+
+            After running the command we'll get response as serviceaccount/admin-user created
+        
+        I have created a folder with KubernetesDashboard and store the file there.
+
+    
+        Creation of user completed but we need add privilages to the account which we created.
+        Same thing we can see in the doc as well with section name as Creating a ClusterRoleBinding
+            like earlier again we'll create file and paste the yaml code there and pass it kubernetes
+            using same command, just update the file name.
+
+                    apiVersion: rbac.authorization.k8s.io/v1
+                    kind: ClusterRoleBinding #Again same what is kind/type of the following yaml
+                    metadata: #details related to user
+                        name: admin-user #name of the ClusterRoleBinding, like name this process. keepeing same as username/serviceaccount.
+                    roleRef: #details related to role
+                        apiGroup: rbac.authorization.k8s.io #the api of role
+                        kind: ClusterRole #what kind/type/group of role it is.
+                        name: cluster-admin # the role name which we want to assign to the user
+                    subjects: #details to who the role is to be assigned
+                    - kind: ServiceAccount #type of the user
+                        name: admin-user #the username of the user/serviceaccount
+                        namespace: kubernetes-dashboard #the namespace/group (like qa,prod etc) where the user is.
+
+            cmd kubectl apply -f dashboard-rolebinding.yaml
+            response clusterrolebinding.rbac.authorization.k8s.io/admin-user created
+            created file with name dashboard-rolebinding.yaml and pasted theyaml and ran the command.
+
+
+
+        Creation of user and assigning the privilages are done.
+        Now we need to fetch the token using which we'll login to docker desktop as per the Doc.
+            cmd kubectl -n kubernetes-dashboard create token admin-user
+                    -n --> namespace
+
+        After running the cmd we'll get the token use that to login to dashboard.
+
+
+
+
+*3* Kubernetes Dashboard
+
+    By defualt namespace is selected as default, we'll change it to kubernetes-dashboard from the dropdown
+    at the to ribbon.
+
+    Once changed we'll able to see the running detials of kubernetes.
+        Insturctor:
+            Deployment: 2
+            Pods: 2
+            Replica Sets: 2
+
+        Mine (Don't know why mine is different. But currently all running by kubernetes only.)
+            Deployment: 5
+            Pods: 5
+            Replica Sets: 7
+
+    Form left side of menu we can go to in serviceaccount section and see all service account which we created.
+    Then we can goto Cluster Role Binding see all ClusterRoleBinding there we can see a cluster with
+        name admin-user. Note: we created both service account and ClusterRoleBinding with same name.
+
+        once we click on the cluster admin-user, we'll able to see the roles within the cluster and also
+        the user/serviceaccount within that cluster.
+            Role: Cluster-admin,      user- admin-user
+
+        If we click at the role Cluster-admin, it'll show the rules/privilages it provides if a user is
+        assigned with that role.
+            like here all role is assigned, if you notice at all role astric * is there.
+
+        So any user with role cluster-admin will be superuser.
+
+    
+    Now the token which got from the command is short lived. It means that we need to fetch the token
+    again and again with that command.
+    If we follow th Doc, we'll see the way to get long-lived brear token steps using a yaml file.
+        https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+
+    so creaed a file with name secret.yaml and pasted the yaml from the doc to the file.
+    now again same cmd kubectl apply -f secret.yaml
+
+    Then we can run he cmd to get token.
+    kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath="{.data.token}" | base64 -d
+
+    we can use the token for longer, if dashboard got logged out due to timeout then same token again
+    we can use no need to fetch new token.
