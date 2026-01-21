@@ -174,3 +174,32 @@ Kubernetes:
             http://localhost:8071/accounts/prod      (success showed both prod and defaul as per expected)
             http://localhost:8071/loans/prod        (success showed both prod and defaul as per expected)
             http://localhost:8071/eurekaserver/default     as eurekaserver only single profile.  (success)
+
+
+*5* Environment variable in Kubernetes cluster
+
+        Eariler in docker-compose file we used to pass a lot of environment variables from the docker-compose file
+        for example, what profile need to activate - prod, qa or default. url of configserver, url of eureakserver etc.
+
+        All all of our MS need these environment variables to get started. We need to look for an option on how
+        to create the same kind of environment varibles inside the kubernetes cluster as well.
+
+        For the same, we are going to create an object of configmap inside kubernetes.
+        Doc: https://kubernetes.io/docs/concepts/configuration/configmap/
+        as per the doc: A ConfigMap is an API object used to store non-confidential data in key-value pairs.
+                        Pods can consume ConfigMaps as environment variables, command-line arguments, or as configuration files in a volume.
+        
+        In the doc we can see the syntax of kubernetes manifest file for this configmap for our environment variables
+        we'll use the same.
+
+        Like configmap we also have secrets manifest option if we see in doc at left index bar. we can use for confidential things.
+
+        Let's focus on configmap.
+            Created a file with name configmap.yaml in same folder KubernetesMicroservices.
+            And copy pasted the yaml for instructor repo. will put comments in yml for better understanding.
+
+            Again after done which file need run the command to apply the manifest file.
+                cmd: kubectl apply -f configmaps.yaml
+            After running the command we can goto kubernetes dashboard and goto configmaps from left side index bar.
+            and we'll a option with name ezaybank-configmap which we provided in yaml file.
+            and inside that we'll able to see all the environment variables.
