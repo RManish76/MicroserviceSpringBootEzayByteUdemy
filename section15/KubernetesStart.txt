@@ -235,3 +235,21 @@ Kubernetes:
         kubectl apply -f 7_cards.yaml
 
         kubectl apply -f 8_gateway.yaml
+
+    Now to stop all running pods we need use the following commands.
+
+        kubectl delete -f 1_keycloak.yaml
+
+        kubectl delete -f 2_configmaps.yaml
+
+        kubectl delete -f 3_configserver.yaml
+
+        kubectl delete -f 4_eurekaserver.yaml
+
+        kubectl delete -f 5_accounts.yaml
+
+        kubectl delete -f 6_loans.yaml
+
+        kubectl delete -f 7_cards.yaml
+
+        kubectl delete -f 8_gateway.yaml
