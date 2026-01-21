@@ -215,12 +215,12 @@ Kubernetes:
         either we can check from kubernetes dashboard or the get command of kubectl to check the status
         of the instance/pod/service etc. we can also check in eureakserver the same thing.
 
-    I have added comments in 1_keyclock.yaml
+    I have added comments in 1_keycloak.yaml
     Also we are going to use s12 image instead of s13 or s14 as, as per instructor there is easier approach
     than kafka which he'll introduce latter.
 
     Below commands we'll run
-        kubectl apply -f 1_keyclock.yaml
+        kubectl apply -f 1_keycloak.yaml
 
         kubectl apply -f 2_configmaps.yaml
 
