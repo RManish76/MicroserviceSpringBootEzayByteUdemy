@@ -127,3 +127,50 @@ Kubernetes:
 
     we can use the token for longer, if dashboard got logged out due to timeout then same token again
     we can use no need to fetch new token.
+
+
+*4* Deployment of MS at kubernetes cluster
+        To get stared with the deployment of our microservices.
+        First, we need to give insturctions to the Kubernetes on how we want to deploy our MS and how
+        we want to expose them.
+        All these information we need to provide thenm in a yaml configuration.
+
+        Whatever we have used with the help of Docker compose, we cannot simply give those to the
+        Kubernetes because kubernetes cannot understand the format or syntax of the Docker compose,
+        kubernetes has its own format.
+
+        The 1st MS we are going to deploy in kubernetes is configserver(profile ms).
+
+        Created new folder KubernetesMicroservices and inside that folder created a file with name
+        configserver.yaml
+        copied the yaml and pasted in the file from the instructor repo. Also we can find the similar
+        insturctions in Doc of kubernetes 
+            https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+
+            https://kubernetes.io/docs/tasks/run-application/run-stateless-application-deployment/
+
+        I have add neccessary comments in the yaml file.
+        these kubernetes configuration file also known as kubernetes manifest files, and this is
+        industry standard. So we should always call them as Kubernetes manifest files.
+
+        We can run below cmd to get existing deployments.
+
+            cmd:    kubectl get deployments         this command will show all deployments
+            cmd:    kubectl get services            this command will show all the services
+            cmd:    kubectl get replicaset          this command will show all the replica
+            cmd:    kubectl get Pods                this command will show all the pods running
+
+        Now we'll deploy the configserver using manifest file we have created. open cmd where the manifest
+        file is there and open cmd and run below commands
+            cmd:    kubectl apply -f configserver.yaml          this command will create the service and deployment
+
+        now after running the apply command we run above get commmand to see the details.
+        or we can goto kubernetes dashboard to see the details.
+        like sercives, replica And pods.
+        Inside the pods option we'll see the pod running for configserver, we can go inside then click
+        on 4line / log button to see the springboot logs.
+
+        now lets see we see the profiles with api links.
+            http://localhost:8071/accounts/prod      (success showed both prod and defaul as per expected)
+            http://localhost:8071/loans/prod        (success showed both prod and defaul as per expected)
+            http://localhost:8071/eurekaserver/default     as eurekaserver only single profile.  (success)
