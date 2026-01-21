@@ -213,7 +213,7 @@ Kubernetes:
     Also only run the next file when previous is successfully started as here we don't have health check
     and depends on option.
         either we can check from kubernetes dashboard or the get command of kubectl to check the status
-        of the instance/pod/service etc.
+        of the instance/pod/service etc. we can also check in eureakserver the same thing.
 
     I have added comments in 1_keyclock.yaml
     Also we are going to use s12 image instead of s13 or s14 as, as per instructor there is easier approach
