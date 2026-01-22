@@ -291,4 +291,123 @@ Kubernetes:
         we can run the following to command to rollback as per the serial number. we put the serial number at command at which we want to rollback
             cmd: kubectl rollout undo deployment gatewayserver-deployment --to-revision=1           here 1 is the revision serial number
 
-            
+
+*9* Kubernetes Service types
+
+    there are three service types ClusterIP Service, NodePort Service, LoadBalancer Service.
+    1. ClusterIP Service: This is the default service that uses an internal Cluster IP to expose Pods.
+                In ClusterIP, the service are not available for external access of the cluster and used
+                for internal communications between different Pods or microservices in the cluster.
+
+    2.  NodePort Service: This service exposes outside and allows the outside traffic to connect to K8s
+                Pods through the node port which is the port opened at Node end. The Pods can be accessed
+                from external using <NodeIp>:<NodePort>
+
+    3.  LoadBalancer Service: This service is exposed like in NodePort but creates a load balancer in the
+                cloud where K8s is running that receives external requests to the service. It then distributes
+                them amoing the cluster nodes using NodePort.
+
+
+    If remember in each manifest file at second yaml, we have give the service type in spec section.
+    previosly in each manifest file we have given LoadBalancer as service type.
+    But that's not appropriate. for example since we have gatewayserver and we are using docker/kubernetes
+    network as firewall, we don't want to expose some MS to outside of kubernetes network.
+    We want to allow access of all MS through only gatewayserver.
+    To acheieve the same we can use all 3 types of services.
+
+    For example for accounts MS
+        type: ClusterIP        port: 80         targetPort: 8080        and lets say replicas=2
+
+
+                                                    |
+                                                    |
+                                            External Traffic
+                                                not allowed
+                                                    |               |--->WorkerNode 1 (accounts MS pod) at Port 8080
+                                                   \|/              |
+        Internal Traffic-------Port 80 ---------> ClusterIP----------
+    (from other pods inside                  (ClusterIP provides a  |
+    the K8s cluster)                           load-balanced IP     |--->WorkerNode 2 (accounts MS pod) at Port 8080
+                                                    address)
+                    
+    As we can see that we have two replica of accounts MS running at seprate pod and wokernodes and both running
+    at 8080 port.
+    Also we can see that to connect accountsMS we have only one option to go through ClusterIP and also they should should
+    pass the port as 80 with ClusterIP as the accountsMS is exposed at port 80 within network or they can communicate
+    using service name which accounts.
+    And as we know ClusterIP only accept or accessable thorugh only internal network and same within same cluster
+    and only other internal pods can communicate with it within K8s cluster.
+    Hence external traffic will never reach accountsMS and if tried they'll not found error.
+
+    Like showed in example ClusterIP serves our pupose for all MS which we don't want to expose outside,
+    but internally other pods should be able to connect it.
+    So we'll use ClusterIP for all MS except gatewayserver.
+
+
+
+
+    K8s NodePort Service
+    Services of type NodePort build on top of ClusterIP type services by exposing the ClusterIP service
+    outside of the cluster on high port (default 30000-32767). If no port number is specified then
+    Kubernetes automatically selects a free port. The local kube-proxy is responsible for listening to
+    the port on the node and forwarding client traffic on the NodePort to the ClusterIP.
+
+    For example for accounts MS
+        type: NodePort        port: 80         targetPort: 8080         nodePort:32593        and lets say replicas=2
+
+    If anyone want to consume the acount MS, then they need to send that traffic to the IP address of the
+    worker node one or worker node two and post the IP address they shoul dmention the NodePort value, which
+    is 32593 as configured(if not configered next available port in range 30000-32767 will be assigned).
+    So once the traffic is received at this node port, the kubernetes cluster is going to forward that
+    request to the ClusterIP address at the service name that we have defined.
+    And from the cluster IP, the load balancing will distribute between the two different parts available
+    in two different worker nodes.
+
+    But there is a drawback here with this NodePort service.
+    The external client applications, they should know what is the IP address of worker node one or worker
+    Node two.
+    And suppose think like there is a scenario, One of the worker node has some issues, then Kubernetes
+    automatically can kill that WorkerNode. And in the place of that worker node, it is going to bring
+    a new WorkerNode. That means it is going to get a new IP address. So in this kind of scenarios,
+    the client applications should always update their worker node details or IP address details.
+    Hence that's why most of the people, we don't use this NodePort service.
+    Instead we use the LoadBalancer Service.
+
+
+
+
+    K8s LoadBalancer Service
+        The LoadBalancer service type is built on top of NodePort service types by provisioning and
+        configuring external load balancers from public and private cloud providers. It exposes services
+        that are running in the cluster by forwarding layer 4 traffic to worker nodes.
+        This is a dynamic way of implementing a case that involves external load balancers and NodePort
+        type services.
+
+    For example for accounts MS
+        type: LoadBalancer        port: 80         targetPort: 8080        and lets say replicas=2
+
+        This is very similar to NodePort, but on top of the NodePort that we have exposed.
+        The Kubernetes is going to provide us a load balancer. And this LoadBalancer will have a public
+        IP address, which is never going to change until unless a kubernetes admin is going to change.
+        So the same public address can be mapped to a DNS name or to the domain name and to this domain
+        name or to this public address the client applications can send the traffic.
+
+        So whenever my LoadBalancer, which is staying outside my Kubernetes cluster, is receiving the traffic,
+        it will identify to which worker node it has to send the request.
+        Suppose think like it decided to send the request to the workere node one.
+        In that scenario, the request will be forwarded to the NodePort and from the node port the traffic will
+        go to the ClusterIP and from ClusterIP it will eventually go to the accounts MS container.
+
+
+        So the advantage that we have with this LoadBalancer is that we can expose the traffic to the
+        external world just like inside NodePort, but compared to nodePort LoadBalancer service has an
+        advantage, which is it is going to provide a LoadBalancer, which is always going to have a public
+        IP address which you can map to your domain name regardless of how many worker nodes you are trying
+        create inside your Kubernetes cluster or how many worker nodes we are trying to delete them.
+        So regardless of whatever is happening inside your Kubernetes cluster, it is not going to impact
+        your client application in any way because the LoadBalancer is always going to be static with the
+        IP address at the domain name that we have mapped. And same can be used by our client
+        application.
+
+        And this LoadBalancer, whatever created by the Kubernetes cluster, it is always going to track what
+        is happening inside the Kubernetes cluster.
