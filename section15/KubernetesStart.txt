@@ -253,3 +253,42 @@ Kubernetes:
         kubectl delete -f 7_cards.yaml
 
         kubectl delete -f 8_gateway.yaml
+
+*7* Self healing testing
+
+        Deleted a pod and kubernetes automaticaly created new container as per the number of
+        desired replica configured in manifest file.
+
+            To delete a pod: kubectl delete pods keycloak-6787c6d8b6-j87l5
+            to check the status: kubectl get pods
+            to check the status: kubectl get replicaset
+
+            Also we have another command which shows event occured till now. like a log of events
+            cmd: kubectl get events --sort-by=.metadata.creationTimestamp
+
+*8* update the container with latest container and rollback to pervious cotainer.
+
+        we'll try to migrate to the another container from current container like currently running
+        s12, we'll migrate to s11 think of it as new relase.
+        Then we'll also see how to rollback to s12 previous state from s11 like stimulating new relase has
+        some issue need to to fallback to pervious version.
+
+        1st upgarade
+        cmd: kubectl set image deployment gatewayserver-deployment gatewayserver=eazybytes/gatewayserver:s11 --record
+
+        After running the above command, kubernetes will first try to pull the image and start the container
+        only after this it'll start terminating the previous running container.
+        While pulling or strating new container if any issue occured kubernetes will stop there and will not
+        initate the termination of previous running container.
+
+        2nd rollback
+
+        we need to run the command
+            kubectl rollout history deployment gatewayserver-deployment
+        
+        Above command will show all rollout happened upgrade, downgrade, error rollout etc.
+        We can see two column, 1st Revision (shows serial number) and 2nd is change-cause (shows command/cause of rollout)
+        we can run the following to command to rollback as per the serial number. we put the serial number at command at which we want to rollback
+            cmd: kubectl rollout undo deployment gatewayserver-deployment --to-revision=1           here 1 is the revision serial number
+
+            
