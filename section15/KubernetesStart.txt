@@ -1,0 +1,413 @@
+Kubernetes:
+        When we have to run too many container to manage them we use Kubernetes, it was developed by google
+        then later they made it open-source.
+
+    We have option to enable Kubernetes in doker desktop itself. There are other services as well, we'll
+    go with docker desktop.     https://docs.docker.com/desktop/use-desktop/kubernetes/
+    
+    After enabling it we can follow the doc.
+    Note that there is not any desktop dashboard for kubernetes, hence for dashboard we need to use
+            helm as per document https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+            We can install helm directly or via package manager. I have scoop installed previosly, hence used that.
+                https://helm.sh/docs/intro/install/
+
+    After installing helm, follow the doc https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+    to setup the dashboard for kubernetes.
+        executed following cmd:
+                helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+                helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+            
+            After running above two cmd as per the doc, we should get sucess msg.
+            Setting dashboard takes few min. After that there is cmd with success msg which need to run to
+            access the dashboard. Follow the instruction in success msg.
+
+            To access Dashboard run:
+                kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+
+            Once we ran above commands and goto https://localhost:8443/ it'll ask token to login.
+            To get login we need to create the user, for user creation there is a hyper link which has
+            doc for user creation we can follow that.
+            User creation of brear doc:
+            https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+
+*2* User Creation for kubernetes dashboard using helm
+
+        Doc: https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+
+        As per do we need create a file with name dashboard-adminuser-yaml and past the following.
+                    apiVersion: v1
+                    kind: ServiceAccount  #ServiceAccount is a predefined object inside the Kubernetes, which tells what kind/type of user we want.
+                    metadata:
+                        name: admin-user #name/username of the ServiceAccount
+                        namespace: kubernetes-dashboard #I don't know what namespace signify here, but not mentioned the user will be created under defual namespace. hence we are giving the custome to easy the identification.
+
+            then we need to run the cmd ~ kubectl apply -f dashboard-adminuser.yaml
+                kubectl -- is for kubernetes  like for docker we use docker in cmd and git for git in cmd.
+
+            After running the command we'll get response as serviceaccount/admin-user created
+        
+        I have created a folder with KubernetesDashboard and store the file there.
+
+    
+        Creation of user completed but we need add privilages to the account which we created.
+        Same thing we can see in the doc as well with section name as Creating a ClusterRoleBinding
+            like earlier again we'll create file and paste the yaml code there and pass it kubernetes
+            using same command, just update the file name.
+
+                    apiVersion: rbac.authorization.k8s.io/v1
+                    kind: ClusterRoleBinding #Again same what is kind/type of the following yaml
+                    metadata: #details related to user
+                        name: admin-user #name of the ClusterRoleBinding, like name this process. keepeing same as username/serviceaccount.
+                    roleRef: #details related to role
+                        apiGroup: rbac.authorization.k8s.io #the api of role
+                        kind: ClusterRole #what kind/type/group of role it is.
+                        name: cluster-admin # the role name which we want to assign to the user
+                    subjects: #details to who the role is to be assigned
+                    - kind: ServiceAccount #type of the user
+                        name: admin-user #the username of the user/serviceaccount
+                        namespace: kubernetes-dashboard #the namespace/group (like qa,prod etc) where the user is.
+
+            cmd kubectl apply -f dashboard-rolebinding.yaml
+            response clusterrolebinding.rbac.authorization.k8s.io/admin-user created
+            created file with name dashboard-rolebinding.yaml and pasted theyaml and ran the command.
+
+
+
+        Creation of user and assigning the privilages are done.
+        Now we need to fetch the token using which we'll login to docker desktop as per the Doc.
+            cmd kubectl -n kubernetes-dashboard create token admin-user
+                    -n --> namespace
+
+        After running the cmd we'll get the token use that to login to dashboard.
+
+
+
+
+*3* Kubernetes Dashboard
+
+    By defualt namespace is selected as default, we'll change it to kubernetes-dashboard from the dropdown
+    at the to ribbon.
+
+    Once changed we'll able to see the running detials of kubernetes.
+        Insturctor:
+            Deployment: 2
+            Pods: 2
+            Replica Sets: 2
+
+        Mine (Don't know why mine is different. But currently all running by kubernetes only.)
+            Deployment: 5
+            Pods: 5
+            Replica Sets: 7
+
+    Form left side of menu we can go to in serviceaccount section and see all service account which we created.
+    Then we can goto Cluster Role Binding see all ClusterRoleBinding there we can see a cluster with
+        name admin-user. Note: we created both service account and ClusterRoleBinding with same name.
+
+        once we click on the cluster admin-user, we'll able to see the roles within the cluster and also
+        the user/serviceaccount within that cluster.
+            Role: Cluster-admin,      user- admin-user
+
+        If we click at the role Cluster-admin, it'll show the rules/privilages it provides if a user is
+        assigned with that role.
+            like here all role is assigned, if you notice at all role astric * is there.
+
+        So any user with role cluster-admin will be superuser.
+
+    
+    Now the token which got from the command is short lived. It means that we need to fetch the token
+    again and again with that command.
+    If we follow th Doc, we'll see the way to get long-lived brear token steps using a yaml file.
+        https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+
+    so creaed a file with name secret.yaml and pasted the yaml from the doc to the file.
+    now again same cmd kubectl apply -f secret.yaml
+
+    Then we can run he cmd to get token.
+    kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath="{.data.token}" | base64 -d
+
+    we can use the token for longer, if dashboard got logged out due to timeout then same token again
+    we can use no need to fetch new token.
+
+
+*4* Deployment of MS at kubernetes cluster
+        To get stared with the deployment of our microservices.
+        First, we need to give insturctions to the Kubernetes on how we want to deploy our MS and how
+        we want to expose them.
+        All these information we need to provide thenm in a yaml configuration.
+
+        Whatever we have used with the help of Docker compose, we cannot simply give those to the
+        Kubernetes because kubernetes cannot understand the format or syntax of the Docker compose,
+        kubernetes has its own format.
+
+        The 1st MS we are going to deploy in kubernetes is configserver(profile ms).
+
+        Created new folder KubernetesMicroservices and inside that folder created a file with name
+        configserver.yaml
+        copied the yaml and pasted in the file from the instructor repo. Also we can find the similar
+        insturctions in Doc of kubernetes 
+            https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+
+            https://kubernetes.io/docs/tasks/run-application/run-stateless-application-deployment/
+
+        I have add neccessary comments in the yaml file.
+        these kubernetes configuration file also known as kubernetes manifest files, and this is
+        industry standard. So we should always call them as Kubernetes manifest files.
+
+        We can run below cmd to get existing deployments.
+
+            cmd:    kubectl get deployments         this command will show all deployments
+            cmd:    kubectl get services            this command will show all the services
+            cmd:    kubectl get replicaset          this command will show all the replica
+            cmd:    kubectl get Pods                this command will show all the pods running
+
+        Now we'll deploy the configserver using manifest file we have created. open cmd where the manifest
+        file is there and open cmd and run below commands
+            cmd:    kubectl apply -f configserver.yaml          this command will create the service and deployment
+
+        now after running the apply command we run above get commmand to see the details.
+        or we can goto kubernetes dashboard to see the details.
+        like sercives, replica And pods.
+        Inside the pods option we'll see the pod running for configserver, we can go inside then click
+        on 4line / log button to see the springboot logs.
+
+        now lets see we see the profiles with api links.
+            http://localhost:8071/accounts/prod      (success showed both prod and defaul as per expected)
+            http://localhost:8071/loans/prod        (success showed both prod and defaul as per expected)
+            http://localhost:8071/eurekaserver/default     as eurekaserver only single profile.  (success)
+
+
+*5* Environment variable in Kubernetes cluster
+
+        Eariler in docker-compose file we used to pass a lot of environment variables from the docker-compose file
+        for example, what profile need to activate - prod, qa or default. url of configserver, url of eureakserver etc.
+
+        All all of our MS need these environment variables to get started. We need to look for an option on how
+        to create the same kind of environment varibles inside the kubernetes cluster as well.
+
+        For the same, we are going to create an object of configmap inside kubernetes.
+        Doc: https://kubernetes.io/docs/concepts/configuration/configmap/
+        as per the doc: A ConfigMap is an API object used to store non-confidential data in key-value pairs.
+                        Pods can consume ConfigMaps as environment variables, command-line arguments, or as configuration files in a volume.
+        
+        In the doc we can see the syntax of kubernetes manifest file for this configmap for our environment variables
+        we'll use the same.
+
+        Like configmap we also have secrets manifest option if we see in doc at left index bar. we can use for confidential things.
+
+        Let's focus on configmap.
+            Created a file with name configmap.yaml in same folder KubernetesMicroservices.
+            And copy pasted the yaml for instructor repo. will put comments in yml for better understanding.
+
+            Again after done which file need run the command to apply the manifest file.
+                cmd: kubectl apply -f configmaps.yaml
+            After running the command we can goto kubernetes dashboard and goto configmaps from left side index bar.
+            and we'll a option with name ezaybank-configmap which we provided in yaml file.
+            and inside that we'll able to see all the environment variables.
+
+*6* Deploy Remaining MS by creating manifest file.
+
+    Here we don't have thing like docker-compose which we can run single time and all MS will start
+    we have to run the command for each file seprately.
+    Also we'll create seprate file for each MS.
+    And also adding serial number prefix, and with same order we need to run the apply command.
+    Also only run the next file when previous is successfully started as here we don't have health check
+    and depends on option.
+        either we can check from kubernetes dashboard at pods or the get command of kubectl to check the status
+        of the instance/pod/service etc. we can also check in eureakserver the same thing.
+
+    I have added comments in 1_keycloak.yaml
+    Also we are going to use s12 image instead of s13 or s14 as, as per instructor there is easier approach
+    than kafka which he'll introduce latter.
+
+    Below commands we'll run
+        kubectl apply -f 1_keycloak.yaml
+
+        kubectl apply -f 2_configmaps.yaml
+
+        kubectl apply -f 3_configserver.yaml
+
+        kubectl apply -f 4_eurekaserver.yaml
+
+        kubectl apply -f 5_accounts.yaml
+
+        kubectl apply -f 6_loans.yaml
+
+        kubectl apply -f 7_cards.yaml
+
+        kubectl apply -f 8_gateway.yaml
+
+    Now to stop all running pods we need use the following commands.
+
+        kubectl delete -f 1_keycloak.yaml
+
+        kubectl delete -f 2_configmaps.yaml
+
+        kubectl delete -f 3_configserver.yaml
+
+        kubectl delete -f 4_eurekaserver.yaml
+
+        kubectl delete -f 5_accounts.yaml
+
+        kubectl delete -f 6_loans.yaml
+
+        kubectl delete -f 7_cards.yaml
+
+        kubectl delete -f 8_gateway.yaml
+
+*7* Self healing testing
+
+        Deleted a pod and kubernetes automaticaly created new container as per the number of
+        desired replica configured in manifest file.
+
+            To delete a pod: kubectl delete pods keycloak-6787c6d8b6-j87l5
+            to check the status: kubectl get pods
+            to check the status: kubectl get replicaset
+
+            Also we have another command which shows event occured till now. like a log of events
+            cmd: kubectl get events --sort-by=.metadata.creationTimestamp
+
+*8* update the container with latest container and rollback to pervious cotainer.
+
+        we'll try to migrate to the another container from current container like currently running
+        s12, we'll migrate to s11 think of it as new relase.
+        Then we'll also see how to rollback to s12 previous state from s11 like stimulating new relase has
+        some issue need to to fallback to pervious version.
+
+        1st upgarade
+        cmd: kubectl set image deployment gatewayserver-deployment gatewayserver=eazybytes/gatewayserver:s11 --record
+
+        After running the above command, kubernetes will first try to pull the image and start the container
+        only after this it'll start terminating the previous running container.
+        While pulling or strating new container if any issue occured kubernetes will stop there and will not
+        initate the termination of previous running container.
+
+        2nd rollback
+
+        we need to run the command
+            kubectl rollout history deployment gatewayserver-deployment
+        
+        Above command will show all rollout happened upgrade, downgrade, error rollout etc.
+        We can see two column, 1st Revision (shows serial number) and 2nd is change-cause (shows command/cause of rollout)
+        we can run the following to command to rollback as per the serial number. we put the serial number at command at which we want to rollback
+            cmd: kubectl rollout undo deployment gatewayserver-deployment --to-revision=1           here 1 is the revision serial number
+
+
+*9* Kubernetes Service types
+
+    there are three service types ClusterIP Service, NodePort Service, LoadBalancer Service.
+    1. ClusterIP Service: This is the default service that uses an internal Cluster IP to expose Pods.
+                In ClusterIP, the service are not available for external access of the cluster and used
+                for internal communications between different Pods or microservices in the cluster.
+
+    2.  NodePort Service: This service exposes outside and allows the outside traffic to connect to K8s
+                Pods through the node port which is the port opened at Node end. The Pods can be accessed
+                from external using <NodeIp>:<NodePort>
+
+    3.  LoadBalancer Service: This service is exposed like in NodePort but creates a load balancer in the
+                cloud where K8s is running that receives external requests to the service. It then distributes
+                them amoing the cluster nodes using NodePort.
+
+
+    If remember in each manifest file at second yaml, we have give the service type in spec section.
+    previosly in each manifest file we have given LoadBalancer as service type.
+    But that's not appropriate. for example since we have gatewayserver and we are using docker/kubernetes
+    network as firewall, we don't want to expose some MS to outside of kubernetes network.
+    We want to allow access of all MS through only gatewayserver.
+    To acheieve the same we can use all 3 types of services.
+
+    For example for accounts MS
+        type: ClusterIP        port: 80         targetPort: 8080        and lets say replicas=2
+
+
+                                                    |
+                                                    |
+                                            External Traffic
+                                                not allowed
+                                                    |               |--->WorkerNode 1 (accounts MS pod) at Port 8080
+                                                   \|/              |
+        Internal Traffic-------Port 80 ---------> ClusterIP----------
+    (from other pods inside                  (ClusterIP provides a  |
+    the K8s cluster)                           load-balanced IP     |--->WorkerNode 2 (accounts MS pod) at Port 8080
+                                                    address)
+                    
+    As we can see that we have two replica of accounts MS running at seprate pod and wokernodes and both running
+    at 8080 port.
+    Also we can see that to connect accountsMS we have only one option to go through ClusterIP and also they should should
+    pass the port as 80 with ClusterIP as the accountsMS is exposed at port 80 within network or they can communicate
+    using service name which accounts.
+    And as we know ClusterIP only accept or accessable thorugh only internal network and same within same cluster
+    and only other internal pods can communicate with it within K8s cluster.
+    Hence external traffic will never reach accountsMS and if tried they'll not found error.
+
+    Like showed in example ClusterIP serves our pupose for all MS which we don't want to expose outside,
+    but internally other pods should be able to connect it.
+    So we'll use ClusterIP for all MS except gatewayserver.
+
+
+
+
+    K8s NodePort Service
+    Services of type NodePort build on top of ClusterIP type services by exposing the ClusterIP service
+    outside of the cluster on high port (default 30000-32767). If no port number is specified then
+    Kubernetes automatically selects a free port. The local kube-proxy is responsible for listening to
+    the port on the node and forwarding client traffic on the NodePort to the ClusterIP.
+
+    For example for accounts MS
+        type: NodePort        port: 80         targetPort: 8080         nodePort:32593        and lets say replicas=2
+
+    If anyone want to consume the acount MS, then they need to send that traffic to the IP address of the
+    worker node one or worker node two and post the IP address they shoul dmention the NodePort value, which
+    is 32593 as configured(if not configered next available port in range 30000-32767 will be assigned).
+    So once the traffic is received at this node port, the kubernetes cluster is going to forward that
+    request to the ClusterIP address at the service name that we have defined.
+    And from the cluster IP, the load balancing will distribute between the two different parts available
+    in two different worker nodes.
+
+    But there is a drawback here with this NodePort service.
+    The external client applications, they should know what is the IP address of worker node one or worker
+    Node two.
+    And suppose think like there is a scenario, One of the worker node has some issues, then Kubernetes
+    automatically can kill that WorkerNode. And in the place of that worker node, it is going to bring
+    a new WorkerNode. That means it is going to get a new IP address. So in this kind of scenarios,
+    the client applications should always update their worker node details or IP address details.
+    Hence that's why most of the people, we don't use this NodePort service.
+    Instead we use the LoadBalancer Service.
+
+
+
+
+    K8s LoadBalancer Service
+        The LoadBalancer service type is built on top of NodePort service types by provisioning and
+        configuring external load balancers from public and private cloud providers. It exposes services
+        that are running in the cluster by forwarding layer 4 traffic to worker nodes.
+        This is a dynamic way of implementing a case that involves external load balancers and NodePort
+        type services.
+
+    For example for accounts MS
+        type: LoadBalancer        port: 80         targetPort: 8080        and lets say replicas=2
+
+        This is very similar to NodePort, but on top of the NodePort that we have exposed.
+        The Kubernetes is going to provide us a load balancer. And this LoadBalancer will have a public
+        IP address, which is never going to change until unless a kubernetes admin is going to change.
+        So the same public address can be mapped to a DNS name or to the domain name and to this domain
+        name or to this public address the client applications can send the traffic.
+
+        So whenever my LoadBalancer, which is staying outside my Kubernetes cluster, is receiving the traffic,
+        it will identify to which worker node it has to send the request.
+        Suppose think like it decided to send the request to the workere node one.
+        In that scenario, the request will be forwarded to the NodePort and from the node port the traffic will
+        go to the ClusterIP and from ClusterIP it will eventually go to the accounts MS container.
+
+
+        So the advantage that we have with this LoadBalancer is that we can expose the traffic to the
+        external world just like inside NodePort, but compared to nodePort LoadBalancer service has an
+        advantage, which is it is going to provide a LoadBalancer, which is always going to have a public
+        IP address which you can map to your domain name regardless of how many worker nodes you are trying
+        create inside your Kubernetes cluster or how many worker nodes we are trying to delete them.
+        So regardless of whatever is happening inside your Kubernetes cluster, it is not going to impact
+        your client application in any way because the LoadBalancer is always going to be static with the
+        IP address at the domain name that we have mapped. And same can be used by our client
+        application.
+
+        And this LoadBalancer, whatever created by the Kubernetes cluster, it is always going to track what
+        is happening inside the Kubernetes cluster.

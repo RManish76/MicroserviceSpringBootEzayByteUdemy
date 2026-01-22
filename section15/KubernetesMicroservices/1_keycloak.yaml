@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.4.7
+          args: ["start-dev"]  #the arguments to start the container
+          env: #pass the environment variable under this env tag.
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME #name of the environment variable or we can say the actual envirnoment variable name. this name will be feded to the container as environment variable.
+              valueFrom: #tag to say fetch value from
+                configMapKeyRef: #fetch value from configMap of kubernetes cluster
+                  name: eazybank-configmap #the name of configmap which we configured in kubernetes cluster using configmaps.yaml renamed to 2_configmaps.yaml
+                  key: KC_BOOTSTRAP_ADMIN_USERNAME #from the configmap for which environment variable it need to fetch the value. here the name is working as key form which value need to fetch and feed to container against the environment varible above defined.
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD #similar like above
+              valueFrom:
+                configMapKeyRef:
+                  name: eazybank-configmap
+                  key: KC_BOOTSTRAP_ADMIN_PASSWORD
+          ports:
+            - name: http
+              containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  selector:
+    app: keycloak
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 7080
+      targetPort: 8080

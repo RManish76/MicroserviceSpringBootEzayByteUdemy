@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ServiceAccount #ServiceAccount is a predefined object inside the Kubernetes, which tells what kind/type of user we want.
+metadata:
+  name: admin-user #name/username of the ServiceAccount
+  namespace: kubernetes-dashboard #Namespace is kind of boundary or an isolated area inside the cluster like we have dev, QA, Prod.
+                                  #Similarlry inside the Kubernetes, also with the help of namespaces we can create separate isolated area
+                                  #under which we can try to create various objects like service account.
+                                  #But if not mentioned the user will be created under defualt namespace. hence we are giving the custome to easy the identification.

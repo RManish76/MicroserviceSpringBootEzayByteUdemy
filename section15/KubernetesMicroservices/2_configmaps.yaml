@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap #what kind or purpose of this yml
+metadata:
+  name: eazybank-configmap #name of this configmap
+data: #provide enviornment properties under this data tag.
+  SPRING_PROFILES_ACTIVE: "prod"
+  SPRING_CONFIG_IMPORT: "configserver:http://configserver:8071/" #host name has to be same as service name, which we have provided in kubernetes like for configserver MS we provided service name as configserver only if you check 2nd yaml of configserver.yml
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eurekaserver:8070/eureka/" #host name has to be same as service name, which we have provided in kubernetes like for configserver MS we provided service name as configserver only if you check 2nd yaml of configserver.yml
+  CONFIGSERVER_APPLICATION_NAME: "configserver"
+  EUREKA_APPLICATION_NAME: "eurekaserver"
+  ACCOUNTS_APPLICATION_NAME: "accounts"
+  LOANS_APPLICATION_NAME: "loans"
+  CARDS_APPLICATION_NAME: "cards"
+  GATEWAY_APPLICATION_NAME: "gatewayserver"
+  KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
+  KC_BOOTSTRAP_ADMIN_PASSWORD: "admin"
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: "http://keycloak:7080/realms/master/protocol/openid-connect/certs" #again same thing here host name same as service name

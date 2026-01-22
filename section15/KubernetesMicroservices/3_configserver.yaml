@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment #again predefined object but Deployment is specific to deployment of MS into kubernetes cluster
+metadata: #metadata information about deployment
+  name: configserver-deployment #name to deployment(can be anything), to diffiriants between multiple deployment
+  labels:
+    app: configserver # this lable is like service name which we used in docker-compose or application name in springboot.
+spec: #specification related to deployment
+  replicas: 1 #number of expected instance for this MS should be running. all instance will be deployed in seprate pods
+  selector: 
+    matchLabels:
+      app: configserver #we are saying match the label to this and apply above spec to configserver-deployment, who have this level.
+  template: #we are trying to provide, what is the template instructions, how we want to deploy our MS.
+    metadata:
+      labels:
+        app: configserver
+    spec: #specification related to template
+      containers:
+      - name: configserver #name of the container which we want to give
+        image: pdcourse/configserver:s12 #docker image name which needs to run, how the kubernetes cluster will know whether the
+                                          # the images are present inside the Docker hub or Amazon Container Registry or any other
+                                          # container registy.
+                                          #By default kubernetes will add docker.io/ as prefix at image name before looking for image.
+                                          #If container is at some other place then we need to mention the full details.
+        ports:
+        - containerPort: 8071 #At what port the container will start inside the kubernetes pod.
+
+--- #indicates start of another yaml insturion. Its like 2 yaml file in one file like union query. So instead of creating multiple yaml we do like this.  It for if common file is there only single config.
+    #above yaml was to where how and which MS need to start in kubernetes cluster. Below yaml is that how to expose the started container to outside world.
+apiVersion: v1
+kind: Service 
+metadata:
+  name: configserver #name to the service, not the above level. #And this the name which will exposed to other MS, hence carefull with the name as in MS java/config code if different is there compaired to here, then it'll create issue.
+spec: #
+  selector:
+    app: configserver #tells to kubernetes clustere, whatever service that we have defining there, apply to the container that we created with the help
+                      #of deployment instructions with the same label app name as config server. And this is how the kubernetes cluster is going to establish a link
+                      #between a deployment and service.
+  type: LoadBalancer # It is an indication to kubernetes cluster that we want to expose our MS to the outside world, which means to the outside of the
+                      #kubernetes cluster as well. We have other types as well. And this type inside the service is super-super important because
+                      #based upon this type, only the behavior of exposing our container will be controlled.
+  ports:
+    - protocol: TCP #since we want to communicate over web, we choose protocol as TCP
+      port: 8071 #port at which it need to be exposed.
+      targetPort: 8071 #port at which out container is running or going to start as per the 1st yaml.
