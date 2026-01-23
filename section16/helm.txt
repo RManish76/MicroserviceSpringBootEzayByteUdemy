@@ -28,3 +28,6 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
         And others are fine.
 
         Copy pasted the files in templates folder from instructor git repo.
+
+        For better understanding of files follow the order as
+            1st service.yaml       2nd deyployment.yaml           3rd configmap.yaml
