@@ -57,4 +57,13 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
 
             We are adding same files here only in content we'll just add a line which instruct to helm that
             for the content of this refer to eazybank-common.
-            As are required fileds for these 2 files we have mentioned in eazybank-common helm char.
+            As are required fileds for these 2 files we have mentioned in eazybank-common helm chart.
+
+        Now next is that we need to pass the values to deployment and service .common and those
+        values will be injected into them.
+        These value we'll provide using the file values.yaml from accounts helm chart.
+
+        Now if we notice that chart folder is empty. and we know that all the dependent helm charts will
+        be available inside the chart foder, but right now it is empty because we have not compiled our
+        hem chart as of now. Once we comple all dependent chart will populate in charts folder of accounts
+        helm chart.
