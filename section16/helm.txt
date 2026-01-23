@@ -17,3 +17,10 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
 
         1st create the helm char with command: helm create <chartName>
             executed: helm create eazybank-common
+
+        After executing above command a folder will be created with name eazybank-common in the folder
+        where command got executed.
+        So whenever we create a helm char using above command, it gives some predefined templates and yaml files
+
+        Since we want to create our own chart we'll remove the templates folder and the file within that chart.
+        
