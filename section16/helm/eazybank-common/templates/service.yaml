@@ -1,15 +1,15 @@
-{{- define "common.service" -}}  {% comment %} #name of this helm file, will be used to refer this file using this name common.service {% endcomment %}
-apiVersion: v1 {% comment %} static value never going to change {% endcomment %}
-kind: Service {% comment %} static value never going to change {% endcomment %}
+{{- define "common.service" -}} {{/* name of this helm file, will be used to refer this file using this name common.service */}}
+apiVersion: v1 {{/* static value never going to change */}}
+kind: Service {{/* static value never going to change */}}
 metadata:
-  name: {{ .Values.serviceName }} {% comment %} this line expects dynamic value.  .Value in helm means value for this key will be injected dynamically means whoever going to use this template/yaml file they need to pass a service name. And here key is serviceName and value will fetched as per the key {% endcomment %}
+  name: {{ .Values.serviceName }} {{/* this line expects dynamic value. */}}
 spec:
   selector:
-    app: {{ .Values.appLabel }} {% comment %} this line expects dynamic value.  .Value in helm means value for this key will be injected dynamically means whoever going to use this template/yaml file they need to pass a app label. And here key is appLabel and value will fetched as per the key {% endcomment %}
-  type: {{ .Values.service.type }} {% comment %} this line expects dynamic value.  .Value in helm means value for this key will be injected dynamically means whoever going to use this template/yaml file they need to pass a service.type . And here key is service.type and value will fetched as per the key {% endcomment %}
+    app: {{ .Values.appLabel }} {{/* this line expects dynamic value. */}}
+  type: {{ .Values.service.type }} {{/* this line expects dynamic value. */}}
   ports:
     - name: http
       protocol: TCP
-      port: {{ .Values.service.port }} {% comment %} this line expects dynamic value.  .Value in helm means value for this key will be injected dynamically means whoever going to use this template/yaml file they need to pass a service.port, And here key is service.port and value will fetched as per the key {% endcomment %}
-      targetPort: {{ .Values.service.targetPort }} {% comment %} this line expects dynamic value.  .Value in helm means value for this key will be injected dynamically means whoever going to use this template/yaml file they need to pass a service.targetport, And here key is service.targetPort and value will fetched as per the key {% endcomment %}
-{{- end -}} {% comment %} end of the top line, define line like html/xml tag. So whatever is under define and end can be refered using thename common.service as we defined at 1st line{% endcomment %}
+      port: {{ .Values.service.port }} {{/* this line expects dynamic value. */}}
+      targetPort: {{ .Values.service.targetPort }} {{/* this line expects dynamic value. */}}
+{{- end -}} {{/* end of the top line */}}

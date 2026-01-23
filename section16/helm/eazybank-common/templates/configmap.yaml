@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.global.configMapName }} {% comment %} global tag means it'll common for all MS which going use this templates/hemlChart folder {% endcomment %}
+   name: {{ .Values.global.configMapName }} {{/* global tag means it'll common for all MS which going use this templates/hemlChart folder */}}
 data:
   SPRING_PROFILES_ACTIVE: {{ .Values.global.activeProfile }}
   SPRING_CONFIG_IMPORT: {{ .Values.global.configServerURL }}
