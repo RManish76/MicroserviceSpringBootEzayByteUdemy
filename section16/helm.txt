@@ -98,3 +98,47 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
         Note for all above MS the depenednt helm chart is same hence using the copy pasted compiled helm 
         should not create issue.
         But if needed we can recompile the all helm chart related all MS
+
+
+*4* Creation of another helm chart to execute all MS from that single helm chart.
+
+        As of now, we have created the required helm chart for our MS.
+        But with this setup, we need to install all these helm charts manually one by one, like accounts,
+        cards, configserver etc.
+        
+        We are uisng helm chart to mitigate one of this issue to do thing one by one seprately for each MS.
+
+        Now we'lll create one more helm chart specific to an environment and inside that environment specific
+        helm chart, I'm going to define all the config map related values along with the dependencies on
+        these MS helm charts that we have created till now.
+        environment like prod, qa, default.
+
+        we'll create a environment folder and inside that all environment helm chart we'll create
+        1st we'll create for dev-environment, so run the command to create new helm chart
+                helm create dev-env
+
+        then we'll again do same thing delete all files from templates folder and clean data from
+        values.yaml and updated the version appVersion in Charts.yaml
+
+        Then we'll add the dependent helm chats in Charts.yaml of dev-env helm chat.
+        And what will be dependencies, it'll be all MS helm chart and eazybank-common.
+
+        Now we need to add the templates in dev-env.
+        And in dev-env or any other environment helm chart we don't need deployment.yaml and service.yaml
+        as those two are already present in all MS and environment does not need those.
+        So environment helm char only need configmap.yaml in templates folder. and we'll import that from
+        eazybank-common.
+
+        Now template is done, we need to pass the value to configmap.yaml as well, so we need to add
+        values in values.yaml of dev-env
+        And if you notice we have mentioned global prefix in values.yaml as all values will should
+        be available to all MS.
+
+        now let's compile this dev-env helm chart using below command
+            helm dependencies build         in cmd at dev-env location
+
+        
+        Now like we did for MS, copied the one MS and renamed the file and few data inside with new MS, we'll
+        do the same here for qa and prod.
+            and we need to updated only three thing name in Charts.yaml and
+                confgimapName, profile in values.yaml
