@@ -1,14 +1,14 @@
 cmd:    helm ls     shows list of running helm charts.
-cmd:    helm env    shows the locations for where it getting environment varibale to access the kubernetes
+cmd:    helm env    shows the locations for where it getting environment varibale to access the Kubernetes
                     cluster.
 
-cmd:    helm uninstall <charName>       removes/deletes the chart also remove the kubernetes cluster
+cmd:    helm uninstall <charName>       removes/deletes the chart also remove the Kubernetes cluster
 
 
 *1* Creation of 1st chart
 
         As we know that heml is package manager like pip in python.
-        helm helps in mitigate the manual work which we were doing eariler with kubernetes cluster.
+        helm helps in mitigate the manual work which we were doing eariler with Kubernetes cluster.
         like mannually executing command to start/apply new manifest file, mannually running cmd for
         rollout, rollback. Also we have to do it 1 by 1 for each manifest.
 
@@ -31,3 +31,18 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
 
         For better understanding of files follow the order as
             1st service.yaml       2nd deyployment.yaml           3rd configmap.yaml
+
+
+*2* Creation of Helm chart for Accounts MS
+
+        Now we'll see how we can use eazybank-common to create a helm chart for accounts MS.
+        As in eazybank-common folder only we have defined all the required Kubernetes manifest template files.
+        
+        For the same we create a new folder with name eazybank-services, inside this folder we are going to
+        create all the helm charts that are required for our MS.
+
+        Now open cmd in same folder and run the below command to create new template chart
+                helm create accounts
+
+            The we'll same process as earlier delete the files inside the the template folder and also
+            delete the default data present in values.yaml
