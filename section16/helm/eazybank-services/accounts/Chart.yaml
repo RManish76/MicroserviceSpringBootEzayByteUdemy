@@ -21,4 +21,9 @@ version: 0.1.0
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "1.16.0"
+appVersion: "1.0.0"
+
+dependencies:
+  - name: eazybank-common #name of the helm chart which is metioned in Chart.yaml in eazybank-common
+    version: 0.1.0 #version of the helm chart which is metioned in Chart.yaml in eazybank-common
+    repository: file://../../eazybank-common #location of the helm chat url/file location. two time ../ because the eazy-bank helm chart is available back 2 folder.

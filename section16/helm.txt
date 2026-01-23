@@ -46,3 +46,9 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
 
             The we'll same process as earlier delete the files inside the the template folder and also
             delete the default data present in values.yaml
+
+        Now as we know that if any helm chart have dependency to another helm chart then we need to mention the list of
+        helm chart in Chart.yaml 
+        And we know that all our MS is going to depend on eazybank-common helm chart. hence we'll mention the same.
+
+        Now we need to add the template.
