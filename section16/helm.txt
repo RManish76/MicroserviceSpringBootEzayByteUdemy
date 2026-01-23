@@ -51,4 +51,10 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
         helm chart in Chart.yaml 
         And we know that all our MS is going to depend on eazybank-common helm chart. hence we'll mention the same.
 
-        Now we need to add the template.
+        Now we need to add the template in accounts helm chart
+            To deploy the accounts MS we need only two Kubernetes manifest file which are deployment and service if remeber.
+            But only difference is that eariler we added both deployment and service in single file using --- as file seprator.
+
+            We are adding same files here only in content we'll just add a line which instruct to helm that
+            for the content of this refer to eazybank-common.
+            As are required fileds for these 2 files we have mentioned in eazybank-common helm char.
