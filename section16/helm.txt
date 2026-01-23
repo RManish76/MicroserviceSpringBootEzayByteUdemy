@@ -77,3 +77,24 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
             the dependent helm charts and place them inside the chart folder.
         We don't need to run the above build command for eazybank-common helm chart as it does not have any
         depenednt helm chart.
+
+
+*3* Now creation of helm chart for other MS.
+
+        copy paste the accouts helm chart and rename to cards.
+        then update the accounts to cards in Charts.yaml at name at 2nd line.
+        then in values.yaml and replace accounts with cards.
+        And update the port to 9000 and in the boolean values we'll mark kafka as false.
+        That's all updated needed. simple then creating from start
+
+        Similarly will do for loans.
+        will do similar thing other MS as well.
+
+        in configserve, in boolean only appname_enabled and otel_enabled will be true.
+        doing similar changes for eureakserver, gatewayserver and message MS.
+        And since gatewayserver is the only MS which is going to be exposed outside of kubernetes cluster
+        hence it's service type will be LoadBalancer.
+
+        Note for all above MS the depenednt helm chart is same hence using the copy pasted compiled helm 
+        should not create issue.
+        But if needed we can recompile the all helm chart related all MS
