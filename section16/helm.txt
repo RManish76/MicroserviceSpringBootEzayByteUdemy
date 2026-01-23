@@ -67,3 +67,13 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
         be available inside the chart foder, but right now it is empty because we have not compiled our
         hem chart as of now. Once we comple all dependent chart will populate in charts folder of accounts
         helm chart.
+
+        Now we'll compile the helm chart.
+        So to compile open cmd in eazybank-service/accounts folder and run the below command
+
+            cmd:    helm dependencies build
+
+            The above commnad will compile the accounts helm chart and it will also try to compile all
+            the dependent helm charts and place them inside the chart folder.
+        We don't need to run the above build command for eazybank-common helm chart as it does not have any
+        depenednt helm chart.
