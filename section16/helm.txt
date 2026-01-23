@@ -1,0 +1,19 @@
+cmd:    helm ls     shows list of running helm charts.
+cmd:    helm env    shows the locations for where it getting environment varibale to access the kubernetes
+                    cluster.
+
+cmd:    helm uninstall <charName>       removes/deletes the chart also remove the kubernetes cluster
+
+
+*1* Creation of 1st chart
+
+        As we know that heml is package manager like pip in python.
+        helm helps in mitigate the manual work which we were doing eariler with kubernetes cluster.
+        like mannually executing command to start/apply new manifest file, mannually running cmd for
+        rollout, rollback. Also we have to do it 1 by 1 for each manifest.
+
+        Helm will create single file/chart which will allow to execute manifest file for within from a
+        single chart also rollout, rollback of whole cluster etc.
+
+        1st create the helm char with command: helm create <chartName>
+            executed: helm create eazybank-common
