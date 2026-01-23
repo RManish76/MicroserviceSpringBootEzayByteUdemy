@@ -1,32 +1,32 @@
-{{- define "common.deployment" -}}
-apiVersion: apps/v1
+{{- define "common.deployment" -}}   {% comment %} #name of this helm file, will be used to refer this file using this name common.deployment {% endcomment %}
 kind: Deployment
 metadata:
-  name: {{ .Values.deploymentName }}
+  name: {{ .Values.deploymentName }} {% comment %} injecting values {% endcomment %}
   labels:
-    app: {{ .Values.appLabel }}
+    app: {{ .Values.appLabel }} {% comment %} injecting values {% endcomment %}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount }} {% comment %} injecting values {% endcomment %}
   selector:
     matchLabels:
-      app: {{ .Values.appLabel }}
+      app: {{ .Values.appLabel }} {% comment %} injecting values {% endcomment %}
   template:
     metadata:
       labels:
-        app: {{ .Values.appLabel }}
+        app: {{ .Values.appLabel }} {% comment %} injecting values {% endcomment %}
     spec:
       containers:
-      - name: {{ .Values.appLabel }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+      - name: {{ .Values.appLabel }} {% comment %} injecting values {% endcomment %}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}" {% comment %} injecting values {% endcomment %}
         ports:
         - containerPort: {{ .Values.containerPort }}
           protocol: TCP
-        env:
-        {{- if .Values.appname_enabled }}
+        env: {% comment %} as we have environment variable as well, here we are trying to inject same after this line {% endcomment %}
+        {{- if .Values.appname_enabled }} {% comment %} inside the helf we can write if condition. as we can see here also value will be injected and means that if value is trye then it'll execute all below line till it recived the end command line. and if is false then it'll not execute the below lines till end command {% endcomment %}
         - name: SPRING_APPLICATION_NAME
           value: {{ .Values.appName }}
-        {{- end }}
-        {{- if .Values.profile_enabled }}
+        {{- end }} {% comment %} end of above if condition mentioned 2 above like pranthesis we use. {% endcomment %}
+                    {% comment %} we used if because there might be some MS where we don't want to pass these environment variables. so we'll just pass false and environment variable will be not injected. {% endcomment %}
+        {{- if .Values.profile_enabled }} {% comment %} in some microservice we want to use the profile, this is for that {% endcomment %}
         - name: SPRING_PROFILES_ACTIVE
           valueFrom: 
             configMapKeyRef:
