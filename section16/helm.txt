@@ -25,4 +25,6 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
         Since we want to create our own chart we'll remove the templates folder and the file within that chart.
         Also the values present in values.yaml, we are not going to use, so will remove that as well.
 
-        And other are fine.
+        And others are fine.
+
+        Copy pasted the files in templates folder from instructor git repo.
