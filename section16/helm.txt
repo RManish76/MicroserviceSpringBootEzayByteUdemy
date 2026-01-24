@@ -20,6 +20,8 @@ cmd:    kubectl get pvc             lists all pvc(oresistent volume claims). Usi
                                     So to overcome the problem, we need to delte the pvc mannually
 
 cmd:    kubectl delete pvc <pvc name>   to delete a pvc.
+
+cmd:    helm ls     list down all helm charts releases/deployment/installed using helm
 *1* Creation of 1st chart
 
         As we know that heml is package manager like pip in python.
@@ -424,3 +426,24 @@ NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomm
                 then form the list we'll fetch the name of tempo distributor and pass
                 the same as environment variable using configmap values.yaml
                 at the key otelExportedEndPoint with port number as 4317
+
+
+    now we will install grafana
+                
+                after build installed grafana using below command
+                    helm install grafana grafana
+
+                since now grafana is running at LoadBalancer service type.
+                if grafana is running at ClusterIP we can use port forwarding
+                to temproraly access the grafana.
+
+                    echo "Browse to http://127.0.0.1:8080"
+                    kubectl port-forward svc/grafana 8080:3000 &
+
+                above command will expose the grafana at port 8080. we can change the port if needed.
+
+                now the username and password for grafana, etiher we can get from values.yaml
+                or can run below command.
+
+                    echo "User: admin"
+                    echo "Password: $(kubectl get secret grafana-admin --namespace default -o jsonpath="{.data.GF_SECURITY_ADMIN_PASSWORD}" | base64 -d)"
