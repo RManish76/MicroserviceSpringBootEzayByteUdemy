@@ -123,3 +123,11 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
             try to give your Localhost URL.
         
         So let's make same change in LoansFeignClient.java
+
+*5* Changes in Cards MS
+
+        updated the pom dependency and image tag.
+        Added the annotation @EnableDiscovery in CardsApplication.java
+        next update the application.yml, remove the eureka properties and add nampasce as true.
+
+        since card and loans MS does not have feign client,hence no other changes.

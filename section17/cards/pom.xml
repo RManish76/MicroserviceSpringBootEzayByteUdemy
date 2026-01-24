@@ -105,9 +105,16 @@
 		<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
 		<!-- EurakClient to register to eureakServer and send heartbeat -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency> -->
+
+		<!-- depency of kubernetes discoveryclinet so that accounts MS can find url/IP of other MS. I think 
+				here a single ip it should get either of LoadBalancer or clusterIP, don't rembere the architecture -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-kubernetes-discoveryclient</artifactId>
 		</dependency>
 
 		<!-- Micrometer dependency, which converts actuator-metric-json
@@ -181,7 +188,7 @@
                 <version>3.5.1</version>
                 <configuration>
                 <to>
-                    <image>pdcourse/${project.artifactId}:s14</image>
+                    <image>pdcourse/${project.artifactId}:s17</image>
                 </to>
                 </configuration>
             </plugin>
