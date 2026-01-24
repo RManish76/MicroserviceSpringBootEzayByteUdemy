@@ -303,3 +303,75 @@ NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomm
 
         First we'll try to use the files form Bitnami if it did not work we'll do it from
         insturctors github helm_new folder.
+
+        if we'll install the kafka helm chart with default values, which we got from bitnami then it 
+        going to consume a lot of resources as it porduction ready.
+        So we'll make some changes.
+            1st change replica count to 1 from 3.
+            then we'll reduce as production ready security setup is complex.
+                so serach SALS_PLAINTEXT and replace it with PLAINTEXT in protocol, this present at mutliple places so update
+                all SALS_PLAINTEXT to PLAINTEXT
+
+        Now do run the build command inside the kafka folder. then install it from outside of kafka folder like shown below
+            d:/../helm/kafka ~ helm dependencies build
+
+            d:/../helm ~ helm install kafka kafka
+
+        got below reposne as per expectiation, few extra lines are thre compaired to insturctor at end of warnings line
+        it can be ignored as of now and looks like every thing is fine.
+
+                    E:\01_SpringBootEzaybytesUdemy\section16\helm>helm install kafka kafka
+                    I0124 16:22:23.979457    9544 warnings.go:110] "Warning: spec.SessionAffinity is ignored for headless services"
+                    NAME: kafka
+                    LAST DEPLOYED: Sat Jan 24 16:22:18 2026
+                    NAMESPACE: default
+                    STATUS: deployed
+                    REVISION: 1
+                    DESCRIPTION: Install complete
+                    TEST SUITE: None
+                    NOTES:
+                    CHART NAME: kafka
+                    CHART VERSION: 32.4.4
+                    APP VERSION: 4.0.0
+
+                    ⚠ WARNING: Since August 28th, 2025, only a limited subset of images/charts are available for free.
+                        Subscribe to Bitnami Secure Images to receive continued support and security updates.
+                        More info at https://bitnami.com and https://github.com/bitnami/containers/issues/83267
+
+                    ** Please be patient while the chart is being deployed **
+
+                    Kafka can be accessed by consumers via port 9092 on the following DNS name from within your cluster:
+
+                        kafka.default.svc.cluster.local
+
+                    Each Kafka broker can be accessed by producers via port 9092 on the following DNS name(s) from within your cluster:
+
+                        kafka-controller-0.kafka-controller-headless.default.svc.cluster.local:9092
+
+                    To create a pod that you can use as a Kafka client run the following commands:
+
+                        kubectl run kafka-client --restart='Never' --image docker.io/bitnami/kafka:4.0.0-debian-12-r10 --namespace default --command -- sleep infinity
+                        kubectl exec --tty -i kafka-client --namespace default -- bash
+
+                        PRODUCER:
+                            kafka-console-producer.sh \
+                                --bootstrap-server kafka.default.svc.cluster.local:9092 \
+                                --topic test
+
+                        CONSUMER:
+                            kafka-console-consumer.sh \
+                                --bootstrap-server kafka.default.svc.cluster.local:9092 \
+                                --topic test \
+                                --from-beginning
+
+                    WARNING: There are "resources" sections in the chart not set. Using "resourcesPreset" is not recommended for production. For production installations, please set the following values according to your workload needs:
+                    - controller.resources
+                    - defaultInitContainers.prepareConfig.resources
+                    +info https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+
+
+        Again same issue as it showing failed to pull in describe command.
+
+        uninstalled the kafka helm chart and deleted the pvc (command at top of this file)
+
+        So i'll copy paste all helm chart(kafka, grafana etc) from helm_new folder of instructor repo.
