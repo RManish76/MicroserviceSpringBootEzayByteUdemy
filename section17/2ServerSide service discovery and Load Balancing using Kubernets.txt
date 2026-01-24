@@ -12,14 +12,14 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
 
         #whenever kind as list mentioned means we create any number of kubernetes objects under the items section.
 
-        # the lattest image tag we can check in docker hub at springcloud/spring-cloud-kuberbetes-discoveryserver
+        # the lattest image tag we can check in docker hub at springcloud/spring-cloud-kubernetes-discoveryserver
 
         by default the kubernetes will check the health after start of pod in 10 or 20 sec and if not started then
         it'll restart the pod. And if systemis slow then this will continue like infinte loop unitll retry limit hit.
         Hence provided 100sec as time, which tells that only test for health and liveness after 100 sec of start of container
         and then if not got true response then restat.
 
-        Also added a time of 30 sec. As once pod started successfully, the kuberbetes is going to monitor it health and
+        Also added a time of 30 sec. As once pod started successfully, the kubernetes is going to monitor it health and
         liveness and for that by default it'll probe every 5 or 10 sec. hence provided 30sec, which means i asking
         do the health and liveness check with 30 sec interval.
 
@@ -55,3 +55,71 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
             we'll update the helm chart as well, as we need to remove the eureka server from our helm charts.
 
     
+*4* Changes in Accounts MS
+        1st we'll update the pom.
+            changed the image tage to s17.
+            commented the dependency of eurekaClient and add dependency of kubernetes-discoveryclient.
+
+        After these changes instructor tried to start accounts MS but got error.
+            In CustomerController.java  import org.apache.http.HttpStatus was being used, which causing error
+            after removing the eureka client dependency.
+            So he replaced it with import org.apache.hc.core5.http.HttpStatus
+
+            But in my case i am using import org.springframework.http.HttpStatus; don't know will it case some
+            issue or not.
+
+        After that we need to add an annotation in AccountsApplication.java
+            @EnableDiscoveryClient
+
+        After that we also need to update the application.yml
+            remove the eureka properties. Add properties related kubernetes under spring.cloud.
+                spring.cloud.kubernetes.discovery.all-namespaces = true 
+
+            purpose of above config is that,
+                as of now we are deploying all our MS into that default namespace of Kubernetes.
+                But sometimes some projects they may deploy different, different applications in different, different
+                namespaces.
+                So in such scenarios, to make sure that our application is able to discover the services present
+                inside other namespaces as well, we need to make sure we are mentioning these all namespaces as true.
+        
+        After this we'll need to update the code for feign client as we are using it.
+            service/client/    CardsFeignClient.java  and LoansFeignClient.java
+
+            so in these files whatever configurations we have defined there, they will work perfectly
+            with Eureka Server because inside the Eureka Server, all the applications are going to be
+            registered with the application names like cards and loans.
+            using the same application name the accounts MS can fetch the details of all the instances
+            of cards MS from the Eureka Server.
+            We also provided the Eureka server conection details inside the appliction.yml so there is
+            a clear integration between the accounts MS and eureka server and uisng the same integration,
+            it is going to use this name which we have defined here, which is cards to get the details
+            of cards, MS intance.
+
+            Bur in the scenario of Discovery server, we are not providing any integration detials between
+            the accounts MS and Discover Server. Nowhere in application.yml we have methioned
+            Discover server details. so that's why the feign clients cannot really understand what
+            is the service name or the host name or the dns name or the port number where it has to
+            forward the request.
+
+            So to resolve this issue we need to provide dtails with the paramerte which is URL.
+            So inside the annotation of feign cliet, apart from the name as cards or loans
+            we should alos mention what is the url at which the cards/loans MS is available
+
+                url = "http://cards:9000"
+            
+            since the service name we are using cards and loans only at kubernetes we can metion that
+            with port.
+            So uisng this servicname (cards/loans) the communicatiion between accounts MS and cards MS
+            is going to happen within the Kubernetes cluster and hwere all my cards MS containers are going
+            to be available at the port 9000.
+            So this is the only details that we need to provide to the Feign client.
+
+            And here the Feign Client is not going to performa ny load balancing. It is simply going
+            to foreward the request to this URL inside the Kubernetes cluster.
+
+            If the same is happening outside the Kubernetes cluster, then it is not going to work because
+            outside of kubernetes clustere there is not hostname or dns name with the name cards.
+            So that's why whenever you are trying to do some local testing without Kubernetes cluster,
+            try to give your Localhost URL.
+        
+        So let's make same change in LoansFeignClient.java

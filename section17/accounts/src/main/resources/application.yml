@@ -24,6 +24,9 @@ spring:
     - "optional:configserver:http://localhost:8071"
   #Circuit breaker config with opeinFien
   cloud:
+    kubernetes:
+      discovery:
+        all-namespaces: true #so that with even different namesapce it able to find other application
     openfeign:
       circuitbreaker:
         enabled: true
@@ -87,18 +90,18 @@ endpoints:
   shutdown:
     enabled: true # to expose actuator shutdown rest api endpoint
     
-#eureka server details --> As accountsMS is eureka client, it need details of eureka server to connect to eureka server
-eureka:
-  instance:
-    # hostname: localhost #no need in client as it's not a server
-    preferIpAddress: true #by default cliet register themselv using hostname and it works when we have DNS mapping.
-                          #But in our local we don't have any DNS, so we should prefer IP address so that they can find each other
-                          #using IP address
-  client:
-    fetchRegistry: true #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
-    registerWithEureka: true #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
-    serviceUrl:
-      defaultZone: http://localhost:8070/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
+# #eureka server details --> As accountsMS is eureka client, it need details of eureka server to connect to eureka server
+# eureka:
+#   instance:
+#     # hostname: localhost #no need in client as it's not a server
+#     preferIpAddress: true #by default cliet register themselv using hostname and it works when we have DNS mapping.
+#                           #But in our local we don't have any DNS, so we should prefer IP address so that they can find each other
+#                           #using IP address
+#   client:
+#     fetchRegistry: true #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
+#     registerWithEureka: true #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
+#     serviceUrl:
+#       defaultZone: http://localhost:8070/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
 
 #details which we want to show at eureka server for this app.
 #these infor information will be exposed as part of an actuator endpoint URL
