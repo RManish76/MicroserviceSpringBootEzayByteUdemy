@@ -1,0 +1,584 @@
+cmd:    helm ls     shows list of running helm charts.
+cmd:    helm env    shows the locations for where it getting environment varibale to access the Kubernetes
+                    cluster.
+
+cmd:    helm uninstall <charName>       removes/deletes the chart also remove the Kubernetes cluster
+
+cmd:    kubectl get svc       To view the ClusterIP, External-IP, Ports, and other details for your Kubernetes services, use the following command:
+
+cmd:    kubectl get svc keycloak        Or, to see details for a specific service (like Keycloak):
+
+cmd:    kubectl get pods                list down all runing pods with status
+
+cmd:    kubectl describe pod <pod name>         describe the status and at what stage the current pod is
+
+cmd:    kubectl get pvc             lists all pvc(oresistent volume claims). Usin this pvc only the pods can claims
+                                    some space inside the worker nodes.
+                                    so whenever we try to uninstall a specific helm chart form the kubernets cluster,
+                                    it is not going to to delete the pvcs that is createa as part of the installation
+                                    and this amy create some issue.
+                                    So to overcome the problem, we need to delte the pvc mannually
+
+cmd:    kubectl delete pvc <pvc name>   to delete a pvc.
+
+cmd:    helm ls     list down all helm charts releases/deployment/installed using helm
+
+cmd:    kubectl get pods -l app.kubernetes.io/instance=loki        shows actual state of the specifi pods
+
+cmd:    kubectl get pods | findstr loki                    shows actual state of the specifi pods
+
+cmd:    helm status loki        This command asks Helm for the detailed status of the release, including the user-supplied values and the status of the resources it tried to deploy.
+
+cmd:    helm upgrade loki grafana-loki (from the folder where chart is located. here it helm folder form there)         If the pods are Running but Helm says failed, it usually means the installation took longer than the default timeout (often waiting for a specific condition), or a post-install hook failed.
+                                                To fix the "failed" status: If the pods are running fine, you can usually "fix" the Helm status by running an upgrade command, which forces Helm to reconcile the state:
+                                            loki install got timedout hence it was showing failed in helm ls command. so used it scan it again.
+        
+
+
+*1* Creation of 1st chart
+
+        As we know that heml is package manager like pip in python.
+        helm helps in mitigate the manual work which we were doing eariler with Kubernetes cluster.
+        like mannually executing command to start/apply new manifest file, mannually running cmd for
+        rollout, rollback. Also we have to do it 1 by 1 for each manifest.
+
+        Helm will create single file/chart which will allow to execute manifest file for within from a
+        single chart also rollout, rollback of whole cluster etc.
+
+        1st create the helm char with command: helm create <chartName>
+            executed: helm create eazybank-common
+
+        After executing above command a folder will be created with name eazybank-common in the folder
+        where command got executed.
+        So whenever we create a helm char using above command, it gives some predefined templates and yaml files
+
+        Since we want to create our own chart we'll remove the templates folder and the file within that chart.
+        Also the values present in values.yaml, we are not going to use, so will remove that as well.
+
+        And others are fine.
+
+        Copy pasted the files in templates folder from instructor git repo.
+
+        For better understanding of files follow the order as
+            1st service.yaml       2nd deyployment.yaml           3rd configmap.yaml
+
+
+*2* Creation of Helm chart for Accounts MS
+
+        Now we'll see how we can use eazybank-common to create a helm chart for accounts MS.
+        As in eazybank-common folder only we have defined all the required Kubernetes manifest template files.
+        
+        For the same we create a new folder with name eazybank-services, inside this folder we are going to
+        create all the helm charts that are required for our MS.
+
+        Now open cmd in same folder and run the below command to create new template chart
+                helm create accounts
+
+            The we'll same process as earlier delete the files inside the the template folder and also
+            delete the default data present in values.yaml
+
+        Now as we know that if any helm chart have dependency to another helm chart then we need to mention the list of
+        helm chart in Chart.yaml 
+        And we know that all our MS is going to depend on eazybank-common helm chart. hence we'll mention the same.
+
+        Now we need to add the template in accounts helm chart
+            To deploy the accounts MS we need only two Kubernetes manifest file which are deployment and service if remeber.
+            But only difference is that eariler we added both deployment and service in single file using --- as file seprator.
+
+            We are adding same files here only in content we'll just add a line which instruct to helm that
+            for the content of this refer to eazybank-common.
+            As are required fileds for these 2 files we have mentioned in eazybank-common helm chart.
+
+        Now next is that we need to pass the values to deployment and service .common and those
+        values will be injected into them.
+        These value we'll provide using the file values.yaml from accounts helm chart.
+
+        Now if we notice that chart folder is empty. and we know that all the dependent helm charts will
+        be available inside the chart foder, but right now it is empty because we have not compiled our
+        hem chart as of now. Once we comple all dependent chart will populate in charts folder of accounts
+        helm chart.
+
+        Now we'll compile the helm chart.
+        So to compile open cmd in eazybank-service/accounts folder and run the below command
+
+            cmd:    helm dependencies build
+
+            The above commnad will compile the accounts helm chart and it will also try to compile all
+            the dependent helm charts and place them inside the chart folder.
+        We don't need to run the above build command for eazybank-common helm chart as it does not have any
+        depenednt helm chart.
+
+
+*3* Now creation of helm chart for other MS.
+
+        copy paste the accouts helm chart and rename to cards.
+        then update the accounts to cards in Charts.yaml at name at 2nd line.
+        then in values.yaml and replace accounts with cards.
+        And update the port to 9000 and in the boolean values we'll mark kafka as false.
+        That's all updated needed. simple then creating from start
+
+        Similarly will do for loans.
+        will do similar thing other MS as well.
+
+        in configserve, in boolean only appname_enabled and otel_enabled will be true.
+        doing similar changes for eureakserver, gatewayserver and message MS.
+        And since gatewayserver is the only MS which is going to be exposed outside of kubernetes cluster
+        hence it's service type will be LoadBalancer.
+
+        Note for all above MS the depenednt helm chart is same hence using the copy pasted compiled helm 
+        should not create issue.
+        But if needed we can recompile the all helm chart related all MS
+
+
+*4* Creation of another helm chart to execute all MS from that single helm chart.
+
+        As of now, we have created the required helm chart for our MS.
+        But with this setup, we need to install all these helm charts manually one by one, like accounts,
+        cards, configserver etc.
+        
+        We are uisng helm chart to mitigate one of this issue to do thing one by one seprately for each MS.
+
+        Now we'lll create one more helm chart specific to an environment and inside that environment specific
+        helm chart, I'm going to define all the config map related values along with the dependencies on
+        these MS helm charts that we have created till now.
+        environment like prod, qa, default.
+
+        we'll create a environment folder and inside that all environment helm chart we'll create
+        1st we'll create for dev-environment, so run the command to create new helm chart
+                helm create dev-env
+
+        then we'll again do same thing delete all files from templates folder and clean data from
+        values.yaml and updated the version appVersion in Charts.yaml
+
+        Then we'll add the dependent helm chats in Charts.yaml of dev-env helm chat.
+        And what will be dependencies, it'll be all MS helm chart and eazybank-common.
+
+        Now we need to add the templates in dev-env.
+        And in dev-env or any other environment helm chart we don't need deployment.yaml and service.yaml
+        as those two are already present in all MS and environment does not need those.
+        So environment helm char only need configmap.yaml in templates folder. and we'll import that from
+        eazybank-common.
+
+        Now template is done, we need to pass the value to configmap.yaml as well, so we need to add
+        values in values.yaml of dev-env
+        And if you notice we have mentioned global prefix in values.yaml as all values will should
+        be available to all MS.
+
+        now let's compile this dev-env helm chart using below command
+            helm dependencies build         in cmd at dev-env location
+
+        
+        Now like we did for MS, copied the one MS and renamed the file and few data inside with new MS, we'll
+        do the same here for qa and prod.
+            and we need to updated only three thing name in Charts.yaml and
+                confgimapName, profile in values.yaml
+
+
+
+*5* Useful helm Commands
+
+        Sometimes before we try to install the helm charts, we may want to know how our kubernetes manifest
+        file is going to look like that are going to be generated by the helm chart.
+        So to do the same validation, we have a command inside the helm.
+
+        lets open cmd in dev-env folder and run the below command
+                helm template .
+
+            above command will print the kubernetes mainfest file for all MS in cmd prompt.
+            we can verify from that, is it correctly generating the kubernetes maanifest file.
+
+
+NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomment %} is used in Django.
+        hence incorrect syntax caused error.
+        so updated all the comments with correct syntax.
+
+
+*5* Install KeyCloak in Kubernetes Cluster using Helm Chart
+
+        Helm has a very good community, so we should be able to easily find the helm charts to install
+        any product inside the software industry.
+        For examplem if we want to install Kafka inside our Kubernetes cluster, we don't have to prepare
+        Kubernetes manifest files manually. Instead, we can relly on the helm charts available inside the
+        web.
+
+        So one such company and community, which always maintain these helm charts whith a great production
+        standartds is Bitnami. So bitnami makeit easy to get your favorite open source softwares up and
+        running on any platform, including laptop, Kubernetes or all the major clouds.
+
+        We'll use Bitnami Helm charts to install all the products like Kafka, Grafana, Prometheus, KeyCloak
+        inside our Kubernetes cluster.
+        Bitnami repo: https://github.com/bitnami/charts
+                        https://github.com/bitnami/charts/tree/main/bitnami
+
+            To download the helm charts we can download the repo as zip.
+            And extract the required helm charts in local from the zip.
+        
+        1st we'll do for KeyCloak.
+            By default KeyCloak helm chart set to service type as ClusterIP.
+            But since we want to access the KeyCloak to create the client details and roles information,
+            We are going to expose the KeyCloak service as a LoadBalancer.
+            So to change this behavior, we need to open the values.yaml present inside the KeyCloak helm chart
+            and update the ClusterIP to LoadBalancer.
+
+            Similarly we should note or update the admin username and password in values.yaml
+            We can see in auth section adminUser as user and password as blank.
+            whenever password is blank the KeyCloak behind th scence will create some random password.
+            But we'll set our own for convinece.
+            Also update the update the username as admin and also password as admin
+
+            1st we'll do the build/compile of the helm chart, using below commnad in keycloak folder
+            d/../eazybank-services/keycloak ~    helm dependencies build
+
+
+            now we'll install the KeyCloak. so open the cmd where KeyCloak helm chart exist (eazybank-services)
+            and run the following command
+                d/../eazybank-services ~      helm install keycloak keycloak
+
+                    1st keycloak is the name of keycloak installation/release.
+                    2nd keycloak is the chart/folder name where chart is present.
+
+                Installatioin successfull and we got below respone, which instruct how to access keycloak dashboard.
+
+                        Keycloak can be accessed through the following DNS name from within your cluster:
+
+                            keycloak.default.svc.cluster.local (port 80)
+
+                        To access Keycloak from outside the cluster execute the following commands:
+
+                        1. Get the Keycloak URL by running these commands:
+
+                        NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+                                You can watch its status by running 'kubectl get --namespace default svc -w keycloak'
+
+                            export SERVICE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[?(@.name=='http')].port}" services keycloak)
+                            export SERVICE_IP=$(kubectl get svc --namespace default keycloak -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+                            echo "http://${SERVICE_IP}:${SERVICE_PORT}/"
+
+                        2. Access Keycloak using the obtained URL.
+                        3. Access the Administration Console using the following credentials:
+
+                        echo Username: admin
+                        echo Password: $(kubectl get secret --namespace default keycloak -o jsonpath="{.data.admin-password}" | base64 -d)
+
+                        WARNING: There are "resources" sections in the chart not set. Using "resourcesPreset" is not recommended for production. For production installations, please set the following values according to your workload needs:
+                        - resources
+                        +info https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+
+                we'll run the following command to run the keycloak
+                export SERVICE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[?(@.name=='http')].port}" services keycloak)
+                    export SERVICE_IP=$(kubectl get svc --namespace default keycloak -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+                    echo "http://${SERVICE_IP}:${SERVICE_PORT}/"
+
+            Was getting some error while running above command as above command ment for linux and may work
+            in power shell. Below is the suggestion from gemini and will follow the cmd approach as of now.
+
+                        The error message 'export' is not recognized as an internal or external command occurs because export is a command used in Linux/Unix shells (like Bash) to set environment variables. You are running these commands in the Windows Command Prompt (cmd.exe), which uses different syntax.
+
+                        Here are two ways to resolve this:
+
+                        Option 1: Use PowerShell (Recommended)
+                        PowerShell supports variable assignment syntax that is very similar to what you are trying to do. You can switch to PowerShell by typing powershell in your current command prompt, or by opening a new PowerShell window.
+
+                        Run the following commands in PowerShell:
+
+                        powershell
+                        $SERVICE_PORT = kubectl get --namespace default -o jsonpath="{.spec.ports[?(@.name=='http')].port}" services keycloak
+                        $SERVICE_IP = kubectl get svc --namespace default keycloak -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+                        Write-Host "http://${SERVICE_IP}:${SERVICE_PORT}/"
+                        Option 2: Use Windows Command Prompt (CMD)
+                        If you prefer to stay in cmd.exe, you cannot easily capture command output into variables like in Linux. Instead, you can simply run the kubectl commands directly to see the values and then manually construct the URL in your browser.
+
+                        Run these commands one by one to get the Port and IP:
+
+                        cmd
+                        REM Get the Service Port
+                        kubectl get --namespace default -o jsonpath="{.spec.ports[?(@.name=='http')].port}" services keycloak
+
+                        REM Get the Service IP (LoadBalancer IP)
+                        kubectl get svc --namespace default keycloak -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+                        Note: If the IP command returns nothing, the LoadBalancer might still be provisioning (pending). You can check the status with kubectl get svc -n default keycloak.
+
+                
+                In cmd suggestion the exort keyword is left out.
+                        After running the first command got below response
+                            80
+                        running second command to got below response
+                            ''  which suggest LoadBalancer is still provisioning as per gemini suggestion.
+
+        Note: the helm chart of keycloak from the bitnami also from the instructor folder of helm
+                did not work.
+                Only the helm_new folders keycloak helm chart worked and hence using that.
+
+        Also insturctor putting all third party software in helm folder, same i'll keep.
+
+
+*6* Now let's install the kafka.
+
+        First we'll try to use the files form Bitnami if it did not work we'll do it from
+        insturctors github helm_new folder.
+
+        if we'll install the kafka helm chart with default values, which we got from bitnami then it 
+        going to consume a lot of resources as it porduction ready.
+        So we'll make some changes.
+            1st change replica count to 1 from 3.
+            then we'll reduce as production ready security setup is complex.
+                so serach SALS_PLAINTEXT and replace it with PLAINTEXT in protocol, this present at mutliple places so update
+                all SALS_PLAINTEXT to PLAINTEXT
+
+        Now do run the build command inside the kafka folder. then install it from outside of kafka folder like shown below
+            d:/../helm/kafka ~ helm dependencies build
+
+            d:/../helm ~ helm install kafka kafka
+
+        got below reposne as per expectiation, few extra lines are thre compaired to insturctor at end of warnings line
+        it can be ignored as of now and looks like every thing is fine.
+
+                    E:\01_SpringBootEzaybytesUdemy\section16\helm>helm install kafka kafka
+                    I0124 16:22:23.979457    9544 warnings.go:110] "Warning: spec.SessionAffinity is ignored for headless services"
+                    NAME: kafka
+                    LAST DEPLOYED: Sat Jan 24 16:22:18 2026
+                    NAMESPACE: default
+                    STATUS: deployed
+                    REVISION: 1
+                    DESCRIPTION: Install complete
+                    TEST SUITE: None
+                    NOTES:
+                    CHART NAME: kafka
+                    CHART VERSION: 32.4.4
+                    APP VERSION: 4.0.0
+
+                    ⚠ WARNING: Since August 28th, 2025, only a limited subset of images/charts are available for free.
+                        Subscribe to Bitnami Secure Images to receive continued support and security updates.
+                        More info at https://bitnami.com and https://github.com/bitnami/containers/issues/83267
+
+                    ** Please be patient while the chart is being deployed **
+
+                    Kafka can be accessed by consumers via port 9092 on the following DNS name from within your cluster:
+
+                        kafka.default.svc.cluster.local
+
+                    Each Kafka broker can be accessed by producers via port 9092 on the following DNS name(s) from within your cluster:
+
+                        kafka-controller-0.kafka-controller-headless.default.svc.cluster.local:9092
+
+                    To create a pod that you can use as a Kafka client run the following commands:
+
+                        kubectl run kafka-client --restart='Never' --image docker.io/bitnami/kafka:4.0.0-debian-12-r10 --namespace default --command -- sleep infinity
+                        kubectl exec --tty -i kafka-client --namespace default -- bash
+
+                        PRODUCER:
+                            kafka-console-producer.sh \
+                                --bootstrap-server kafka.default.svc.cluster.local:9092 \
+                                --topic test
+
+                        CONSUMER:
+                            kafka-console-consumer.sh \
+                                --bootstrap-server kafka.default.svc.cluster.local:9092 \
+                                --topic test \
+                                --from-beginning
+
+                    WARNING: There are "resources" sections in the chart not set. Using "resourcesPreset" is not recommended for production. For production installations, please set the following values according to your workload needs:
+                    - controller.resources
+                    - defaultInitContainers.prepareConfig.resources
+                    +info https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+
+
+        Again same issue as it showing failed to pull in describe command.
+
+        uninstalled the kafka helm chart and deleted the pvc (command at top of this file)
+
+        So i'll copy paste all helm chart(kafka, grafana etc) from helm_new folder of instructor repo.
+
+*7* Installing all other thirdparty helm charts
+
+    since I have already copy pasted the helm charts of thrid party helm charts from helm_new folder of instructor repo.
+    we need to just build and install it.
+
+    prometheus cmd: helm install prometheus kube-prometheus
+
+        After installation done.
+            prometheus is running on ClusterIP, means we can not access it from outside.
+            But for some reason if we want to access it we can runn the following command.
+
+                echo "Prometheus URL: http://127.0.0.1:9090/"
+                kubectl port-forward --namespace default svc/prometheus-kube-prometheus-prometheus 9090:9090
+
+            name was incorrect of prometheus pod so fetched the correct name using below command and updated the port forward.
+
+                cmd:    kubectl get svc
+                cmd:    kubectl port-forward --namespace default svc/prometheus-kube-prometheus 9090:9090
+
+        Also now noticed that all thirdparty are running at LoadBalancer service seen after running
+                 cmd:    kubectl get svc
+            looks like in helm_new folder of instructor repo all thirdparty set to loadbalancer.
+
+    now installing grafana-loki helm charts
+
+            needed to run below command. found this command at https://grafana.github.io/helm-charts and this web link was
+            in charts.yaml
+                helm repo add grafana https://grafana.github.io/helm-charts
+            
+            I don't know why the repo link was already there they we it need add dedicately
+
+            after that ran the build command.
+            then install command outside of loki folder.
+                helm install loki grafana-loki
+
+    now installing grafana-tempo helm charts
+            after build
+                    helm install tempo grafana-tempo
+
+            After instaling as we know that the inidvidual MS need a tempo url to which 
+            the opentelemetry is going to send the details of tracing details but after running
+            installing tempo wedid not got any url
+            So we'll run the below command which will list down all the services.
+                    kubectl get services        this command is same as kubectl get svc
+
+                then form the list we'll fetch the name of tempo distributor and pass
+                the same as environment variable using configmap values.yaml
+                at the key otelExportedEndPoint with port number as 4317
+
+
+    now we will install grafana
+                
+                after build installed grafana using below command
+                    helm install grafana grafana
+
+                since now grafana is running at LoadBalancer service type.
+                if grafana is running at ClusterIP we can use port forwarding
+                to temproraly access the grafana.
+
+                    echo "Browse to http://127.0.0.1:8080"
+                    kubectl port-forward svc/grafana 8080:3000 &
+
+                above command will expose the grafana at port 8080. we can change the port if needed.
+
+                now the username and password for grafana, etiher we can get from values.yaml
+                or can run below command.
+
+                    echo "User: admin"
+                    echo "Password: $(kubectl get secret grafana-admin --namespace default -o jsonpath="{.data.GF_SECURITY_ADMIN_PASSWORD}" | base64 -d)"
+
+*8* Deployment of all MS
+
+        since the thrid party software are installed using helm. we'll install all MS.
+
+        and as we have already created a environment folder where we have create profiles for qa,
+        dev, prod we can run any pofile and it'll install all MS with single command.
+
+        So lets go to environment folder then run below command
+            helm install eazybank prod-env
+
+            if need we run build command before running the install command.
+
+        found apiversion missing in service.yaml of eazaybank-common which was causing error while
+        installing the prod profile.
+        And error will come at other profile as well.
+        Update the apiversion. build the all MS again and now intall command ran successfully.
+
+        Note: After running the install command of a profile it'll start all MS same time
+                we still have not configured like depeneds on like we did in docker-compose.
+                for example configserver not available, eureka server not available etc
+
+                Fot that reason the pods are going to be fialed to start and whenever this
+                kind of scenario occurs inside the kubernetes, the kubernetes is smart enough
+                to do mutliple restarts till the pod is successfully started or it reaches
+                a maximum nuber of attempts.
+
+                And whenever it it trying to restart a particular part, kubernetes will make
+                sure it is taking some time between multiple restarts.
+                Firt it may tak e2 se, next time it may take 4 or 5 sec, and it is going to
+                delay the next restart based upon exponential delay.
+
+                We can see the spring logs of MS from kubernetes dashboard to see it started successfully
+                or not. like 1st need to start the configserver then eurekaserver
+
+*9* Rollout and rollback using helm
+
+        Rollout
+
+                (Instructor)
+                    Update the helm chart as per requirement.
+                    Let's say we updated the image tag from s14 to s11 in eazybank-services/gatewayserver/values.yaml
+                    
+                    then run the build command in folder prod-env
+                        d:/../environments/prod-env> helm dependencies build
+                    then install command
+                        d:/../environment> helm upgrade eazybank prod-env
+
+                    after running above command, helm check for the changes and deploy the updates.
+
+                (Mine)
+                    I am not able to test above if not working the build the MS again
+                    then build the prod-env, then run the install command.
+                    it will work.
+                    Idealy above one should work else for rollback we have run seprate commands
+
+        rollback
+
+                for rollback first we'll check the rollout history using below command
+                    helm history eazybank
+
+                    above command will show list of rollout.
+                    Now we need to note down the serial number from revision column from the output of above Command
+                then run the below command providing the serial at which we want rollback
+                        helm rollback <relaseName> <revisionNumber>
+
+                    for example     helm rollback eazybank 1
+
+*10*Helm Uninstall command
+
+        using helm uninstall command we can uninstall all our MS from a kubernetes cluster.
+        So this command is going to be super helful whenever we want to shutdown our eniter
+        kubernetes cluster.
+
+        Lets see what are all the installations that we have done with help of helm using below command
+            > helm ls
+            above command will show all the running releases that we have installed with
+            the help of Helm.
+
+            then using below command we can uninstall/stor the running helm
+            > helm uninstall <nameOfHelmRelease>
+            example  > helm uninstall eazybank
+
+        After uninstalling make sure to delete the pvc(presisten vloume client) which was created by helm
+        by default it does not delete those when we run the uninstall command.
+        So either we need to delete those from kubernetes dashboard or using command.
+
+            >kubectl get pvc        list down all the pvc
+            > kubectl delete pvc <pvc name>   to delete a pvc.
+
+
+*11* other option then helm
+
+        we have a product known as kustomize.io which is compititor of helm
+            easy than helm but helm has very good ecosystem as well as communities like bitnami charts
+                    and other community chart
+
+            
+*12*    helm commands
+
+        >helm create eazybank   Create a lank char with the name eazybank.
+                                Inside the eazybank folder, we can see Charts.yaml, values.yml, Charts foler, template folder etc
+
+        >helm dependencies build        Build is used to reconstruct a chart's dependencies
+
+        > helm install [NAME] [CHART]       Install the maifests mentioned in the [CHART] with a given relase name inside [NAME]
+
+        >helm upgrade [NAME] [CHART]        upgrades a specified release to a new version of a chart
+
+        >helm history [NAME]                prints historical revisions for a given relase.
+
+        > helm rollback [NAME] [REVISION]   Roll back a release to a previous revision. The first argument
+                                            of the rollback command is the name of a release, and the second
+                                            is a revision (version) number. If this argument is omitted, it
+                                            will roll back to the previous relase.
+
+        > helm uninstall [NAME]             Removes all of the resources associated with the last relase of the
+                                            chart as well as the realse history
+
+        >helm template [NAME] [CHART]       Render chart templates locally along with the values and display the output.
+
+        > helm ls                   This command lists all of the realses for a specified namespace
