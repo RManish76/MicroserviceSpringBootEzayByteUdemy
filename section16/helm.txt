@@ -527,3 +527,32 @@ NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomm
                         helm rollback <relaseName> <revisionNumber>
 
                     for example     helm rollback eazybank 1
+
+*10*Helm Uninstall command
+
+        using helm uninstall command we can uninstall all our MS from a kubernetes cluster.
+        So this command is going to be super helful whenever we want to shutdown our eniter
+        kubernetes cluster.
+
+        Lets see what are all the installations that we have done with help of helm using below command
+            > helm ls
+            above command will show all the running releases that we have installed with
+            the help of Helm.
+
+            then using below command we can uninstall/stor the running helm
+            > helm uninstall <nameOfHelmRelease>
+            example  > helm uninstall eazybank
+
+        After uninstalling make sure to delete the pvc(presisten vloume client) which was created by helm
+        by default it does not delete those when we run the uninstall command.
+        So either we need to delete those from kubernetes dashboard or using command.
+
+            >kubectl get pvc        list down all the pvc
+            > kubectl delete pvc <pvc name>   to delete a pvc.
+
+
+*11* other option then helm
+
+        we have a product known as kustomize.io which is compititor of helm
+            easy than helm but helm has very good ecosystem as well as communities like bitnami charts
+                    and other community chart
