@@ -460,3 +460,70 @@ NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomm
 
                     echo "User: admin"
                     echo "Password: $(kubectl get secret grafana-admin --namespace default -o jsonpath="{.data.GF_SECURITY_ADMIN_PASSWORD}" | base64 -d)"
+
+*8* Deployment of all MS
+
+        since the thrid party software are installed using helm. we'll install all MS.
+
+        and as we have already created a environment folder where we have create profiles for qa,
+        dev, prod we can run any pofile and it'll install all MS with single command.
+
+        So lets go to environment folder then run below command
+            helm install eazybank prod-env
+
+            if need we run build command before running the install command.
+
+        found apiversion missing in service.yaml of eazaybank-common which was causing error while
+        installing the prod profile.
+        And error will come at other profile as well.
+        Update the apiversion. build the all MS again and now intall command ran successfully.
+
+        Note: After running the install command of a profile it'll start all MS same time
+                we still have not configured like depeneds on like we did in docker-compose.
+                for example configserver not available, eureka server not available etc
+
+                Fot that reason the pods are going to be fialed to start and whenever this
+                kind of scenario occurs inside the kubernetes, the kubernetes is smart enough
+                to do mutliple restarts till the pod is successfully started or it reaches
+                a maximum nuber of attempts.
+
+                And whenever it it trying to restart a particular part, kubernetes will make
+                sure it is taking some time between multiple restarts.
+                Firt it may tak e2 se, next time it may take 4 or 5 sec, and it is going to
+                delay the next restart based upon exponential delay.
+
+                We can see the spring logs of MS from kubernetes dashboard to see it started successfully
+                or not. like 1st need to start the configserver then eurekaserver
+
+*9* Rollout and rollback using helm
+
+        Rollout
+
+                (Instructor)
+                    Update the helm chart as per requirement.
+                    Let's say we updated the image tag from s14 to s11 in eazybank-services/gatewayserver/values.yaml
+                    
+                    then run the build command in folder prod-env
+                        d:/../environments/prod-env> helm dependencies build
+                    then install command
+                        d:/../environment> helm upgrade eazybank prod-env
+
+                    after running above command, helm check for the changes and deploy the updates.
+
+                (Mine)
+                    I am not able to test above if not working the build the MS again
+                    then build the prod-env, then run the install command.
+                    it will work.
+                    Idealy above one should work else for rollback we have run seprate commands
+
+        rollback
+
+                for rollback first we'll check the rollout history using below command
+                    helm history eazybank
+
+                    above command will show list of rollout.
+                    Now we need to note down the serial number from revision column from the output of above Command
+                then run the below command providing the serial at which we want rollback
+                        helm rollback <relaseName> <revisionNumber>
+
+                    for example     helm rollback eazybank 1

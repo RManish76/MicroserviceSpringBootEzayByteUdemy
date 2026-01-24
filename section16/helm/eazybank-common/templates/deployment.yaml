@@ -1,4 +1,5 @@
 {{- define "common.deployment" -}}   {{/* #name of this helm file, will be used to refer this file using this name common.deployment */}}
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.deploymentName }} {{/* injecting values */}}
