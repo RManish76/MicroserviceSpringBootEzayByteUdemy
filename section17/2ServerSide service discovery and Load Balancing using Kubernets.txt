@@ -8,6 +8,19 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
         Copy the mainfest file place inside a file from the blog.
         pasted at kubernetes/kubernetes-discoveryserver.yml
 
+        Also updating the yml file and yml file is old its not working properly, hence some modification is needed.
+
         #whenever kind as list mentioned means we create any number of kubernetes objects under the items section.
 
-        
+        # the lattest image tag we can check in docker hub at springcloud/spring-cloud-kuberbetes-discoveryserver
+
+        by default the kubernetes will check the health after start of pod in 10 or 20 sec and if not started then
+        it'll restart the pod. And if systemis slow then this will continue like infinte loop unitll retry limit hit.
+        Hence provided 100sec as time, which tells that only test for health and liveness after 100 sec of start of container
+        and then if not got true response then restat.
+
+        Also added a time of 30 sec. As once pod started successfully, the kuberbetes is going to monitor it health and
+        liveness and for that by default it'll probe every 5 or 10 sec. hence provided 30sec, which means i asking
+        do the health and liveness check with 30 sec interval.
+
+        now since the mainfest file is ready we can setup the discovery server.
