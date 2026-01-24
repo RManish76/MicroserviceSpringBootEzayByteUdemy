@@ -556,3 +556,29 @@ NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomm
         we have a product known as kustomize.io which is compititor of helm
             easy than helm but helm has very good ecosystem as well as communities like bitnami charts
                     and other community chart
+
+            
+*12*    helm commands
+
+        >helm create eazybank   Create a lank char with the name eazybank.
+                                Inside the eazybank folder, we can see Charts.yaml, values.yml, Charts foler, template folder etc
+
+        >helm dependencies build        Build is used to reconstruct a chart's dependencies
+
+        > helm install [NAME] [CHART]       Install the maifests mentioned in the [CHART] with a given relase name inside [NAME]
+
+        >helm upgrade [NAME] [CHART]        upgrades a specified release to a new version of a chart
+
+        >helm history [NAME]                prints historical revisions for a given relase.
+
+        > helm rollback [NAME] [REVISION]   Roll back a release to a previous revision. The first argument
+                                            of the rollback command is the name of a release, and the second
+                                            is a revision (version) number. If this argument is omitted, it
+                                            will roll back to the previous relase.
+
+        > helm uninstall [NAME]             Removes all of the resources associated with the last relase of the
+                                            chart as well as the realse history
+
+        >helm template [NAME] [CHART]       Render chart templates locally along with the values and display the output.
+
+        > helm ls                   This command lists all of the realses for a specified namespace
