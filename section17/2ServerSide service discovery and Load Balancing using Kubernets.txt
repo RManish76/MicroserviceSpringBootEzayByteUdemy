@@ -1,0 +1,5 @@
+By default Kubernetes does not have service registery, service discovery and loadbalancing, we need to configure that.
+In spring cloud, we have project with name spring cloud Kubernetes which will help us to setup the all.
+        Doc: https://spring.io/projects/spring-cloud-kubernetes#overview
+        
+        Insturctor is using this blog for setup: https://spring.io/blog/2021/10/26/new-features-for-spring-cloud-kubernetes-in-spring-cloud-2021-0-0-m3
