@@ -140,3 +140,7 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
         next update the application.yml, remove the eureka properties and add nampasce as true.
 
         since card and loans MS does not have feign client,hence no other changes.
+
+*7* Changes in Message MS
+
+        just change the tag to s17
