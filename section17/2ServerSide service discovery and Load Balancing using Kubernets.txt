@@ -39,3 +39,18 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
 
         As we know the command to apply the mainfest, we'll use the same.
                 d:/../section17/kubernetes> kubectl apply -f kubernetes-discoveryserver.yml
+
+
+*3* Changes in MS to remove eureka.
+
+        As a next step, we need to make some code changes inside our MS to remove the Eureka related changes.
+        On top of that, we should also make some changes inside our MS to leverage the discovery server
+        exposed by Kubernetes.
+
+        So we'll copy all from the section 14 because section 14 has the latest and greatest MS code changes.
+        so we'll copy the accounts, cards, configserver, gatewayserver, loans, message and paste them in
+        section17 folder. we don't need eureka MS anymore.\
+
+        And then we'll copy the helm folder form section16 and paste it in section17 folder.
+            we'll update the helm chart as well, as we need to remove the eureka server from our helm charts.
+            
