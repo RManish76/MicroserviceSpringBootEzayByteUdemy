@@ -3,3 +3,11 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
         Doc: https://spring.io/projects/spring-cloud-kubernetes#overview
         
         Insturctor is using this blog for setup: https://spring.io/blog/2021/10/26/new-features-for-spring-cloud-kubernetes-in-spring-cloud-2021-0-0-m3
+
+*1* setup
+        Copy the mainfest file place inside a file from the blog.
+        pasted at kubernetes/kubernetes-discoveryserver.yml
+
+        #whenever kind as list mentioned means we create any number of kubernetes objects under the items section.
+
+        
