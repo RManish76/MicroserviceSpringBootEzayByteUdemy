@@ -24,3 +24,18 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
         do the health and liveness check with 30 sec interval.
 
         now since the mainfest file is ready we can setup the discovery server.
+
+*2*     Setup discovery server
+                Before setting up, we may think that why here we are not using helm.
+                        there are two reasons on why we are using helm 
+                        1st is that Discovery Server is a one time setup inside the kubernetes cluster. And we don't
+                                have to do multiple changes every time. with that reason, manually running these
+                                mainfest files should be fine becuse this is only one time activity.
+                        2nd is reason is as of now there is no helm chart developed by the helm chart community, including
+                                Bitnami for these discovery server.
+                                So if we try to integrate these manifest file into our eazybank helm chart, then it is
+                                going to need a lot of efforest which I felt like it is not worth since this is only
+                                going to be one time activity.
+
+        As we know the command to apply the mainfest, we'll use the same.
+                d:/../section17/kubernetes> kubectl apply -f kubernetes-discoveryserver.yml
