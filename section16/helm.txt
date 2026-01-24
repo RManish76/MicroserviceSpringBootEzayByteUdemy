@@ -22,6 +22,19 @@ cmd:    kubectl get pvc             lists all pvc(oresistent volume claims). Usi
 cmd:    kubectl delete pvc <pvc name>   to delete a pvc.
 
 cmd:    helm ls     list down all helm charts releases/deployment/installed using helm
+
+cmd:    kubectl get pods -l app.kubernetes.io/instance=loki        shows actual state of the specifi pods
+
+cmd:    kubectl get pods | findstr loki                    shows actual state of the specifi pods
+
+cmd:    helm status loki        This command asks Helm for the detailed status of the release, including the user-supplied values and the status of the resources it tried to deploy.
+
+cmd:    helm upgrade loki grafana-loki (from the folder where chart is located. here it helm folder form there)         If the pods are Running but Helm says failed, it usually means the installation took longer than the default timeout (often waiting for a specific condition), or a post-install hook failed.
+                                                To fix the "failed" status: If the pods are running fine, you can usually "fix" the Helm status by running an upgrade command, which forces Helm to reconcile the state:
+                                            loki install got timedout hence it was showing failed in helm ls command. so used it scan it again.
+        
+
+
 *1* Creation of 1st chart
 
         As we know that heml is package manager like pip in python.
