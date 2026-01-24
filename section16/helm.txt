@@ -4,7 +4,22 @@ cmd:    helm env    shows the locations for where it getting environment varibal
 
 cmd:    helm uninstall <charName>       removes/deletes the chart also remove the Kubernetes cluster
 
+cmd:    kubectl get svc       To view the ClusterIP, External-IP, Ports, and other details for your Kubernetes services, use the following command:
 
+cmd:    kubectl get svc keycloak        Or, to see details for a specific service (like Keycloak):
+
+cmd:    kubectl get pods                list down all runing pods with status
+
+cmd:    kubectl describe pod <pod name>         describe the status and at what stage the current pod is
+
+cmd:    kubectl get pvc             lists all pvc(oresistent volume claims). Usin this pvc only the pods can claims
+                                    some space inside the worker nodes.
+                                    so whenever we try to uninstall a specific helm chart form the kubernets cluster,
+                                    it is not going to to delete the pvcs that is createa as part of the installation
+                                    and this amy create some issue.
+                                    So to overcome the problem, we need to delte the pvc mannually
+
+cmd:    kubectl delete pvc <pvc name>   to delete a pvc.
 *1* Creation of 1st chart
 
         As we know that heml is package manager like pip in python.
@@ -190,3 +205,98 @@ NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomm
             So to change this behavior, we need to open the values.yaml present inside the KeyCloak helm chart
             and update the ClusterIP to LoadBalancer.
 
+            Similarly we should note or update the admin username and password in values.yaml
+            We can see in auth section adminUser as user and password as blank.
+            whenever password is blank the KeyCloak behind th scence will create some random password.
+            But we'll set our own for convinece.
+            Also update the update the username as admin and also password as admin
+
+            1st we'll do the build/compile of the helm chart, using below commnad in keycloak folder
+            d/../eazybank-services/keycloak ~    helm dependencies build
+
+
+            now we'll install the KeyCloak. so open the cmd where KeyCloak helm chart exist (eazybank-services)
+            and run the following command
+                d/../eazybank-services ~      helm install keycloak keycloak
+
+                    1st keycloak is the name of keycloak installation/release.
+                    2nd keycloak is the chart/folder name where chart is present.
+
+                Installatioin successfull and we got below respone, which instruct how to access keycloak dashboard.
+
+                        Keycloak can be accessed through the following DNS name from within your cluster:
+
+                            keycloak.default.svc.cluster.local (port 80)
+
+                        To access Keycloak from outside the cluster execute the following commands:
+
+                        1. Get the Keycloak URL by running these commands:
+
+                        NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+                                You can watch its status by running 'kubectl get --namespace default svc -w keycloak'
+
+                            export SERVICE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[?(@.name=='http')].port}" services keycloak)
+                            export SERVICE_IP=$(kubectl get svc --namespace default keycloak -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+                            echo "http://${SERVICE_IP}:${SERVICE_PORT}/"
+
+                        2. Access Keycloak using the obtained URL.
+                        3. Access the Administration Console using the following credentials:
+
+                        echo Username: admin
+                        echo Password: $(kubectl get secret --namespace default keycloak -o jsonpath="{.data.admin-password}" | base64 -d)
+
+                        WARNING: There are "resources" sections in the chart not set. Using "resourcesPreset" is not recommended for production. For production installations, please set the following values according to your workload needs:
+                        - resources
+                        +info https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+
+                we'll run the following command to run the keycloak
+                export SERVICE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[?(@.name=='http')].port}" services keycloak)
+                    export SERVICE_IP=$(kubectl get svc --namespace default keycloak -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+                    echo "http://${SERVICE_IP}:${SERVICE_PORT}/"
+
+            Was getting some error while running above command as above command ment for linux and may work
+            in power shell. Below is the suggestion from gemini and will follow the cmd approach as of now.
+
+                        The error message 'export' is not recognized as an internal or external command occurs because export is a command used in Linux/Unix shells (like Bash) to set environment variables. You are running these commands in the Windows Command Prompt (cmd.exe), which uses different syntax.
+
+                        Here are two ways to resolve this:
+
+                        Option 1: Use PowerShell (Recommended)
+                        PowerShell supports variable assignment syntax that is very similar to what you are trying to do. You can switch to PowerShell by typing powershell in your current command prompt, or by opening a new PowerShell window.
+
+                        Run the following commands in PowerShell:
+
+                        powershell
+                        $SERVICE_PORT = kubectl get --namespace default -o jsonpath="{.spec.ports[?(@.name=='http')].port}" services keycloak
+                        $SERVICE_IP = kubectl get svc --namespace default keycloak -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+                        Write-Host "http://${SERVICE_IP}:${SERVICE_PORT}/"
+                        Option 2: Use Windows Command Prompt (CMD)
+                        If you prefer to stay in cmd.exe, you cannot easily capture command output into variables like in Linux. Instead, you can simply run the kubectl commands directly to see the values and then manually construct the URL in your browser.
+
+                        Run these commands one by one to get the Port and IP:
+
+                        cmd
+                        REM Get the Service Port
+                        kubectl get --namespace default -o jsonpath="{.spec.ports[?(@.name=='http')].port}" services keycloak
+
+                        REM Get the Service IP (LoadBalancer IP)
+                        kubectl get svc --namespace default keycloak -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+                        Note: If the IP command returns nothing, the LoadBalancer might still be provisioning (pending). You can check the status with kubectl get svc -n default keycloak.
+
+                
+                In cmd suggestion the exort keyword is left out.
+                        After running the first command got below response
+                            80
+                        running second command to got below response
+                            ''  which suggest LoadBalancer is still provisioning as per gemini suggestion.
+
+        Note: the helm chart of keycloak from the bitnami also from the instructor folder of helm
+                did not work.
+                Only the helm_new folders keycloak helm chart worked and hence using that.
+
+        Also insturctor putting all third party software in helm folder, same i'll keep.
+
+
+*6* 
