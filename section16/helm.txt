@@ -299,4 +299,7 @@ NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomm
         Also insturctor putting all third party software in helm folder, same i'll keep.
 
 
-*6* 
+*6* Now let's install the kafka.
+
+        First we'll try to use the files form Bitnami if it did not work we'll do it from
+        insturctors github helm_new folder.
