@@ -161,3 +161,32 @@ cmd:    helm uninstall <charName>       removes/deletes the chart also remove th
 NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomment %} is used in Django.
         hence incorrect syntax caused error.
         so updated all the comments with correct syntax.
+
+
+*5* Install KeyCloak in Kubernetes Cluster using Helm Chart
+
+        Helm has a very good community, so we should be able to easily find the helm charts to install
+        any product inside the software industry.
+        For examplem if we want to install Kafka inside our Kubernetes cluster, we don't have to prepare
+        Kubernetes manifest files manually. Instead, we can relly on the helm charts available inside the
+        web.
+
+        So one such company and community, which always maintain these helm charts whith a great production
+        standartds is Bitnami. So bitnami makeit easy to get your favorite open source softwares up and
+        running on any platform, including laptop, Kubernetes or all the major clouds.
+
+        We'll use Bitnami Helm charts to install all the products like Kafka, Grafana, Prometheus, KeyCloak
+        inside our Kubernetes cluster.
+        Bitnami repo: https://github.com/bitnami/charts
+                        https://github.com/bitnami/charts/tree/main/bitnami
+
+            To download the helm charts we can download the repo as zip.
+            And extract the required helm charts in local from the zip.
+        
+        1st we'll do for KeyCloak.
+            By default KeyCloak helm chart set to service type as ClusterIP.
+            But since we want to access the KeyCloak to create the client details and roles information,
+            We are going to expose the KeyCloak service as a LoadBalancer.
+            So to change this behavior, we need to open the values.yaml present inside the KeyCloak helm chart
+            and update the ClusterIP to LoadBalancer.
+
