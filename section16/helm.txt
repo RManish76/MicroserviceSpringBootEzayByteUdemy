@@ -375,3 +375,52 @@ NOTE: {{/*  */}} is used for comments in helm yaml. and {% comment %} {% endcomm
         uninstalled the kafka helm chart and deleted the pvc (command at top of this file)
 
         So i'll copy paste all helm chart(kafka, grafana etc) from helm_new folder of instructor repo.
+
+*7* Installing all other thirdparty helm charts
+
+    since I have already copy pasted the helm charts of thrid party helm charts from helm_new folder of instructor repo.
+    we need to just build and install it.
+
+    prometheus cmd: helm install prometheus kube-prometheus
+
+        After installation done.
+            prometheus is running on ClusterIP, means we can not access it from outside.
+            But for some reason if we want to access it we can runn the following command.
+
+                echo "Prometheus URL: http://127.0.0.1:9090/"
+                kubectl port-forward --namespace default svc/prometheus-kube-prometheus-prometheus 9090:9090
+
+            name was incorrect of prometheus pod so fetched the correct name using below command and updated the port forward.
+
+                cmd:    kubectl get svc
+                cmd:    kubectl port-forward --namespace default svc/prometheus-kube-prometheus 9090:9090
+
+        Also now noticed that all thirdparty are running at LoadBalancer service seen after running
+                 cmd:    kubectl get svc
+            looks like in helm_new folder of instructor repo all thirdparty set to loadbalancer.
+
+    now installing grafana-loki helm charts
+
+            needed to run below command. found this command at https://grafana.github.io/helm-charts and this web link was
+            in charts.yaml
+                helm repo add grafana https://grafana.github.io/helm-charts
+            
+            I don't know why the repo link was already there they we it need add dedicately
+
+            after that ran the build command.
+            then install command outside of loki folder.
+                helm install loki grafana-loki
+
+    now installing grafana-tempo helm charts
+            after build
+                    helm install tempo grafana-tempo
+
+            After instaling as we know that the inidvidual MS need a tempo url to which 
+            the opentelemetry is going to send the details of tracing details but after running
+            installing tempo wedid not got any url
+            So we'll run the below command which will list down all the services.
+                    kubectl get services        this command is same as kubectl get svc
+
+                then form the list we'll fetch the name of tempo distributor and pass
+                the same as environment variable using configmap values.yaml
+                at the key otelExportedEndPoint with port number as 4317
