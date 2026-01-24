@@ -1,0 +1,65 @@
+*1* Client-side service discovery and Load Balancing (eureka server and openfiegn)
+        In client-side service discovery, applications are responsible for registering themselves with a service
+        registry like Eureka during startup and unregistering when shutting down.
+        When an application needs to communicate with a backing service, it queries the service registry for the
+        associated IP address.
+        If multiple instances of the service are available, the registry returns a list of IP addresses.
+        The client application then selects one based on its own defined load-balancing strategy.
+        Below figure illustrates the workflow of this process.
+
+                Eureka Server <------1 Loans service registers with service registry during startup & send regular heart beats.
+               /|\    |                                                                                                   |
+                |     |                                                                                                   |
+                |     |                                                                                                   |
+                |     | 3. Buddy, heere are the IP address of Loans                                                       |
+2. Dude, What are     |        instance                                                                                   |
+address details |     |       127.54.37.23                                                                                |
+of loans service|     |        127.54.37.24                                                                               |
+                |     |                                                                                                   |
+                |     |                                                                    --->Loans Microservice---------|
+                |     |                                                                    |   127.54.37.23               |
+                |     |                                                                    |                              |
+                |    \|/            4. Accounts Microservice is going to invoke            |                              |
+                Accounts----------------one of the instance of loans based on the----------|                              |
+                Microservice            load balancing strategy configured                 |                              |
+                                                                                           |                              |
+                                                                                           --->Loans Microservice---------|
+                                                                                                127.54.37.24
+                                                                                    
+
+*2* Server-side service discovery and load balancing
+
+        In server-side service discovery, the K8s discovery server is responsible to monitor the application instances
+        and maintaining the details of them. When a microservice needs to communicate with a backing service, it simply
+        invokes the service URL exposed by the  K8s. The K8s will take care of loadbalancing the requests at the server
+        layer. So clients are free from load balancing in this scenario.
+
+                                                                                1. Unlike Eureka, this new discovery server
+                                                                                    does not require applications to
+                                                                                    explicitly registery with the server.
+                                                              K8s Discovery---------Instead, the discovery server uses-----------------|
+                                                               /|\      |           the Kubernetes services and endpoints              |
+                                                                |       |                                                              |
+                                                                |       |                                                              |
+                                                                |       |                                               --->Loans<-----|
+                                                                |       |                                               | microservice |
+                        2. Accounts microservice is going to    |      \|/      3. The Kubernetes service will work     | 127.54.37.23 |
+        Accounts -----------invoke K8s service URL of loans--------K8s--------with Discovery server and forward the------              |
+        Microservice       microservice with out worrying         Service       request to one of the loans instance    |              |
+                                about loadbalancing                                                                     |              |
+                                                                                                                        |   loans      |
+                                                                                                                        ->microservice-|
+                                                                                                                           127.54.37.24
+
+        so unlike we do in case of eureak and openfiegn where MS has to register them selev for each instance to eureka, here that responsibility
+        is not on MS the Kubernetes conituisoly monitor each MS and there instances keeps note of the port of running instace. Hence MS does not need
+        worry about registration.
+        Similary if there is multiple instance of cards and I/accounts MS need to send request to cards MS then unlike in case openfiegn
+        where accounts MS had to do the loadbalancing and send the request instead here accounts MS will just send the request to Kubernetes
+        and Kubernetes will do the loadbalancing and forward the request to proper instance.
+
+
+So in case of 1st case while using eureka the client i.e. the accounts MS is doing loadbalancing before sending the request to other MS.
+    As accounts MS get list of IP address of cards/loans Microservice
+Where as incase of 2nd case the accounts MS is not responsible for load balancing. loadbalancing will be done by Kubernetes at server. i.e.
+known as server side.
