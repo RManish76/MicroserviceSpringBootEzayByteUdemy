@@ -68,12 +68,14 @@ items:
                 port: 8761
                 path: /actuator/health/readiness
               initialDelaySeconds: 100 #wait for 100 sec before performing the readinessProbe very first time. by defualt it may look in within 10 or 20 sec and if healthy respones not found kubernetes will restart it and loop will continue.
-              periodSeconds: 30  #since kuberenetes is going to regularly check the health after the pod starts, this communicates check at interval of 30 sec only. by default maybe 5 sec or 10 sec
+              periodSeconds: 100  #since kuberenetes is going to regularly check the health after the pod starts, this communicates check at interval of 30 sec only. by default maybe 5 sec or 10 sec
+              timeoutSeconds: 20
             livenessProbe:
               httpGet:
                 port: 8761
                 path: /actuator/health/liveness
               initialDelaySeconds: 100
-              periodSeconds: 30  
+              periodSeconds: 100
+              timeoutSeconds: 20
             ports:
             - containerPort: 8761
