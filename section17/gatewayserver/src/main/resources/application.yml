@@ -6,16 +6,30 @@ spring:
       - "optional:configserver:http://localhost:8071"
   cloud:
     gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: false #locate all the endpoint from deiscovery service and use the same to forward the extrenal traffic to individual MS
-                              #made it false later as we decided to go with custom api(configured in GatewayserverApplication.java) link instead of default api link
-              lowerCaseServiceId: true
+      # server:
+      #   webflux:
+      #     discovery:
+      #       locator:
+      #         enabled: false #locate all the endpoint from deiscovery service and use the same to forward the extrenal traffic to individual MS
+      #                         #made it false later as we decided to go with custom api(configured in GatewayserverApplication.java) link instead of default api link
+      #         lowerCaseServiceId: true
       httpclient:
         connect-timeout: 10000 #in milisec --> setting high due to low resource
         response-timeout: 10s #wait time for response else timeout and fallback for fallback mechanisim. Increased as we are going to deploy more containers in local
+    kubernetes:
+      discovery:
+        enabled: true #leverage the discovery service at K8s to forward the request to accounts, cards and loans MS
+        all-namespaces: true
+    discovery:
+      client:
+        health-indicator:
+          enabled: false #by default there is ahealth indicator bean is going to be created internally.
+                          #And whenever this is happening behind the scenes, the liberary, which we have added
+                          #related to the discovery client of kubernetes, is going to create an problem because
+                          # it is not going to create a bean that is required for this libeary.
+                          #Also as per insturictor in offical Github issues for this project and  there is an issue
+                          #also raisedinside the GtiHub repo and the spring cloud kuberentes team also confirmed.
+                          #for now to over that error, we should define these property as false.
   data:
     redis:
       connect-timeout: 2s

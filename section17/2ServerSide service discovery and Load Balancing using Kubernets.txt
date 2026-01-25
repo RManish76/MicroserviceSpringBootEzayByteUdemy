@@ -144,3 +144,22 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
 *7* Changes in Message MS
 
         just change the tag to s17
+
+*8* Change in gatewayserver
+
+        first lets update the pom dependency and image tag.
+        Add annotation @EnableDiscoveryClient in GatewayserverApplication.java
+        Now in same file we have mentioned uri as lb://MSName   here lb means loadbalancing
+        means we are asking gatewayserver server to do the loadbalancing with that line.
+        But with new approach we don't want that so we'll update the uri as below
+                .uri("http://accounts:8080")    here we are not hardcoding the ip or domain
+        as long as the service is started with name accounts the feignclient will work fine.
+
+        now we need to update the application.yml
+                we'll remove the eureka server properties which mentioned as below
+                spring.cloud.discovery.locator.enabled=false
+                spring.cloud.discovery.locator.lowerCaseServiceId = true
+
+                we'll remove above two properties related to eureka and kubernetes properties as below
+                        spring.cloud.kubernetes.discovery.enabled=true
+                        spring.cloud.kubernetes.discovery.all-namespaces=true
