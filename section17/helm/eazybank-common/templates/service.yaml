@@ -1,0 +1,15 @@
+{{- define "common.service" -}} {{/* name of this helm file, will be used to refer this file using this name common.service */}}
+apiVersion: v1 {{/* static value never going to change */}}
+kind: Service {{/* static value never going to change */}}
+metadata:
+  name: {{ .Values.serviceName }} {{/* this line expects dynamic value. */}}
+spec:
+  selector:
+    app: {{ .Values.appLabel }} {{/* this line expects dynamic value. */}}
+  type: {{ .Values.service.type }} {{/* this line expects dynamic value. */}}
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.service.port }} {{/* this line expects dynamic value. */}}
+      targetPort: {{ .Values.service.targetPort }} {{/* this line expects dynamic value. */}}
+{{- end -}} {{/* end of the top line */}}

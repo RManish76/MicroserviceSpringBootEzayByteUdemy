@@ -163,3 +163,6 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
                 we'll remove above two properties related to eureka and kubernetes properties as below
                         spring.cloud.kubernetes.discovery.enabled=true
                         spring.cloud.kubernetes.discovery.all-namespaces=true
+
+
+*9* Changes in helm char related to s17.
