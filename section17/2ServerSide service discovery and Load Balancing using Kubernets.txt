@@ -166,3 +166,47 @@ In spring cloud, we have project with name spring cloud Kubernetes which will he
 
 
 *9* Changes in helm char related to s17.
+
+        Now we don't need the eurekaserver, hence deleteing the helm chart of eurekaserver
+        from /helm/eazybank-services/
+
+        Then we need to update the tag name from s14 to s17 in values.yaml for all MS.
+        And if needed we increase the replica of accounts MS as 2 to see the loadbalancing.
+
+        Next step is to update the dev-env,prod-env and qa-env in Chart.yml we'll remove eruekasserver dependencies.
+        now build the all environment (dev,qa,prod) so that it gets lattest dependencies which we udpated In
+        each MS using below command
+           ../dev-env > helm dependencies build
+
+            got below error
+            E:\01_SpringBootEzaybytesUdemy\section17\helm\environments\dev-env>helm dependencies build
+            Error: the lock file (Chart.lock) is out of sync with the dependencies file (Chart.yaml). Please update the dependencies
+
+            sometimes the Chart.lock will create some issues because we deleted some dependencies inside the Chart.yaml
+            to fix this issue we need to delete the Chart.lock file inside the folder.
+
+*10*need to update the discovery service url as well in eazybank-common
+
+        Currently in eazybank-common/templates/confgimap.yaml we have mentioned the url of eurekaserver like below
+            EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: {{ .Values.global.eurekaServerURL }}
+
+        we need to update the above properties to kubernetes discovery url like below
+            SPRING.CLOUD.KUBERNETES.DISCOVERY.DISCOVERY-SERVER-URL: {{.Values.global.discoveryServerURL}}
+
+        Next we need write a if condtion for the kubernetes discover in deployment.uaml of eazybank-common
+            so we'll update the eureka to kubernetes properties.
+
+        Now since we have updated the boolena if name from eureka to discovery, means we need to update
+        all MS helm chart boolena variable name from eureka to discovery.
+
+        Now the acctual url of eurekas server we are passing from environment profiles.
+        like from dev-env helm chart and other porfile chart from values.yaml
+
+    After doing all these do the build again from the all MS and all profiles
+
+    then install the all MS using below command
+            helm install eazybank prod-env
+
+*11* updated gatewayserve crcuit breker time
+        modfied the time from 20sec to 180 sec to wait for response before circuit breaker triggers
+        and fallback to fallback method.

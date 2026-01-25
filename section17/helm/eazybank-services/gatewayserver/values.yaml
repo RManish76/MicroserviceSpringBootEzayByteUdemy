@@ -12,7 +12,7 @@ replicaCount: 1
 
 image:
   repository: pdcourse/gatewayserver #image name
-  tag: s14 #image tag
+  tag: s17 #image tag
 
 containerPort: 8072 #container port
 
@@ -25,7 +25,8 @@ service:
 appname_enabled: true
 profile_enabled: true
 config_enabled: true
-eureka_enabled: true
+# eureka_enabled: true
+discovery_enabled: true
 resouceserver_enabled: true #keycloak related. as only gatewayserver need it. and all other MS does not need it.
 otel_enabled: true
 kafka_enabled: false
