@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CardsApplication",
+            "request": "launch",
+            "mainClass": "com.eazybytes.cards.CardsApplication",
+            "projectName": "cards"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AccountsApplication<accounts>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.eazybytes.accounts.AccountsApplication",
+            "projectName": "accounts",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

@@ -1,0 +1,32 @@
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+#this act as key and value and same will be accessed by the eazybank-common heml chart.
+
+deploymentName: configserver-deployment
+serviceName: configserver
+appLabel: configserver
+appName: configserver
+
+replicaCount: 1
+
+image:
+  repository: pdcourse/configserver #image name
+  tag: s17 #image tag
+
+containerPort: 8071 #container port
+
+service:
+  type: ClusterIP #as we don't want to expose the configserver MS outside of kubernetes cluster hence we are using service type as clusterIP
+  port: 8071 #
+  targetPort: 8071
+
+#required enviornment varaibles for configserver MS. as we are checking if condition in eazybank-common before passing the environment variable to the MS.
+appname_enabled: true
+profile_enabled: false
+config_enabled: false
+# eureka_enabled: false
+discovery_enabled: true
+resouceserver_enabled: false #keycloak related. as only gatewayserver need it. and all other MS does not need it.
+otel_enabled: true
+kafka_enabled: false

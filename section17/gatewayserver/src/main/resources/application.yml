@@ -1,0 +1,119 @@
+spring:
+  application:
+    name: "gatewayserver"
+  config:
+    import:
+      - "optional:configserver:http://localhost:8071"
+  cloud:
+    gateway:
+      # server:
+      #   webflux:
+      #     discovery:
+      #       locator:
+      #         enabled: false #locate all the endpoint from deiscovery service and use the same to forward the extrenal traffic to individual MS
+      #                         #made it false later as we decided to go with custom api(configured in GatewayserverApplication.java) link instead of default api link
+      #         lowerCaseServiceId: true
+      httpclient:
+        connect-timeout: 10000 #in milisec --> setting high due to low resource
+        response-timeout: 10s #wait time for response else timeout and fallback for fallback mechanisim. Increased as we are going to deploy more containers in local
+    kubernetes:
+      discovery:
+        enabled: true #leverage the discovery service at K8s to forward the request to accounts, cards and loans MS
+        all-namespaces: true
+    discovery:
+      client:
+        health-indicator:
+          enabled: false #by default there is ahealth indicator bean is going to be created internally.
+                          #And whenever this is happening behind the scenes, the liberary, which we have added
+                          #related to the discovery client of kubernetes, is going to create an problem because
+                          # it is not going to create a bean that is required for this libeary.
+                          #Also as per insturictor in offical Github issues for this project and  there is an issue
+                          #also raisedinside the GtiHub repo and the spring cloud kuberentes team also confirmed.
+                          #for now to over that error, we should define these property as false.
+  data:
+    redis:
+      connect-timeout: 2s
+      host: localhost
+      port: 6379
+      timeout: 1s
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://localhost:7080/realms/master/protocol/openid-connect/certs" #url from which it need to download the certificates from KeyClock during the statup of the gatewayserver.
+                                                                                          #this certificate will be used by our server to validate the access token that is it really issued by the KeyCloak Server.
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - "*"   #include all rest endpoint. we can mention refresh api alone but going for all.
+                    #for only refresh endpoint, we can mention "refresh". it'll expose only refres endpoint
+                    # of actuator
+  endpoint:  # allow showtdown appliction using post call of actuator. we need to enable additonal endpoints for it. and below did
+    shutdown:
+      enabled: true
+    gateway:
+      enabled: true
+  info:   # to fetch enviorment/app info details using acutator end point.
+    env:
+      enabled: true
+
+  metrics:  #for metics monitoring for micrometer, grafana, prometheus. we are telling to group all the metrics related to this application under the application name. for example group all metrics related to accoutns MS under the application name accounts.
+    tags:
+      application: ${spring.application.name}
+
+endpoints:
+  shutdown:
+    enabled: true # to expose actuator shutdown rest api endpoint
+
+#will add the eureka server details in config file at remote
+#eureka server details --> As accountsMS is eureka client, it need details of eureka server to connect to eureka server
+# eureka:
+#   instance:
+#     # hostname: localhost #no need in client as it's not a server
+#     preferIpAddress: true #by default cliet register themselv using hostname and it works when we have DNS mapping.
+#                           #But in our local we don't have any DNS, so we should prefer IP address so that they can find each other
+#                           #using IP address
+#   client:
+#     fetchRegistry: true #to not fetch registry from other reigstry service(we also do not have other registry). By default true.
+#     registerWithEureka: true #to not registr it self on the registry. Mean we don't want the current registry expose itself on it's own registry. By default true
+#     serviceUrl:
+#       defaultZone: http://localhost:8070/eureka/  #where the eureka server is going to expose its functionality and other MS to register & discover the details
+
+#details which we want to show at eureka server for this app.
+#these infor information will be exposed as part of an actuator endpoint URL
+#Since by default the infor related actuator URL is not enabled, we need to enable the same by adding
+#a property under management followed by info.
+info:
+  app:
+    name: "gatewayserver"
+    description: "Eazy Bank Gateway Server Application"
+    version: "1.0.0"
+
+
+#we are telling that to spring boot if you see any log which is type of DEBUG
+#executing in package of com.eazaybytes.gateewayserver 
+logging:
+  level:
+    com:
+      eazybytes:
+        gatewayserver: DEBUG
+  pattern: #config related to opentelemetry
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+          # %5p --> assign some char of lenght of 5 for log severiy like debug, warning or error
+          # ${spring.application.name} --> tag, the metadata info related to application, which is app name
+          # %X{trace_id} --> convey to springboot framework at runtime Open Telemetry library is going to generate the
+                            # trace ID with the context information trace_id. The same we want to inject here. After the trace Id.
+          # %X{span_id} --> to inject span ID at the runtime into all the logs.
+
+
+resilience4j.circuitbreaker:
+  configs:
+    default: #default means these properties for all circuit breaker inside the gatewayServer MS. If we want to set properties for any particular circuit breaker we can metion the name which we give in GatewayserverApplication.java in place of default.
+      slidingWindowSize: 10 #Monitor atleast 10 request before moving to open from close
+      permittedNumberOfCallsInHalfOpenState: 2 #max 2 calls allowed in HalfOpen State. Take decision to go back to open or close status based  on these 2 request beahivour
+      failureRateThreshold: 50 # if alteast 50% of request failed the circuit breaker can move from open status to close status.
+      waitDurationInOpenState: 10000 #10000milisec-->10s wait for 10s in open state then only move to Half_Open state

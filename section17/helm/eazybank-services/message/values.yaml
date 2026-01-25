@@ -1,0 +1,32 @@
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+#this act as key and value and same will be accessed by the eazybank-common heml chart.
+
+deploymentName: message-deployment
+serviceName: message
+appLabel: message
+appName: message
+
+replicaCount: 1
+
+image:
+  repository: pdcourse/message #image name
+  tag: s17 #image tag
+
+containerPort: 9010 #container port
+
+service:
+  type: ClusterIP #as we don't want to expose the message MS outside of kubernetes cluster hence we are using service type as clusterIP
+  port: 9010 #
+  targetPort: 9010
+
+#required enviornment varaibles for message MS. as we are checking if condition in eazybank-common before passing the environment variable to the MS.
+appname_enabled: true
+profile_enabled: false
+config_enabled: false
+# eureka_enabled: false
+discovery_enabled: true
+resouceserver_enabled: false #keycloak related. as only gatewayserver need it. and all other MS does not need it.
+otel_enabled: false
+kafka_enabled: true

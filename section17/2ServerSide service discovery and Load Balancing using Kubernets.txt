@@ -1,0 +1,212 @@
+By default Kubernetes does not have service registery, service discovery and loadbalancing, we need to configure that.
+In spring cloud, we have project with name spring cloud Kubernetes which will help us to setup the all.
+        Doc: https://spring.io/projects/spring-cloud-kubernetes#overview
+        
+        Insturctor is using this blog for setup: https://spring.io/blog/2021/10/26/new-features-for-spring-cloud-kubernetes-in-spring-cloud-2021-0-0-m3
+
+*1* setup
+        Copy the mainfest file place inside a file from the blog.
+        pasted at kubernetes/kubernetes-discoveryserver.yml
+
+        Also updating the yml file and yml file is old its not working properly, hence some modification is needed.
+
+        #whenever kind as list mentioned means we create any number of kubernetes objects under the items section.
+
+        # the lattest image tag we can check in docker hub at springcloud/spring-cloud-kubernetes-discoveryserver
+
+        by default the kubernetes will check the health after start of pod in 10 or 20 sec and if not started then
+        it'll restart the pod. And if systemis slow then this will continue like infinte loop unitll retry limit hit.
+        Hence provided 100sec as time, which tells that only test for health and liveness after 100 sec of start of container
+        and then if not got true response then restat.
+
+        Also added a time of 30 sec. As once pod started successfully, the kubernetes is going to monitor it health and
+        liveness and for that by default it'll probe every 5 or 10 sec. hence provided 30sec, which means i asking
+        do the health and liveness check with 30 sec interval.
+
+        now since the mainfest file is ready we can setup the discovery server.
+
+*2*     Setup discovery server
+                Before setting up, we may think that why here we are not using helm.
+                        there are two reasons on why we are using helm 
+                        1st is that Discovery Server is a one time setup inside the kubernetes cluster. And we don't
+                                have to do multiple changes every time. with that reason, manually running these
+                                mainfest files should be fine becuse this is only one time activity.
+                        2nd is reason is as of now there is no helm chart developed by the helm chart community, including
+                                Bitnami for these discovery server.
+                                So if we try to integrate these manifest file into our eazybank helm chart, then it is
+                                going to need a lot of efforest which I felt like it is not worth since this is only
+                                going to be one time activity.
+
+        As we know the command to apply the mainfest, we'll use the same.
+                d:/../section17/kubernetes> kubectl apply -f kubernetes-discoveryserver.yml
+
+
+*3* Changes in MS to remove eureka.
+
+        As a next step, we need to make some code changes inside our MS to remove the Eureka related changes.
+        On top of that, we should also make some changes inside our MS to leverage the discovery server
+        exposed by Kubernetes.
+
+        So we'll copy all from the section 14 because section 14 has the latest and greatest MS code changes.
+        so we'll copy the accounts, cards, configserver, gatewayserver, loans, message and paste them in
+        section17 folder. we don't need eureka MS anymore.\
+
+        And then we'll copy the helm folder form section16 and paste it in section17 folder.
+            we'll update the helm chart as well, as we need to remove the eureka server from our helm charts.
+
+    
+*4* Changes in Accounts MS
+        1st we'll update the pom.
+            changed the image tage to s17.
+            commented the dependency of eurekaClient and add dependency of kubernetes-discoveryclient.
+
+        After these changes instructor tried to start accounts MS but got error.
+            In CustomerController.java  import org.apache.http.HttpStatus was being used, which causing error
+            after removing the eureka client dependency.
+            So he replaced it with import org.apache.hc.core5.http.HttpStatus
+
+            But in my case i am using import org.springframework.http.HttpStatus; don't know will it case some
+            issue or not.
+
+        After that we need to add an annotation in AccountsApplication.java
+            @EnableDiscoveryClient
+
+        After that we also need to update the application.yml
+            remove the eureka properties. Add properties related kubernetes under spring.cloud.
+                spring.cloud.kubernetes.discovery.all-namespaces = true 
+
+            purpose of above config is that,
+                as of now we are deploying all our MS into that default namespace of Kubernetes.
+                But sometimes some projects they may deploy different, different applications in different, different
+                namespaces.
+                So in such scenarios, to make sure that our application is able to discover the services present
+                inside other namespaces as well, we need to make sure we are mentioning these all namespaces as true.
+        
+        After this we'll need to update the code for feign client as we are using it.
+            service/client/    CardsFeignClient.java  and LoansFeignClient.java
+
+            so in these files whatever configurations we have defined there, they will work perfectly
+            with Eureka Server because inside the Eureka Server, all the applications are going to be
+            registered with the application names like cards and loans.
+            using the same application name the accounts MS can fetch the details of all the instances
+            of cards MS from the Eureka Server.
+            We also provided the Eureka server conection details inside the appliction.yml so there is
+            a clear integration between the accounts MS and eureka server and uisng the same integration,
+            it is going to use this name which we have defined here, which is cards to get the details
+            of cards, MS intance.
+
+            Bur in the scenario of Discovery server, we are not providing any integration detials between
+            the accounts MS and Discover Server. Nowhere in application.yml we have methioned
+            Discover server details. so that's why the feign clients cannot really understand what
+            is the service name or the host name or the dns name or the port number where it has to
+            forward the request.
+
+            So to resolve this issue we need to provide dtails with the paramerte which is URL.
+            So inside the annotation of feign cliet, apart from the name as cards or loans
+            we should alos mention what is the url at which the cards/loans MS is available
+
+                url = "http://cards:9000"
+            
+            since the service name we are using cards and loans only at kubernetes we can metion that
+            with port.
+            So uisng this servicname (cards/loans) the communicatiion between accounts MS and cards MS
+            is going to happen within the Kubernetes cluster and hwere all my cards MS containers are going
+            to be available at the port 9000.
+            So this is the only details that we need to provide to the Feign client.
+
+            And here the Feign Client is not going to performa ny load balancing. It is simply going
+            to foreward the request to this URL inside the Kubernetes cluster.
+
+            If the same is happening outside the Kubernetes cluster, then it is not going to work because
+            outside of kubernetes clustere there is not hostname or dns name with the name cards.
+            So that's why whenever you are trying to do some local testing without Kubernetes cluster,
+            try to give your Localhost URL.
+        
+        So let's make same change in LoansFeignClient.java
+
+*5* Changes in Cards MS
+
+        updated the pom dependency and image tag.
+        Added the annotation @EnableDiscovery in CardsApplication.java
+        next update the application.yml, remove the eureka properties and add nampasce as true.
+
+        since card and loans MS does not have feign client,hence no other changes.
+
+*6* Changes in Loans MS
+        
+        same changes as cards
+        updated the pom dependency and image tag.
+        Added the annotation @EnableDiscovery in LoansApplication.java
+        next update the application.yml, remove the eureka properties and add nampasce as true.
+
+        since card and loans MS does not have feign client,hence no other changes.
+
+*7* Changes in Message MS
+
+        just change the tag to s17
+
+*8* Change in gatewayserver
+
+        first lets update the pom dependency and image tag.
+        Add annotation @EnableDiscoveryClient in GatewayserverApplication.java
+        Now in same file we have mentioned uri as lb://MSName   here lb means loadbalancing
+        means we are asking gatewayserver server to do the loadbalancing with that line.
+        But with new approach we don't want that so we'll update the uri as below
+                .uri("http://accounts:8080")    here we are not hardcoding the ip or domain
+        as long as the service is started with name accounts the feignclient will work fine.
+
+        now we need to update the application.yml
+                we'll remove the eureka server properties which mentioned as below
+                spring.cloud.discovery.locator.enabled=false
+                spring.cloud.discovery.locator.lowerCaseServiceId = true
+
+                we'll remove above two properties related to eureka and kubernetes properties as below
+                        spring.cloud.kubernetes.discovery.enabled=true
+                        spring.cloud.kubernetes.discovery.all-namespaces=true
+
+
+*9* Changes in helm char related to s17.
+
+        Now we don't need the eurekaserver, hence deleteing the helm chart of eurekaserver
+        from /helm/eazybank-services/
+
+        Then we need to update the tag name from s14 to s17 in values.yaml for all MS.
+        And if needed we increase the replica of accounts MS as 2 to see the loadbalancing.
+
+        Next step is to update the dev-env,prod-env and qa-env in Chart.yml we'll remove eruekasserver dependencies.
+        now build the all environment (dev,qa,prod) so that it gets lattest dependencies which we udpated In
+        each MS using below command
+           ../dev-env > helm dependencies build
+
+            got below error
+            E:\01_SpringBootEzaybytesUdemy\section17\helm\environments\dev-env>helm dependencies build
+            Error: the lock file (Chart.lock) is out of sync with the dependencies file (Chart.yaml). Please update the dependencies
+
+            sometimes the Chart.lock will create some issues because we deleted some dependencies inside the Chart.yaml
+            to fix this issue we need to delete the Chart.lock file inside the folder.
+
+*10*need to update the discovery service url as well in eazybank-common
+
+        Currently in eazybank-common/templates/confgimap.yaml we have mentioned the url of eurekaserver like below
+            EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: {{ .Values.global.eurekaServerURL }}
+
+        we need to update the above properties to kubernetes discovery url like below
+            SPRING.CLOUD.KUBERNETES.DISCOVERY.DISCOVERY-SERVER-URL: {{.Values.global.discoveryServerURL}}
+
+        Next we need write a if condtion for the kubernetes discover in deployment.uaml of eazybank-common
+            so we'll update the eureka to kubernetes properties.
+
+        Now since we have updated the boolena if name from eureka to discovery, means we need to update
+        all MS helm chart boolena variable name from eureka to discovery.
+
+        Now the acctual url of eurekas server we are passing from environment profiles.
+        like from dev-env helm chart and other porfile chart from values.yaml
+
+    After doing all these do the build again from the all MS and all profiles
+
+    then install the all MS using below command
+            helm install eazybank prod-env
+
+*11* updated gatewayserve crcuit breker time
+        modfied the time from 20sec to 180 sec to wait for response before circuit breaker triggers
+        and fallback to fallback method.

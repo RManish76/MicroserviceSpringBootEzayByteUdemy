@@ -1,0 +1,1 @@
+{{- template "common.deployment" . -}} {{/* refert eazybank-common for the content of this file, all details related to eazyban-common mentioned in Chart.yaml */}}

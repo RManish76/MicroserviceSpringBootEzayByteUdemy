@@ -1,0 +1,12 @@
+global:
+  configMapName: eazybankdev-configmap
+  activeProfile: default
+  configServerURL: configserver:http://configserver:8071/
+  # eurekaServerURL: http://eurekaserver:8070/eureka/
+  discoveryServerURL: "http://spring-cloud-kubernetes-discoveryserver:80/"  #the service name spring-cloud-kubernetes-discoveryserver is defined in kubernetes-discoveryserver.yml at line 10 as metadata.name also port is there.
+  keyCloakURL: http://keycloak.default.svc.cluster.local:80/realms/master/protocol/openid-connect/certs #in statard production envirnoment and kubdernetes cluster of the thirds party componets like KeyCloak, Kafka, grafana etc with helm chart are deployed like this in production standards. these will install helm chart available in web
+  openTelemetryJavaAgent: "-javaagent:/app/libs/opentelemetry-javaagent-2.22.0.jar"
+  otelExporterEndPoint: http://tempo.default.svc.cluster.local:4318
+  otelMetricsExporter: none
+  otelLogsExporter: none
+  kafkaBrokerURL: kafka-controller-0.kafka-controller-headless.default.svc.cluster.local:9092

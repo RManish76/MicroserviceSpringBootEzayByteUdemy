@@ -1,0 +1,81 @@
+---
+apiVersion: v1
+kind: List #whenever kind as list mentioned means we create any number of kubernetes objects under these items.
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-discoveryserver
+      name: spring-cloud-kubernetes-discoveryserver
+    spec:
+      ports:
+        - name: http
+          port: 80 #the port 80 will not create any issue for keycloak server as type is ClusteIP means this port is internal. and keycloak exposed to 80 as LoadBalancer.
+          targetPort: 8761
+      selector:
+        app: spring-cloud-kubernetes-discoveryserver
+      type: ClusterIP
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-discoveryserver
+      name: spring-cloud-kubernetes-discoveryserver
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding #communicating a role wil be provided to service account
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-discoveryserver
+      name: spring-cloud-kubernetes-discoveryserver:view
+    roleRef:
+      kind: Role
+      apiGroup: rbac.authorization.k8s.io
+      name: namespace-reader #the role which will be provided to service account
+    subjects:
+      - kind: ServiceAccount
+        name: spring-cloud-kubernetes-discoveryserver
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      namespace: default
+      name: namespace-reader #below is the rules related to the role. means what kind of access need to provide with this role.
+    rules:
+      - apiGroups: ["", "extensions", "apps"]
+        resources: ["services", "endpoints", "pods"]
+        verbs: ["get", "list", "watch"]
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: spring-cloud-kubernetes-discoveryserver-deployment
+    spec:
+      selector:
+        matchLabels:
+          app: spring-cloud-kubernetes-discoveryserver
+      template:
+        metadata:
+          labels:
+            app: spring-cloud-kubernetes-discoveryserver
+        spec:
+          serviceAccount: spring-cloud-kubernetes-discoveryserver #binding the service account fot this deployment
+          containers:
+          - name: spring-cloud-kubernetes-discoveryserver
+            image: springcloud/spring-cloud-kubernetes-discoveryserver:3.2.0 #this is the image will be used as discovery server, built by spirng cloud. we don't need build it.
+                                                                              # the lattest image tag we can check in docker hub at springcloud/spring-cloud-kuberbetes-discoveryserver
+            imagePullPolicy: IfNotPresent
+            readinessProbe:
+              httpGet:
+                port: 8761
+                path: /actuator/health/readiness
+              initialDelaySeconds: 100 #wait for 100 sec before performing the readinessProbe very first time. by defualt it may look in within 10 or 20 sec and if healthy respones not found kubernetes will restart it and loop will continue.
+              periodSeconds: 100  #since kuberenetes is going to regularly check the health after the pod starts, this communicates check at interval of 30 sec only. by default maybe 5 sec or 10 sec
+              timeoutSeconds: 20
+            livenessProbe:
+              httpGet:
+                port: 8761
+                path: /actuator/health/liveness
+              initialDelaySeconds: 100
+              periodSeconds: 100
+              timeoutSeconds: 20
+            ports:
+            - containerPort: 8761

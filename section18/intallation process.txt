@@ -1,0 +1,36 @@
+1st add the discovery server using kubernetes manifest file which we created using below command
+	d:/../section17/kubernetes> kubectl apply -f kubernetes-discoveryserver.yml
+got below reponse
+E:\01_SpringBootEzaybytesUdemy\section17\kubernetes>kubectl apply -f kubernetes-discoveryserver.yml
+service/spring-cloud-kubernetes-discoveryserver created
+serviceaccount/spring-cloud-kubernetes-discoveryserver created
+rolebinding.rbac.authorization.k8s.io/spring-cloud-kubernetes-discoveryserver:view created
+role.rbac.authorization.k8s.io/namespace-reader created
+deployment.apps/spring-cloud-kubernetes-discoveryserver-deployment created
+
+
+2nd check if any helm is installed using helm ls command
+	And install the keycloak helm chart using below command
+		helm install keycloak keycloak
+
+3rd install the helm chart of kafka
+		helm install kafka kafka
+
+4rth install prometheus
+	helm install prometheus kube-promethues
+
+Note in all helm command the 1st name is the service name which we want to use as name and second
+name is the actual helm chart name which we created.
+
+5th install loki
+	helm install loki grafana-loki
+
+6th install temp
+	helm install temp grafana-tempo
+
+7th install grafana
+	helm install grafana grafana
+
+8th install eazybank helm char using below command
+
+	section17/helm/environments> helm install eazybank prod-env
